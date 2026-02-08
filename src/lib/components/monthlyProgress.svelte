@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
   let form = $state({
     meta: {
       month: "",
@@ -8,7 +8,7 @@
     patient: {
       name: "",
       admission: {
-        active: null, // Si/No
+        active: null as boolean | null, // Si/No
         dateIn: "",
         dateOut: "",
       },
@@ -16,31 +16,31 @@
     },
     generalStatus: {
       transfusions: {
-        active: null,
+        active: null as boolean | null,
         count: "",
       },
       interdialyticGain: "",
       generalState: "",
       appetite: "",
       residualDiuresis: {
-        active: null, // Si/No
+        active: null as boolean | null, // Si/No
         type: "", // 'Normal' or 'Disminuido'
       },
     },
     comorbidities: {
       // Left Column
-      hypotension: null,
-      hypertension: null,
-      pruritus: null,
-      precordialPain: null,
-      hypoglycemia: null,
-      headache: null,
+      hypotension: null as boolean | null,
+      hypertension: null as boolean | null,
+      pruritus: null as boolean | null,
+      precordialPain: null as boolean | null,
+      hypoglycemia: null as boolean | null,
+      headache: null as boolean | null,
       // Right Column
-      lumbalgia: null,
-      cramps: null,
-      nausea: null, // Nauseas / Vomitos
-      pyrogenicCrisis: null,
-      bacteremia: null,
+      lumbalgia: null as boolean | null,
+      cramps: null as boolean | null,
+      nausea: null as boolean | null, // Nauseas / Vomitos
+      pyrogenicCrisis: null as boolean | null,
+      bacteremia: null as boolean | null,
       // Text
       treatment: "",
       other: "",
@@ -52,12 +52,12 @@
       exam: "",
     },
     dialysisParams: {
-      volemia: null, // Si/No (Adecuado?)
-      anemia: null,
-      nutrition: null,
-      metabolism: null,
-      lipids: null,
-      ktv: null,
+      volemia: null as boolean | null, // Si/No (Adecuado?)
+      anemia: null as boolean | null,
+      nutrition: null as boolean | null,
+      metabolism: null as boolean | null,
+      lipids: null as boolean | null,
+      ktv: null as boolean | null,
     },
     currentTreatment: {
       vitamins: "",
@@ -83,8 +83,12 @@
   });
 </script>
 
-
-{#snippet yesNo(label, value, setFn)}
+// --- SNIPPETS --- // A reusable Yes/No Toggle that mimics the box style //
+{#snippet yesNo(
+  label: string,
+  value: boolean | null,
+  setFn: (v: boolean) => void,
+)}
   <div
     class="flex items-center justify-between text-xs py-1 border-b border-gray-100 last:border-0"
   >
@@ -114,19 +118,21 @@
   </div>
 {/snippet}
 
-// Simple Line Input
-{#snippet lineInput(label, value, setValue)}
+{#snippet lineInput(
+  label: string,
+  value: string,
+  setValue: (v: string) => void,
+)}
   <div class="flex items-center gap-2 w-full">
     <span class="font-bold text-xs whitespace-nowrap">{label}:</span>
     <input
       type="text"
       {value}
-      oninput={(e) => setValue(e.target.value)}
+      oninput={(e) => setValue((e.currentTarget as HTMLInputElement).value)}
       class="w-full border-b border-gray-400 focus:border-blue-600 outline-none text-sm bg-transparent"
     />
   </div>
 {/snippet}
-
 <div
   class="max-w-4xl mx-auto bg-white p-6 shadow-xl border border-gray-200 font-sans text-gray-800 print:shadow-none print:max-w-none"
 >
