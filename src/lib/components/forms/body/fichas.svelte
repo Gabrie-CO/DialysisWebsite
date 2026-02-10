@@ -1,6 +1,4 @@
 <script lang="ts">
-  import { onMount } from "svelte";
-
   let { initialData = {}, onSave } = $props<{
     initialData?: Record<string, number[]> & { updatedAt?: string };
     onSave: (data: Record<string, number[]>) => void;

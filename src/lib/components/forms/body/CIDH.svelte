@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { untrack } from "svelte";
   // --- TYPES ---
   interface AccessData {
     active: boolean;
@@ -220,7 +221,7 @@
         finalComment: "",
       },
     },
-    ...initialData,
+    ...untrack(() => initialData),
   });
 
   $effect(() => {
@@ -401,20 +402,22 @@
 
   <div class="grid grid-cols-2 gap-6 mb-6">
     <div class="col-span-2 md:col-span-1">
-      <label class="form-label">Nombre del Paciente</label>
-      <input
-        type="text"
-        bind:value={formData.patient.firstName}
-        class="form-input"
-      />
+      <label class="form-label"
+        >Nombre del Paciente <input
+          type="text"
+          bind:value={formData.patient.firstName}
+          class="form-input"
+        />
+      </label>
     </div>
     <div class="col-span-2 md:col-span-1">
-      <label class="form-label">Apellidos</label>
-      <input
-        type="text"
-        bind:value={formData.patient.lastName}
-        class="form-input"
-      />
+      <label class="form-label"
+        >Apellidos <input
+          type="text"
+          bind:value={formData.patient.lastName}
+          class="form-input"
+        />
+      </label>
     </div>
 
     <div class="flex gap-4">
@@ -428,26 +431,40 @@
     </div>
 
     <div>
-      <label class="form-label">Fecha Nacimiento</label>
-      <input type="date" bind:value={formData.patient.dob} class="form-input" />
+      <label class="form-label"
+        >Fecha Nacimiento <input
+          type="date"
+          bind:value={formData.patient.dob}
+          class="form-input"
+        />
+      </label>
     </div>
 
     <div class="col-span-2 grid grid-cols-4 gap-4">
       <div>
-        <label class="form-label">Clínica</label>
-        <input bind:value={formData.patient.clinic} class="form-input" />
+        <label class="form-label"
+          >Clínica <input
+            bind:value={formData.patient.clinic}
+            class="form-input"
+          />
+        </label>
       </div>
       <div>
-        <label class="form-label">Cubículo</label>
-        <input bind:value={formData.patient.cubicle} class="form-input" />
+        <label class="form-label"
+          >Cubículo <input
+            bind:value={formData.patient.cubicle}
+            class="form-input"
+          />
+        </label>
       </div>
       <div>
-        <label class="form-label">Fecha Evento</label>
-        <input
-          type="date"
-          bind:value={formData.patient.eventDate}
-          class="form-input"
-        />
+        <label class="form-label"
+          >Fecha Evento <input
+            type="date"
+            bind:value={formData.patient.eventDate}
+            class="form-input"
+          />
+        </label>
       </div>
       <div class="flex items-end gap-2">
         <span class="text-xs font-bold">Enfermedades:</span>
@@ -528,8 +545,12 @@
         "wound",
       )}
       <div class="flex flex-col">
-        <label class="form-label text-xs">Otros</label>
-        <input bind:value={formData.nursing.other} class="form-input" />
+        <label class="form-label text-xs"
+          >Otros <input
+            bind:value={formData.nursing.other}
+            class="form-input"
+          />
+        </label>
       </div>
     </div>
   </div>
@@ -603,11 +624,12 @@
           "diabeticFoot",
         )}
         <div class="flex flex-col mt-2">
-          <label class="form-label text-xs">Otros</label>
-          <input
-            bind:value={formData.medical.diagnosis.other}
-            class="form-input"
-          />
+          <label class="form-label text-xs"
+            >Otros <input
+              bind:value={formData.medical.diagnosis.other}
+              class="form-input"
+            />
+          </label>
         </div>
       </div>
     </div>
@@ -624,38 +646,43 @@
         {@render checkbox("Urocultivo", formData.medical.tests, "urineCulture")}
         {@render checkbox("Hemograma", formData.medical.tests, "hemogram")}
         <div class="flex flex-col mt-2">
-          <label class="form-label text-xs">Otras</label>
-          <input bind:value={formData.medical.tests.other} class="form-input" />
+          <label class="form-label text-xs"
+            >Otras <input
+              bind:value={formData.medical.tests.other}
+              class="form-input"
+            /></label
+          >
         </div>
       </div>
 
       <div class="mt-6 pt-4 border-t border-gray-100">
-        <label class="form-label mb-2">Se refiere</label>
-        <div class="flex gap-4 items-center mb-4">
-          <label class="flex items-center gap-2 cursor-pointer">
-            <input
-              type="radio"
-              value={true}
-              bind:group={formData.medical.referral.sent}
-              class="form-checkbox"
-            />
-            <span class="text-sm">SI</span>
-          </label>
-          <label class="flex items-center gap-2 cursor-pointer">
-            <input
-              type="radio"
-              value={false}
-              bind:group={formData.medical.referral.sent}
-              class="form-checkbox"
-            />
-            <span class="text-sm">NO</span>
-          </label>
-        </div>
-        <input
-          placeholder="Donde..."
-          bind:value={formData.medical.referral.where}
-          class="form-input"
-        />
+        <label class="form-label mb-2"
+          >Se refiere <div class="flex gap-4 items-center mb-4">
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input
+                type="radio"
+                value={true}
+                bind:group={formData.medical.referral.sent}
+                class="form-checkbox"
+              />
+              <span class="text-sm">SI</span>
+            </label>
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input
+                type="radio"
+                value={false}
+                bind:group={formData.medical.referral.sent}
+                class="form-checkbox"
+              />
+              <span class="text-sm">NO</span>
+            </label>
+          </div>
+          <input
+            placeholder="Donde..."
+            bind:value={formData.medical.referral.where}
+            class="form-input"
+          />
+        </label>
       </div>
     </div>
   </div>
@@ -665,35 +692,39 @@
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
       <div>
-        <label class="form-label">Fecha de seguimiento</label>
-        <input
-          type="date"
-          bind:value={formData.followUp.date}
-          class="form-input"
-        />
+        <label class="form-label"
+          >Fecha de seguimiento
+          <input
+            type="date"
+            bind:value={formData.followUp.date}
+            class="form-input"
+          />
+        </label>
       </div>
       <div>
-        <label class="form-label">Paciente Hospitalizado</label>
-        <div class="flex gap-4 mt-2">
-          <label class="flex items-center gap-2 cursor-pointer">
-            <input
-              type="radio"
-              value={true}
-              bind:group={formData.followUp.hospitalized}
-              class="form-checkbox"
-            />
-            <span class="text-sm">SI</span>
-          </label>
-          <label class="flex items-center gap-2 cursor-pointer">
-            <input
-              type="radio"
-              value={false}
-              bind:group={formData.followUp.hospitalized}
-              class="form-checkbox"
-            />
-            <span class="text-sm">NO</span>
-          </label>
-        </div>
+        <label class="form-label"
+          >Paciente Hospitalizado
+          <div class="flex gap-4 mt-2">
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input
+                type="radio"
+                value={true}
+                bind:group={formData.followUp.hospitalized}
+                class="form-checkbox"
+              />
+              <span class="text-sm">SI</span>
+            </label>
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input
+                type="radio"
+                value={false}
+                bind:group={formData.followUp.hospitalized}
+                class="form-checkbox"
+              />
+              <span class="text-sm">NO</span>
+            </label>
+          </div>
+        </label>
       </div>
     </div>
 
@@ -736,11 +767,13 @@
             /> Staphylococcus Aureus</label
           >
           <div class="flex flex-col flex-1">
-            <label class="form-label text-xs">Otros</label>
-            <input
-              bind:value={formData.followUp.result.pathogen.other}
-              class="form-input"
-            />
+            <label class="form-label text-xs"
+              >Otros
+              <input
+                bind:value={formData.followUp.result.pathogen.other}
+                class="form-input"
+              />
+            </label>
           </div>
         </div>
       </div>
@@ -758,11 +791,13 @@
             /> Vancomicina</label
           >
           <div class="flex flex-col flex-1">
-            <label class="form-label text-xs">Otros</label>
-            <input
-              bind:value={formData.followUp.result.sensitivity.other}
-              class="form-input"
-            />
+            <label class="form-label text-xs"
+              >Otros
+              <input
+                bind:value={formData.followUp.result.sensitivity.other}
+                class="form-input"
+              />
+            </label>
           </div>
         </div>
       </div>
@@ -1054,11 +1089,14 @@
       </div>
 
       <div class="mt-4">
-        <label class="form-label">Comentario Final</label>
-        <textarea
-          bind:value={formData.followUp.outcomes.finalComment}
-          class="form-input h-24"
-        ></textarea>
+        <label class="form-label"
+          >Comentario Final
+          <textarea
+            bind:value={formData.followUp.outcomes.finalComment}
+            class="form-input h-24"
+          ></textarea>
+          ></label
+        >
       </div>
     </div>
 

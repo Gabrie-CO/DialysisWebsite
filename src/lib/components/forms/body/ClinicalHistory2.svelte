@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { untrack } from "svelte";
+
   // --- TYPES ---
   interface FormState {
     // Header
@@ -197,7 +199,7 @@
       albumina: "",
       glucosa: "",
     },
-    ...initialData,
+    ...untrack(() => initialData),
   });
 
   $effect(() => {
@@ -286,10 +288,6 @@
       ...initialData,
     };
   });
-
-  function handleSave() {
-    onSave(form);
-  }
 </script>
 
 {#snippet lineInput(

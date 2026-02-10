@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { untrack } from "svelte";
   interface FormState {
     meta: {
       month: string;
@@ -169,7 +170,7 @@
       ktvTarget: "",
       temperature: "",
     },
-    ...initialData,
+    ...untrack(() => initialData),
   });
 
   $effect(() => {
@@ -403,31 +404,32 @@
 
   <div class="grid grid-cols-12 gap-6 mb-8 border-b border-gray-100 pb-8">
     <div class="col-span-12 md:col-span-6">
-      <label class="form-label">Transfusiones</label>
-      <div class="flex items-center gap-4 mb-2">
-        <label class="form-checkbox-label"
-          ><input
-            type="radio"
-            bind:group={form.generalStatus.transfusions.active}
-            value={true}
-            class="form-checkbox"
-          /> SI</label
-        >
-        <label class="form-checkbox-label"
-          ><input
-            type="radio"
-            bind:group={form.generalStatus.transfusions.active}
-            value={false}
-            class="form-checkbox"
-          /> NO</label
-        >
-      </div>
-      <label class="block">
-        <span class="form-label text-xs">Número</span>
-        <input
-          bind:value={form.generalStatus.transfusions.count}
-          class="form-input w-24"
-        />
+      <label class="form-label"
+        >Transfusiones <div class="flex items-center gap-4 mb-2">
+          <label class="form-checkbox-label"
+            ><input
+              type="radio"
+              bind:group={form.generalStatus.transfusions.active}
+              value={true}
+              class="form-checkbox"
+            /> SI</label
+          >
+          <label class="form-checkbox-label"
+            ><input
+              type="radio"
+              bind:group={form.generalStatus.transfusions.active}
+              value={false}
+              class="form-checkbox"
+            /> NO</label
+          >
+        </div>
+        <label class="block">
+          <span class="form-label text-xs">Número</span>
+          <input
+            bind:value={form.generalStatus.transfusions.count}
+            class="form-input w-24"
+          />
+        </label>
       </label>
     </div>
     <label class="col-span-12 md:col-span-6 block">
@@ -556,12 +558,18 @@
 
       <div class="mt-6 pt-4 border-t border-gray-100 space-y-4">
         <div>
-          <label class="form-label">Tratamiento</label>
-          <input bind:value={form.comorbidities.treatment} class="form-input" />
+          <label class="form-label"
+            >Tratamiento <input
+              bind:value={form.comorbidities.treatment}
+              class="form-input"
+            />
+          </label>
         </div>
         <div>
-          <label class="form-label">Otros</label>
-          <input bind:value={form.comorbidities.other} class="form-input" />
+          <label class="form-label"
+            >Otros
+            <input bind:value={form.comorbidities.other} class="form-input" />
+          </label>
         </div>
       </div>
     </div>
@@ -570,74 +578,80 @@
       <h3 class="form-section-title mb-4">Acceso Vascular</h3>
       <div class="space-y-6">
         <div>
-          <label class="form-label mb-2">FAV</label>
-          <div class="grid grid-cols-2 gap-2">
-            <label class="form-checkbox-label"
-              ><input
-                type="radio"
-                bind:group={form.access.fav}
-                value="autologa"
-                class="form-checkbox"
-              /> Autóloga</label
-            >
-            <label class="form-checkbox-label"
-              ><input
-                type="radio"
-                bind:group={form.access.fav}
-                value="protesica"
-                class="form-checkbox"
-              /> Protésica</label
-            >
-          </div>
+          <label class="form-label mb-2"
+            >FAV
+            <div class="grid grid-cols-2 gap-2">
+              <label class="form-checkbox-label"
+                ><input
+                  type="radio"
+                  bind:group={form.access.fav}
+                  value="autologa"
+                  class="form-checkbox"
+                /> Autóloga</label
+              >
+              <label class="form-checkbox-label"
+                ><input
+                  type="radio"
+                  bind:group={form.access.fav}
+                  value="protesica"
+                  class="form-checkbox"
+                /> Protésica</label
+              >
+            </div>
+          </label>
         </div>
 
         <div>
-          <label class="form-label mb-2">CVC</label>
-          <div class="grid grid-cols-2 gap-2">
-            <label class="form-checkbox-label"
-              ><input
-                type="radio"
-                bind:group={form.access.cvc}
-                value="permacath"
-                class="form-checkbox"
-              /> Permacath</label
-            >
-            <label class="form-checkbox-label"
-              ><input
-                type="radio"
-                bind:group={form.access.cvc}
-                value="temporal"
-                class="form-checkbox"
-              /> Temporal</label
-            >
-          </div>
+          <label class="form-label mb-2"
+            >CVC <div class="grid grid-cols-2 gap-2">
+              <label class="form-checkbox-label"
+                ><input
+                  type="radio"
+                  bind:group={form.access.cvc}
+                  value="permacath"
+                  class="form-checkbox"
+                /> Permacath</label
+              >
+              <label class="form-checkbox-label"
+                ><input
+                  type="radio"
+                  bind:group={form.access.cvc}
+                  value="temporal"
+                  class="form-checkbox"
+                /> Temporal</label
+              >
+            </div>
+          </label>
         </div>
 
         <div>
-          <label class="form-label mb-2">Funcionamiento</label>
-          <div class="grid grid-cols-2 gap-2">
-            <label class="form-checkbox-label"
-              ><input
-                type="radio"
-                bind:group={form.access.functionality}
-                value="funcional"
-                class="form-checkbox"
-              /> Funcional</label
-            >
-            <label class="form-checkbox-label"
-              ><input
-                type="radio"
-                bind:group={form.access.functionality}
-                value="disfuncional"
-                class="form-checkbox"
-              /> Disfuncional</label
-            >
-          </div>
+          <label class="form-label mb-2"
+            >Funcionamiento <div class="grid grid-cols-2 gap-2">
+              <label class="form-checkbox-label"
+                ><input
+                  type="radio"
+                  bind:group={form.access.functionality}
+                  value="funcional"
+                  class="form-checkbox"
+                /> Funcional</label
+              >
+              <label class="form-checkbox-label"
+                ><input
+                  type="radio"
+                  bind:group={form.access.functionality}
+                  value="disfuncional"
+                  class="form-checkbox"
+                /> Disfuncional</label
+              >
+            </div>
+          </label>
         </div>
 
         <div>
-          <label class="form-label">Examen Físico del Acceso Vascular</label>
-          <input bind:value={form.access.exam} class="form-input" />
+          <label class="form-label"
+            >Examen Físico del Acceso Vascular
+            <input bind:value={form.access.exam} class="form-input" />
+          </label>
         </div>
       </div>
     </div>
@@ -746,14 +760,24 @@
           (v) => (form.prescription.sodium = v),
         )}
         <div class="flex items-end gap-2">
-          <label class="form-label mb-0 w-12">Qb</label>
-          <input bind:value={form.prescription.qb} class="form-input flex-1" />
-          <span class="text-xs text-gray-500 mb-2">ml/min</span>
+          <label class="form-label mb-0 w-12"
+            >Qb
+            <input
+              bind:value={form.prescription.qb}
+              class="form-input flex-1"
+            />
+            <span class="text-xs text-gray-500 mb-2">ml/min</span>
+          </label>
         </div>
         <div class="flex items-end gap-2">
-          <label class="form-label mb-0 w-12">Qd</label>
-          <input bind:value={form.prescription.qd} class="form-input flex-1" />
-          <span class="text-xs text-gray-500 mb-2">ml/min</span>
+          <label class="form-label mb-0 w-12"
+            >Qd
+            <input
+              bind:value={form.prescription.qd}
+              class="form-input flex-1"
+            />
+            <span class="text-xs text-gray-500 mb-2">ml/min</span>
+          </label>
         </div>
       </div>
 

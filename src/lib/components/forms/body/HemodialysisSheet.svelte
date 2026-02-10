@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { untrack } from "svelte";
   // --- TYPES ---
   interface MonitoringRow {
     id: number;
@@ -262,7 +263,7 @@
     seals: { venous: "", arterial: "" },
     footerNotes: { medical: "", nursing: "" },
     drafters: { name1: "", name2: "" },
-    ...initialData,
+    ...untrack(() => initialData),
   });
 
   $effect(() => {
@@ -497,41 +498,49 @@
     >
       <div class="col-span-2">
         <label class="form-label text-[10px] uppercase mb-1"
-          >Código Paciente</label
-        >
-        {@render lineInput(form.patientCode, (v) => (form.patientCode = v))}
+          >Código Paciente
+          {@render lineInput(form.patientCode, (v) => (form.patientCode = v))}
+        </label>
       </div>
       <div class="col-span-4">
         <label class="form-label text-[10px] uppercase mb-1"
-          >Nombre Completo de Paciente</label
-        >
-        {@render lineInput(form.patientName, (v) => (form.patientName = v))}
+          >Nombre Completo de Paciente
+          {@render lineInput(form.patientName, (v) => (form.patientName = v))}
+        </label>
       </div>
       <div class="col-span-1">
-        <label class="form-label text-[10px] uppercase mb-1">Ficha No.</label>
-        {@render lineInput(form.fileNo, (v) => (form.fileNo = v))}
-      </div>
-      <div class="col-span-2">
-        <label class="form-label text-[10px] uppercase mb-1">Fecha</label>
-        <input
-          type="date"
-          bind:value={form.date}
-          class="form-input h-9 text-sm"
-        />
-      </div>
-      <div class="col-span-1">
-        <label class="form-label text-[10px] uppercase mb-1">Turno / Hora</label
-        >
-        <div class="flex gap-1">
-          {@render lineInput(form.turn, (v) => (form.turn = v))}
-          {@render lineInput(form.time, (v) => (form.time = v))}
-        </div>
+        <label class="form-label text-[10px] uppercase mb-1"
+          >Ficha No.
+          {@render lineInput(form.fileNo, (v) => (form.fileNo = v))}
+        </label>
       </div>
       <div class="col-span-2">
         <label class="form-label text-[10px] uppercase mb-1"
-          >Tipo de Tratamiento</label
-        >
-        {@render lineInput(form.treatmentType, (v) => (form.treatmentType = v))}
+          >Fecha
+          <input
+            type="date"
+            bind:value={form.date}
+            class="form-input h-9 text-sm"
+          />
+        </label>
+      </div>
+      <div class="col-span-1">
+        <label class="form-label text-[10px] uppercase mb-1"
+          >Turno / Hora
+          <div class="flex gap-1">
+            {@render lineInput(form.turn, (v) => (form.turn = v))}
+            {@render lineInput(form.time, (v) => (form.time = v))}
+          </div>
+        </label>
+      </div>
+      <div class="col-span-2">
+        <label class="form-label text-[10px] uppercase mb-1"
+          >Tipo de Tratamiento
+          {@render lineInput(
+            form.treatmentType,
+            (v) => (form.treatmentType = v),
+          )}
+        </label>
       </div>
     </div>
   </div>
@@ -606,9 +615,11 @@
         class="grid grid-cols-2 gap-4 bg-gray-50 p-3 rounded-lg border border-gray-200"
       >
         <div>
-          <label class="form-label text-xs mb-1"
-            >PESO: Algunos class="form-input h-9 text-sm" bind:value={form
-              .vitals.weight.pre}
+          <label class="form-label text-xs mb-1">
+            PESO: Algunos <input
+              class="form-input h-9 text-sm"
+              bind:value={form.vitals.weight.pre}
+            />
             />
           </label>
         </div>
@@ -627,28 +638,52 @@
     <div class="col-span-12 md:col-span-7">
       <div class="grid grid-cols-2 gap-4 mb-4">
         <div>
-          <label class="form-label text-xs mb-1">Cubiculo</label>
-          {@render lineInput(form.cubicle, (v) => (form.cubicle = v))}
+          <label class="form-label text-xs mb-1"
+            >Cubiculo {@render lineInput(
+              form.cubicle,
+              (v) => (form.cubicle = v),
+            )}</label
+          >
         </div>
         <div>
-          <label class="form-label text-xs mb-1">Clinica</label>
-          {@render lineInput(form.clinic, (v) => (form.clinic = v))}
+          <label class="form-label text-xs mb-1"
+            >Clinica {@render lineInput(
+              form.clinic,
+              (v) => (form.clinic = v),
+            )}</label
+          >
         </div>
         <div>
-          <label class="form-label text-xs mb-1">Hora Tratamiento</label>
-          {@render lineInput(form.txTime, (v) => (form.txTime = v))}
+          <label class="form-label text-xs mb-1"
+            >Hora Tratamiento {@render lineInput(
+              form.txTime,
+              (v) => (form.txTime = v),
+            )}</label
+          >
         </div>
         <div>
-          <label class="form-label text-xs mb-1">Maquina #</label>
-          {@render lineInput(form.machineNo, (v) => (form.machineNo = v))}
+          <label class="form-label text-xs mb-1"
+            >Maquina # {@render lineInput(
+              form.machineNo,
+              (v) => (form.machineNo = v),
+            )}</label
+          >
         </div>
         <div>
-          <label class="form-label text-xs mb-1">Hora Inicio</label>
-          {@render lineInput(form.startTime, (v) => (form.startTime = v))}
+          <label class="form-label text-xs mb-1"
+            >Hora Inicio {@render lineInput(
+              form.startTime,
+              (v) => (form.startTime = v),
+            )}</label
+          >
         </div>
         <div>
-          <label class="form-label text-xs mb-1">Hora Finalizado</label>
-          {@render lineInput(form.endTime, (v) => (form.endTime = v))}
+          <label class="form-label text-xs mb-1"
+            >Hora Finalizado {@render lineInput(
+              form.endTime,
+              (v) => (form.endTime = v),
+            )}</label
+          >
         </div>
       </div>
 
@@ -763,22 +798,28 @@
 
         <div class="grid grid-cols-2 gap-4">
           <div>
-            <label class="form-label text-xs mb-1">Conductiva Manual</label>
-            {@render lineInput(
-              form.machine.conductive,
-              (v) => (form.machine.conductive = v),
-            )}
+            <label class="form-label text-xs mb-1"
+              >Conductiva Manual
+              {@render lineInput(
+                form.machine.conductive,
+                (v) => (form.machine.conductive = v),
+              )}</label
+            >
           </div>
           <div>
-            <label class="form-label text-xs mb-1">pH Maquina</label>
-            {@render lineInput(form.machine.ph, (v) => (form.machine.ph = v))}
+            <label class="form-label text-xs mb-1"
+              >pH Maquina
+              {@render lineInput(form.machine.ph, (v) => (form.machine.ph = v))}
+            </label>
           </div>
           <div>
-            <label class="form-label text-xs mb-1">Temp. Iniciales</label>
-            {@render lineInput(
-              form.machine.temp,
-              (v) => (form.machine.temp = v),
-            )}
+            <label class="form-label text-xs mb-1"
+              >Temp. Iniciales
+              {@render lineInput(
+                form.machine.temp,
+                (v) => (form.machine.temp = v),
+              )}
+            </label>
           </div>
         </div>
 
@@ -812,26 +853,34 @@
         </div>
 
         <div>
-          <label class="form-label text-xs mb-1">Código Dializador</label>
-          {@render lineInput(
-            form.machine.dialyzerCode,
-            (v) => (form.machine.dialyzerCode = v),
-          )}
+          <label class="form-label text-xs mb-1"
+            >Código Dializador
+            {@render lineInput(
+              form.machine.dialyzerCode,
+              (v) => (form.machine.dialyzerCode = v),
+            )}
+          </label>
         </div>
 
         <div class="pt-3 border-t border-gray-200 mt-2 space-y-3">
           <div>
-            <label class="form-label text-xs mb-1 text-red-600">ALERGIA</label>
-            {@render lineInput(form.allergy, (v) => (form.allergy = v))}
+            <label class="form-label text-xs mb-1 text-red-600"
+              >ALERGIA
+              {@render lineInput(form.allergy, (v) => (form.allergy = v))}
+            </label>
           </div>
           <div>
-            <label class="form-label text-xs mb-1">NOTAS</label>
-            {@render lineInput(form.notes, (v) => (form.notes = v))}
+            <label class="form-label text-xs mb-1"
+              >NOTAS {@render lineInput(
+                form.notes,
+                (v) => (form.notes = v),
+              )}</label
+            >
           </div>
           <div class="grid grid-cols-2 gap-2">
             <div>
-              <label class="form-label text-xs mb-1">Titular 1</label>
-              <div class="flex gap-1">
+              <label class="form-label text-xs mb-1"
+                >Titular 1
                 <input
                   placeholder="Nombre"
                   class="form-input h-9 text-xs flex-1"
@@ -842,30 +891,33 @@
                   class="form-input h-9 text-xs w-12 text-center"
                   bind:value={form.staff.titular1.initials}
                 />
-              </div>
+              </label>
             </div>
+
             <div>
-              <label class="form-label text-xs mb-1">Titular 2</label>
-              <div class="flex gap-1">
-                <input
-                  placeholder="Nombre"
-                  class="form-input h-9 text-xs flex-1"
-                  bind:value={form.staff.titular2.name}
-                />
-                <input
-                  placeholder="Ini"
-                  class="form-input h-9 text-xs w-12 text-center"
-                  bind:value={form.staff.titular2.initials}
-                />
-              </div>
+              <label class="form-label text-xs mb-1"
+                >Titular 2 <div class="flex gap-1">
+                  <input
+                    placeholder="Nombre"
+                    class="form-input h-9 text-xs flex-1"
+                    bind:value={form.staff.titular2.name}
+                  />
+                  <input
+                    placeholder="Ini"
+                    class="form-input h-9 text-xs w-12 text-center"
+                    bind:value={form.staff.titular2.initials}
+                  />
+                </div>
+              </label>
             </div>
           </div>
           <div>
-            <label class="form-label text-xs mb-1">Nefrologo</label>
-            {@render lineInput(
-              form.staff.nephrologist,
-              (v) => (form.staff.nephrologist = v),
-            )}
+            <label class="form-label text-xs mb-1"
+              >Nefrologo {@render lineInput(
+                form.staff.nephrologist,
+                (v) => (form.staff.nephrologist = v),
+              )}
+            </label>
           </div>
         </div>
       </div>
@@ -879,22 +931,29 @@
         class="border border-gray-200 rounded-lg p-4 bg-gray-50/50 space-y-3"
       >
         <div>
-          <label class="form-label text-xs mb-1">Tipo</label>
-          {@render lineInput(form.heparin.type, (v) => (form.heparin.type = v))}
+          <label class="form-label text-xs mb-1"
+            >Tipo {@render lineInput(
+              form.heparin.type,
+              (v) => (form.heparin.type = v),
+            )}</label
+          >
         </div>
         <div>
-          <label class="form-label text-xs mb-1">Unid. Inicial Bomba</label>
-          {@render lineInput(
-            form.heparin.initialUnitsPump,
-            (v) => (form.heparin.initialUnitsPump = v),
-          )}
+          <label class="form-label text-xs mb-1"
+            >Unid. Inicial Bomba
+            {@render lineInput(
+              form.heparin.initialUnitsPump,
+              (v) => (form.heparin.initialUnitsPump = v),
+            )}
+          </label>
         </div>
         <div>
-          <label class="form-label text-xs mb-1">Unidades/Hr</label>
-          {@render lineInput(
-            form.heparin.unitsHr,
-            (v) => (form.heparin.unitsHr = v),
-          )}
+          <label class="form-label text-xs mb-1"
+            >Unidades/Hr {@render lineInput(
+              form.heparin.unitsHr,
+              (v) => (form.heparin.unitsHr = v),
+            )}
+          </label>
         </div>
         {@render checkInput(
           "Inclusión bomba",
@@ -902,11 +961,13 @@
           () => (form.heparin.pumpInclusion = !form.heparin.pumpInclusion),
         )}
         <div>
-          <label class="form-label text-xs mb-1">Hora Finalizo</label>
-          {@render lineInput(
-            form.heparin.endTime,
-            (v) => (form.heparin.endTime = v),
-          )}
+          <label class="form-label text-xs mb-1"
+            >Hora Finalizo
+            {@render lineInput(
+              form.heparin.endTime,
+              (v) => (form.heparin.endTime = v),
+            )}
+          </label>
         </div>
       </div>
     </div>
@@ -916,32 +977,37 @@
       <div class="border border-gray-200 rounded-lg p-4 bg-gray-50/50">
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
           <div>
-            <label class="form-label text-xs mb-1">Dializador</label>
-            {@render lineInput(
-              form.dialysis.dialyzer,
-              (v) => (form.dialysis.dialyzer = v),
-            )}
+            <label class="form-label text-xs mb-1"
+              >Dializador {@render lineInput(
+                form.dialysis.dialyzer,
+                (v) => (form.dialysis.dialyzer = v),
+              )}
+            </label>
           </div>
           <div>
-            <label class="form-label text-xs mb-1">DFR</label>
-            {@render lineInput(
-              form.dialysis.dfr,
-              (v) => (form.dialysis.dfr = v),
-            )}
+            <label class="form-label text-xs mb-1"
+              >DFR {@render lineInput(
+                form.dialysis.dfr,
+                (v) => (form.dialysis.dfr = v),
+              )}
+            </label>
           </div>
           <div>
-            <label class="form-label text-xs mb-1">BFR</label>
-            {@render lineInput(
-              form.dialysis.bfr,
-              (v) => (form.dialysis.bfr = v),
-            )}
+            <label class="form-label text-xs mb-1"
+              >BFR {@render lineInput(
+                form.dialysis.bfr,
+                (v) => (form.dialysis.bfr = v),
+              )}
+            </label>
           </div>
           <div>
-            <label class="form-label text-xs mb-1">TX Tiempo</label>
-            {@render lineInput(
-              form.dialysis.txTime,
-              (v) => (form.dialysis.txTime = v),
-            )}
+            <label class="form-label text-xs mb-1"
+              >TX Tiempo
+              {@render lineInput(
+                form.dialysis.txTime,
+                (v) => (form.dialysis.txTime = v),
+              )}</label
+            >
           </div>
         </div>
 
@@ -949,67 +1015,82 @@
           class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-4 border-t border-gray-200 pt-3"
         >
           <div>
-            <label class="form-label text-xs mb-1">Diálisis std</label>
-            {@render lineInput(
-              form.dialysis.type,
-              (v) => (form.dialysis.type = v),
-            )}
+            <label class="form-label text-xs mb-1"
+              >Diálisis std {@render lineInput(
+                form.dialysis.type,
+                (v) => (form.dialysis.type = v),
+              )}
+            </label>
           </div>
           <div>
-            <label class="form-label text-xs mb-1">K</label>
-            {@render lineInput(form.dialysis.k, (v) => (form.dialysis.k = v))}
+            <label class="form-label text-xs mb-1"
+              >K
+              {@render lineInput(form.dialysis.k, (v) => (form.dialysis.k = v))}
+            </label>
           </div>
           <div>
-            <label class="form-label text-xs mb-1">Ca</label>
-            {@render lineInput(form.dialysis.ca, (v) => (form.dialysis.ca = v))}
+            <label class="form-label text-xs mb-1"
+              >Ca
+              {@render lineInput(
+                form.dialysis.ca,
+                (v) => (form.dialysis.ca = v),
+              )}
+            </label>
           </div>
           <div>
-            <label class="form-label text-xs mb-1">Bicarbonato</label>
-            {@render lineInput(
-              form.dialysis.bicarb,
-              (v) => (form.dialysis.bicarb = v),
-            )}
+            <label class="form-label text-xs mb-1"
+              >Bicarbonato {@render lineInput(
+                form.dialysis.bicarb,
+                (v) => (form.dialysis.bicarb = v),
+              )}
+            </label>
           </div>
           <div>
-            <label class="form-label text-xs mb-1">Sodio Mod</label>
-            {@render lineInput(
-              form.dialysis.sodium,
-              (v) => (form.dialysis.sodium = v),
-            )}
+            <label class="form-label text-xs mb-1"
+              >Sodio Mod
+              {@render lineInput(
+                form.dialysis.sodium,
+                (v) => (form.dialysis.sodium = v),
+              )}
+            </label>
           </div>
         </div>
 
         <div class="grid grid-cols-3 gap-4 border-t border-gray-200 pt-3">
           <div>
-            <label class="form-label text-xs mb-1">UF Profiling</label>
-            {@render lineInput(
-              form.dialysis.ufProfile,
-              (v) => (form.dialysis.ufProfile = v),
-            )}
+            <label class="form-label text-xs mb-1"
+              >UF Profiling
+              {@render lineInput(
+                form.dialysis.ufProfile,
+                (v) => (form.dialysis.ufProfile = v),
+              )}
+            </label>
           </div>
           <div>
-            <label class="form-label text-xs mb-1">Max UFR</label>
-            {@render lineInput(
-              form.dialysis.maxUfr,
-              (v) => (form.dialysis.maxUfr = v),
-            )}
+            <label class="form-label text-xs mb-1"
+              >Max UFR {@render lineInput(
+                form.dialysis.maxUfr,
+                (v) => (form.dialysis.maxUfr = v),
+              )}
+            </label>
           </div>
           <div>
-            <label class="form-label text-xs mb-1">Dializador std</label>
-            {@render lineInput(
-              form.dialysis.dialyzerStd,
-              (v) => (form.dialysis.dialyzerStd = v),
-            )}
+            <label class="form-label text-xs mb-1"
+              >Dializador std
+              {@render lineInput(
+                form.dialysis.dialyzerStd,
+                (v) => (form.dialysis.dialyzerStd = v),
+              )}
+            </label>
           </div>
         </div>
         <div class="mt-4">
           <label class="form-label text-xs mb-1"
-            >Acceso a ordenes y comentarios</label
-          >
-          {@render lineInput(
-            form.dialysis.comments,
-            (v) => (form.dialysis.comments = v),
-          )}
+            >Acceso a ordenes y comentarios {@render lineInput(
+              form.dialysis.comments,
+              (v) => (form.dialysis.comments = v),
+            )}
+          </label>
         </div>
       </div>
     </div>
@@ -1083,11 +1164,13 @@
       </div>
       <div class="p-4 border-t border-gray-200 bg-white">
         <div class="max-w-md">
-          <label class="form-label text-xs mb-1">Catéter colocado por</label>
-          {@render lineInput(
-            form.access.catheterPlacedBy,
-            (v) => (form.access.catheterPlacedBy = v),
-          )}
+          <label class="form-label text-xs mb-1"
+            >Catéter colocado por
+            {@render lineInput(
+              form.access.catheterPlacedBy,
+              (v) => (form.access.catheterPlacedBy = v),
+            )}
+          </label>
         </div>
       </div>
     </div>
@@ -1097,7 +1180,7 @@
     <h3 class="form-section-title mb-2">Monitoreo</h3>
     <div class="border border-gray-200 rounded-lg overflow-hidden">
       <div class="overflow-x-auto">
-        <table class="w-full text-center text-[10px] min-w-[800px]">
+        <table class="w-full text-center text-[10px] min-w-200">
           <thead class="bg-gray-100 text-gray-700 font-bold uppercase">
             <tr>
               <th class="p-2 border-r border-gray-200 w-16">Hora</th>
@@ -1211,12 +1294,12 @@
 
     <div class="col-span-12 md:col-span-6">
       <label class="form-label text-xs mb-1"
-        >Indicaciones / Comentarios / Notas - Médico</label
-      >
-      <textarea
-        class="form-textarea h-24 text-xs resize-none"
-        bind:value={form.footerNotes.medical}
-      ></textarea>
+        >Indicaciones / Comentarios / Notas - Médico <textarea
+          class="form-textarea h-24 text-xs resize-none"
+          bind:value={form.footerNotes.medical}
+        ></textarea>
+      </label>
+
       <div class="mt-2 flex gap-2 items-end">
         <span class="text-[10px] font-bold text-gray-500 uppercase">Firma:</span
         >
@@ -1229,12 +1312,12 @@
 
     <div class="col-span-12 md:col-span-6">
       <label class="form-label text-xs mb-1"
-        >Indicaciones / Comentarios / Notas - Enfermería</label
+        >Indicaciones / Comentarios / Notas - Enfermería <textarea
+          class="form-textarea h-24 text-xs resize-none"
+          bind:value={form.footerNotes.nursing}
+        ></textarea></label
       >
-      <textarea
-        class="form-textarea h-24 text-xs resize-none"
-        bind:value={form.footerNotes.nursing}
-      ></textarea>
+
       <div class="mt-2 flex gap-2 items-end">
         <span class="text-[10px] font-bold text-gray-500 uppercase">Firma:</span
         >
