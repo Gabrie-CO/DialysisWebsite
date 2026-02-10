@@ -196,6 +196,12 @@
       mutation: api.patients.updateMonthlyProgress,
       argKey: "data",
     },
+    {
+      id: "debug",
+      title: "Debug Refresh",
+      icon: "🧪",
+      desc: "Check form re-rendering",
+    },
   ];
 
   let activeDocConfig = $derived(
@@ -296,7 +302,128 @@
                   } as any);
                 }}
               />
-            </ErrorBoundary>
+            {:else if activeDocument === "fichas"}
+              <Fichas
+                initialData={patient?.fichas || {}}
+                onSave={async (data) => {
+                  await convex.mutation(api.patients.updateFichas, {
+                    patientId: selectedPatientId as any,
+                    fichasData: data,
+                  });
+                }}
+              />
+            {:else if activeDocument === "cidh"}
+              <CIDH
+                initialData={patient?.cidh || {}}
+                onSave={async (data) => {
+                  await convex.mutation(api.patients.updateCIDH, {
+                    patientId: selectedPatientId as any,
+                    cidhData: data,
+                  });
+                }}
+              />
+            {:else if activeDocument === "clinicalHistory"}
+              <ClinicHistory
+                initialData={patient?.clinicHistoryOld || {}}
+                onSave={async (data) => {
+                  await convex.mutation(api.patients.updateClinicHistoryOld, {
+                    patientId: selectedPatientId as any,
+                    data: data,
+                  });
+                }}
+              />
+            {:else if activeDocument === "clinicalHistory2"}
+              <ClinicalHistory2
+                initialData={patient?.clinicalHistory || {}}
+                onSave={async (data) => {
+                  await convex.mutation(api.patients.updateClinicalHistory, {
+                    patientId: selectedPatientId as any,
+                    clinicalHistoryData: data,
+                  });
+                }}
+              />
+            {:else if activeDocument === "fistula"}
+              <Fistula
+                initialData={patient?.fistula || {}}
+                onSave={async (data) => {
+                  await convex.mutation(api.patients.updateFistula, {
+                    patientId: selectedPatientId as any,
+                    data: data,
+                  });
+                }}
+              />
+            {:else if activeDocument === "hemodialysisSheet"}
+              <HemodialysisSheet
+                initialData={patient?.hemodialysis || {}}
+                onSave={async (data) => {
+                  await convex.mutation(api.patients.updateHemodialysis, {
+                    patientId: selectedPatientId as any,
+                    data: data,
+                  });
+                }}
+              />
+            {:else if activeDocument === "infections"}
+              <Infections
+                initialData={patient?.infections || {}}
+                onSave={async (data) => {
+                  await convex.mutation(api.patients.updateInfections, {
+                    patientId: selectedPatientId as any,
+                    infectionsData: data,
+                  });
+                }}
+              />
+            {:else if activeDocument === "medicationSheet"}
+              <MedicationApplicationSheet
+                initialData={patient?.medicationSheet || {}}
+                onSave={async (data) => {
+                  await convex.mutation(api.patients.updateMedicationSheet, {
+                    patientId: selectedPatientId as any,
+                    data: data,
+                  });
+                }}
+              />
+            {:else if activeDocument === "examControls"}
+              <ExamControls
+                initialData={patient?.examControls || {}}
+                onSave={async (data) => {
+                  await convex.mutation(api.patients.updateExamControls, {
+                    patientId: selectedPatientId as any,
+                    data: data,
+                  });
+                }}
+              />
+            {:else if activeDocument === "monthlyProgress"}
+              <MonthlyProgress
+                initialData={patient?.monthlyProgress || {}}
+                onSave={async (data) => {
+                  await convex.mutation(api.patients.updateMonthlyProgress, {
+                    patientId: selectedPatientId as any,
+                    data: data,
+                  });
+                }}
+              />
+            {:else if activeDocument === "debug"}
+              <div
+                class="bg-white p-12 rounded-2xl border-4 border-dashed border-blue-100 flex flex-col items-center gap-4"
+              >
+                <div class="text-6xl animate-bounce">🧪</div>
+                <h2 class="text-2xl font-black text-blue-900">
+                  Debug Renderer
+                </h2>
+                <p class="text-gray-500 font-medium">
+                  This component was rendered at:
+                </p>
+                <div
+                  class="bg-blue-50 px-6 py-3 rounded-xl font-mono text-blue-700 font-bold text-xl border border-blue-100"
+                >
+                  {new Date().toLocaleTimeString()}
+                </div>
+                <p class="text-xs text-gray-400 mt-4">
+                  If this time updates when you click the box, re-rendering is
+                  working.
+                </p>
+              </div>
+            {/if}
           </div>
         {/if}
       {/if}
