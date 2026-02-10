@@ -37,7 +37,13 @@
       tb: SerologyStatus;
     };
     rows: ExamRow[];
+    updatedAt?: string;
   }
+
+  let { initialData = {}, onSave } = $props<{
+    initialData?: Partial<FormState>;
+    onSave: (data: FormState) => void;
+  }>();
 
   // --- STATE ---
   let form = $state<FormState>({
@@ -81,6 +87,52 @@
       { id: "pth", label: "PTH", values: {} },
       { id: "ktv", label: "KTV", values: {} },
     ],
+    ...initialData,
+  });
+
+  $effect(() => {
+    form = {
+      patient: {
+        name: "",
+        age: "",
+        fileNumber: "",
+        year: new Date().getFullYear().toString(),
+        ...initialData.patient,
+      },
+      serology: {
+        hepB: null,
+        hepC: null,
+        vih: null,
+        tb: null,
+        ...initialData.serology,
+      },
+      rows: initialData.rows || [
+        { id: "hb", label: "HB", values: {} },
+        { id: "htc", label: "HTC", values: {} },
+        { id: "leu", label: "LEU", values: {} },
+        { id: "plaqueta", label: "PLAQUETA", values: {} },
+        { id: "glucosa", label: "GLUCOSA", values: {} },
+        { id: "urea", label: "UREA", values: {} },
+        { id: "creatinina", label: "CREATININA", values: {} },
+        { id: "acido_urico", label: "ACIDO URICO", values: {} },
+        { id: "albumina", label: "ALBUMINA", values: {} },
+        { id: "colesterol", label: "COLESTEROL", values: {} },
+        { id: "trigliceridos", label: "TRIGLICERIDOS", values: {} },
+        { id: "sodio", label: "SODIO", values: {} },
+        { id: "potasio", label: "POTASIO", values: {} },
+        { id: "fosfatasa", label: "FOSFATASA / ALCALINA", values: {} },
+        { id: "calcio", label: "CALCIO", values: {} },
+        { id: "fosforo", label: "FOSFORO", values: {} },
+        { id: "hierro", label: "NIVELES HIERRO", values: {} },
+        { id: "hepb", label: "HEP B", values: {} },
+        { id: "hepc", label: "HEP C", values: {} },
+        { id: "vih", label: "VIH", values: {} },
+        { id: "tb", label: "TB", values: {} },
+        { id: "pth", label: "PTH", values: {} },
+        { id: "ktv", label: "KTV", values: {} },
+      ],
+      ...initialData,
+    };
   });
 
   // --- LOGIC ---
@@ -167,163 +219,153 @@
   </td>
 {/snippet}
 
-<div
-  class="max-w-300 mx-auto p-4 bg-white shadow-xl font-sans text-gray-800 print:shadow-none print:max-w-none print:landscape:w-full print:p-2"
->
-  <div class="w-full border-b-4 border-double border-gray-300 mb-6">
-    <div class="flex justify-between items-start mb-4">
-      <div class="flex items-center gap-3">
-        <div class="relative w-12 h-10 shrink-0">
-          <div
-            class="absolute inset-0 bg-red-800 rounded-full opacity-20 rotate-45 transform scale-x-75"
-          ></div>
-          <div
-            class="absolute inset-0 border-2 border-blue-900 rounded-full transform -rotate-12 scale-75"
-          ></div>
-          <div
-            class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[8px] font-bold text-blue-900"
-          >
-            DH
-          </div>
-        </div>
-        <div class="flex flex-col">
-          <h1
-            class="text-xl font-black text-blue-900 uppercase leading-none tracking-tight"
-          >
-            Diálisis de Honduras S.A.
-          </h1>
-          <span
-            class="text-[9px] font-bold text-gray-500 uppercase tracking-[0.3em] mt-0.5"
-            >Brindando calidad de vida</span
-          >
-        </div>
-      </div>
-      <div class="text-right hidden sm:block">
-        <div class="text-xs text-gray-400 font-mono">FORM-DH-2025</div>
-      </div>
-    </div>
-
-    <div
-      class="grid grid-cols-12 gap-4 items-end bg-blue-50/50 p-3 rounded border border-blue-100 mb-4"
-    >
-      <div class="col-span-12 md:col-span-5">
-        <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1"
-          >Nombre del Paciente</label
-        >
-        <input
-          type="text"
-          bind:value={form.patient.name}
-          class="w-full bg-white border-b-2 border-gray-400 px-2 py-1 text-sm font-semibold focus:border-blue-700 outline-none"
-        />
-      </div>
-      <div class="col-span-6 md:col-span-2">
-        <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1"
-          >Edad</label
-        >
-        <input
-          type="text"
-          bind:value={form.patient.age}
-          class="w-full bg-white border-b-2 border-gray-400 px-2 py-1 text-sm font-semibold text-center focus:border-blue-700 outline-none"
-        />
-      </div>
-      <div class="col-span-6 md:col-span-3">
-        <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1"
-          >No. Expediente</label
-        >
-        <input
-          type="text"
-          bind:value={form.patient.fileNumber}
-          class="w-full bg-white border-b-2 border-gray-400 px-2 py-1 text-sm font-semibold text-center focus:border-blue-700 outline-none"
-        />
-      </div>
-      <div class="col-span-6 md:col-span-2">
-        <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1"
-          >Año</label
-        >
-        <input
-          type="text"
-          bind:value={form.patient.year}
-          class="w-full bg-white border-b-2 border-gray-400 px-2 py-1 text-sm font-semibold text-center focus:border-blue-700 outline-none"
-        />
-      </div>
-    </div>
+<div class="form-container-wide">
+  <div class="form-save-btn">
+    <button onclick={() => onSave(form)} class="w-full h-full">
+      Guardar
+    </button>
   </div>
 
-  <div class="flex flex-col items-end mb-2">
-    <div
-      class="border border-black px-4 py-1 bg-gray-100 shadow-sm inline-block"
-    >
-      <h2 class="uppercase font-bold text-sm tracking-widest text-center">
-        Control de Examenes
-      </h2>
+  <header class="form-header">
+    <div class="flex items-center gap-3">
+      <div class="relative w-12 h-10 shrink-0">
+        <div
+          class="absolute inset-0 bg-red-800 rounded-full opacity-20 rotate-45 transform scale-x-75"
+        ></div>
+        <div
+          class="absolute inset-0 border-2 border-blue-900 rounded-full transform -rotate-12 scale-75"
+        ></div>
+        <div
+          class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[8px] font-bold text-blue-900"
+        >
+          DH
+        </div>
+      </div>
+      <div class="flex flex-col">
+        <h1 class="form-title mb-0 leading-none">Diálisis de Honduras S.A.</h1>
+        <span class="form-subtitle mt-0.5">Brindando calidad de vida</span>
+      </div>
+    </div>
+    <div class="text-right hidden sm:block">
+      <div class="text-xs text-gray-400 font-mono">FORM-DH-2025</div>
+      {#if form.updatedAt}
+        <p class="text-[10px] text-gray-400 mt-1">
+          Actualizado: {new Date(form.updatedAt).toLocaleString()}
+        </p>
+      {/if}
+    </div>
+  </header>
+
+  <div
+    class="grid grid-cols-12 gap-4 items-end bg-blue-50/50 p-3 rounded border border-blue-100 mb-4"
+  >
+    <div class="col-span-12 md:col-span-5">
+      <label class="form-label">Nombre del Paciente</label>
+      <input
+        type="text"
+        bind:value={form.patient.name}
+        class="form-input-line font-semibold"
+      />
+    </div>
+    <div class="col-span-6 md:col-span-2">
+      <label class="form-label">Edad</label>
+      <input
+        type="text"
+        bind:value={form.patient.age}
+        class="form-input-line font-semibold text-center"
+      />
+    </div>
+    <div class="col-span-6 md:col-span-3">
+      <label class="form-label">No. Expediente</label>
+      <input
+        type="text"
+        bind:value={form.patient.fileNumber}
+        class="form-input-line font-semibold text-center"
+      />
+    </div>
+    <div class="col-span-6 md:col-span-2">
+      <label class="form-label">Año</label>
+      <input
+        type="text"
+        bind:value={form.patient.year}
+        class="form-input-line font-semibold text-center"
+      />
     </div>
   </div>
+</div>
 
-  <div class="overflow-x-auto border-2 border-black">
-    <table class="w-full border-collapse min-w-[1000px]">
-      <thead>
-        <tr class="bg-gray-200">
-          <th
-            class="border border-black p-2 text-[10px] font-bold w-40 sticky left-0 bg-gray-200 z-10 text-left"
-          >
-            NOMBRE DEL PACIENTE
-          </th>
-          {#each months as month}
-            <th
-              class="border border-black p-1 text-[9px] font-bold w-20 uppercase"
-            >
-              {month}
-            </th>
-          {/each}
-        </tr>
-        <tr class="bg-gray-100">
-          <th
-            class="border border-black p-1 text-[10px] font-bold sticky left-0 bg-gray-100 z-10 text-center italic"
-          >
-            TIPO DE EXAMEN
-          </th>
-          <th colspan="12" class="border border-black bg-gray-50"></th>
-        </tr>
-      </thead>
-      <tbody>
-        {#each form.rows as row}
-          <tr class="hover:bg-gray-50 group h-8">
-            <td
-              class="border border-black px-2 py-1 text-[10px] font-bold sticky left-0 bg-white group-hover:bg-gray-50 z-10"
-            >
-              {row.label}
-            </td>
+<div class="form-section">
+  <h2
+    class="form-section-title text-center tracking-widest inline-block w-full"
+  >
+    Control de Examenes
+  </h2>
+</div>
 
-            {#if isSerologyRow(row.id)}
-              <td colspan="12" class="border border-black p-0 bg-gray-50/30">
-                {#if row.id === "hepb"}
-                  {@render serologyControl("Hep B", form.serology.hepB, (v) =>
-                    setSerology("hepB", v),
-                  )}
-                {:else if row.id === "hepc"}
-                  {@render serologyControl("Hep C", form.serology.hepC, (v) =>
-                    setSerology("hepC", v),
-                  )}
-                {:else if row.id === "vih"}
-                  {@render serologyControl("VIH", form.serology.vih, (v) =>
-                    setSerology("vih", v),
-                  )}
-                {:else if row.id === "tb"}
-                  {@render serologyControl("TB", form.serology.tb, (v) =>
-                    setSerology("tb", v),
-                  )}
-                {/if}
-              </td>
-            {:else}
-              {#each months as month}
-                {@render inputCell(row.id, month, row.values[month])}
-              {/each}
-            {/if}
-          </tr>
+<div class="overflow-x-auto border-2 border-black">
+  <table class="w-full border-collapse min-w-[1000px]">
+    <thead>
+      <tr class="bg-gray-200">
+        <th
+          class="border border-black p-2 text-[10px] font-bold w-40 sticky left-0 bg-gray-200 z-10 text-left"
+        >
+          NOMBRE DEL PACIENTE
+        </th>
+        {#each months as month}
+          <th
+            class="border border-black p-1 text-[9px] font-bold w-20 uppercase"
+          >
+            {month}
+          </th>
         {/each}
-      </tbody>
-    </table>
-  </div>
+      </tr>
+      <tr class="bg-gray-100">
+        <th
+          class="border border-black p-1 text-[10px] font-bold sticky left-0 bg-gray-100 z-10 text-center italic"
+        >
+          TIPO DE EXAMEN
+        </th>
+        <th colspan="12" class="border border-black bg-gray-50"></th>
+      </tr>
+    </thead>
+    <tbody>
+      {#each form.rows as row}
+        <tr class="hover:bg-gray-50 group h-8">
+          <td
+            class="border border-black px-2 py-1 text-[10px] font-bold sticky left-0 bg-white group-hover:bg-gray-50 z-10"
+          >
+            {row.label}
+          </td>
+
+          {#if isSerologyRow(row.id)}
+            <td colspan="12" class="border border-black p-0 bg-gray-50/30">
+              {#if row.id === "hepb"}
+                {@render serologyControl("Hep B", form.serology.hepB, (v) =>
+                  setSerology("hepB", v),
+                )}
+              {:else if row.id === "hepc"}
+                {@render serologyControl("Hep C", form.serology.hepC, (v) =>
+                  setSerology("hepC", v),
+                )}
+              {:else if row.id === "vih"}
+                {@render serologyControl("VIH", form.serology.vih, (v) =>
+                  setSerology("vih", v),
+                )}
+              {:else if row.id === "tb"}
+                {@render serologyControl("TB", form.serology.tb, (v) =>
+                  setSerology("tb", v),
+                )}
+              {/if}
+            </td>
+          {:else}
+            {#each months as month}
+              {@render inputCell(row.id, month, row.values[month])}
+            {/each}
+          {/if}
+        </tr>
+      {/each}
+    </tbody>
+  </table>
 </div>
 
 <style>

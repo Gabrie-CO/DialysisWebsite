@@ -112,7 +112,13 @@
       observations: string;
     };
     followUp: Array<{ date: string; obs: string }>;
+    updatedAt?: string;
   }
+
+  let { initialData = {}, onSave } = $props<{
+    initialData?: Partial<FormState>;
+    onSave: (data: FormState) => void;
+  }>();
 
   // --- STATE ---
   let form = $state<FormState>({
@@ -195,6 +201,138 @@
       { date: "", obs: "" },
       { date: "", obs: "" },
     ],
+    ...initialData,
+  });
+
+  $effect(() => {
+    form = {
+      general: { name: "", occupation: "", date: "", ...initialData.general },
+      history: {
+        ageRange: "",
+        sex: "",
+        comorbidities: {
+          hta: false,
+          dm2: false,
+          cardiopathy: false,
+          other: "",
+          ...initialData.history?.comorbidities,
+        },
+        timeInHd: "",
+        accessType: {
+          favAutologous: false,
+          favProsthetic: false,
+          cvcPermanent: false,
+          cvcTemporal: false,
+          other: "",
+          ...initialData.history?.accessType,
+        },
+        placementDate: {
+          exact: "",
+          approx: "",
+          dontRemember: false,
+          ...initialData.history?.placementDate,
+        },
+        location: {
+          radioCephalicL: false,
+          radioCephalicR: false,
+          brachialL: false,
+          brachialR: false,
+          subclavianL: false,
+          subclavianR: false,
+          femoralL: false,
+          femoralR: false,
+          jugularL: false,
+          jugularR: false,
+          ...initialData.history?.location,
+        },
+        functionality: {
+          arterial: false,
+          venous: false,
+          both: false,
+          ...initialData.history?.functionality,
+        },
+        dysfunction: {
+          mechanicalObstruction: {
+            active: false,
+            type: null,
+            ...initialData.history?.dysfunction?.mechanicalObstruction,
+          },
+          clots: false,
+          fibrin: false,
+          kinking: false,
+          other: "",
+          ...initialData.history?.dysfunction,
+        },
+        seals: {
+          heparin: false,
+          duralock: false,
+          ...initialData.history?.seals,
+        },
+        thrombolysis: {
+          active: null,
+          count: "",
+          timeAgo: "",
+          ...initialData.history?.thrombolysis,
+        },
+        previousAV: "",
+        previousLocation: {
+          femoral: false,
+          jugular: false,
+          subclavian: false,
+          fav: false,
+          ...initialData.history?.previousLocation,
+        },
+        ...initialData.history,
+      },
+      physicalExam: {
+        inspection: {
+          skinIntact: false,
+          hematoma: false,
+          shinySkin: false,
+          ecchymosis: false,
+          redness: false,
+          collaterals: false,
+          flatSpots: false,
+          edema: false,
+          cyanosis: false,
+          aneurysms: false,
+          ...initialData.physicalExam?.inspection,
+        },
+        palpation: {
+          tempChanges: false,
+          thrillSoft: false,
+          thrillPulsatile: false,
+          ...initialData.physicalExam?.palpation,
+        },
+        auscultation: {
+          murmurSoft: false,
+          murmurPathological: false,
+          ...initialData.physicalExam?.auscultation,
+        },
+        matureCharacteristics: {
+          hemostasisTime: null,
+          stenosis: null,
+          aneurysms: null,
+          stealSyndrome: null,
+          tortuous: null,
+          thrombosis: {
+            active: false,
+            type: null,
+            ...initialData.physicalExam?.matureCharacteristics?.thrombosis,
+          },
+          siteRotation: null,
+          ...initialData.physicalExam?.matureCharacteristics,
+        },
+        observations: "",
+        ...initialData.physicalExam,
+      },
+      followUp: initialData.followUp || [
+        { date: "", obs: "" },
+        { date: "", obs: "" },
+        { date: "", obs: "" },
+      ],
+      ...initialData,
+    };
   });
 </script>
 
@@ -273,13 +411,22 @@
   </div>
 {/snippet}
 
-<div
-  class="max-w-5xl mx-auto p-8 bg-white shadow-xl text-gray-800 font-sans print:shadow-none print:max-w-none"
->
-  <header class="text-center mb-6">
-    <h1 class="text-xl font-bold uppercase underline">
+<div class="form-container-wide">
+  <div class="form-save-btn">
+    <button onclick={() => onSave(form)} class="w-full h-full">
+      Guardar
+    </button>
+  </div>
+
+  <header class="form-header justify-center relative py-4">
+    <h1 class="form-title underline text-center w-full">
       Historia Clínica del Acceso Vascular para Hemodiálisis
     </h1>
+    {#if form.updatedAt}
+      <p class="text-[10px] text-gray-400 mt-1 absolute right-0 top-0 pr-4">
+        Actualizado: {new Date(form.updatedAt).toLocaleString()}
+      </p>
+    {/if}
   </header>
 
   <div class="mb-6">
@@ -932,11 +1079,13 @@
       </div>
 
       <div class="mt-4">
-        <label class="block font-bold text-sm mb-1">OBSERVACIONES:</label>
-        <textarea
-          bind:value={form.physicalExam.observations}
-          class="w-full border border-gray-300 rounded p-2 h-20 bg-gray-50"
-        ></textarea>
+        <label class="block">
+          <span class="block font-bold text-sm mb-1">OBSERVACIONES:</span>
+          <textarea
+            bind:value={form.physicalExam.observations}
+            class="w-full border border-gray-300 rounded p-2 h-20 bg-gray-50"
+          ></textarea>
+        </label>
       </div>
     </div>
 

@@ -29,6 +29,44 @@ export default defineSchema({
                 location: v.string(),
             })
         ),
+        patientCard: v.optional(v.object({
+            elderly80_90: v.boolean(),
+            malnutrition: v.boolean(),
+            preservedDiuresis: v.boolean(),
+            time: v.string(),
+            qd: v.string(),
+            qb: v.string(),
+            ktvt: v.string(),
+            filter: v.string(),
+            observations: v.string(),
+            signature: v.string(),
+            updatedAt: v.optional(v.string()),
+        })),
+        // Fichas (Checklists) - Key: Year (e.g., "2026"), Value: Array of IDs of checked items
+        fichas: v.optional(v.record(v.string(), v.array(v.number()))),
+
+        // Infections
+        infections: v.optional(v.object({
+            name: v.string(),
+            antibiotic: v.string(),
+            dose: v.string(),
+            route: v.string(),
+            pps: v.union(v.literal("negative"), v.literal("positive"), v.null()),
+            startDate: v.string(),
+            endDate: v.string(),
+            observations: v.string(),
+            updatedAt: v.optional(v.string()),
+        })),
+        // Clinical History
+        clinicalHistory: v.optional(v.any()), // ClinicalHistory2
+        // New Forms
+        cidh: v.optional(v.any()),
+        clinicHistoryOld: v.optional(v.any()), // ClinicHistory.svelte
+        fistula: v.optional(v.any()),
+        hemodialysis: v.optional(v.any()),
+        medicationSheet: v.optional(v.any()),
+        examControls: v.optional(v.any()),
+        monthlyProgress: v.optional(v.any()), // Using v.any() for the large complex object to allow flexibility and easier updates
     }).index("by_token", ["tokenIdentifier"]),
 
     monthlyAssessments: defineTable({

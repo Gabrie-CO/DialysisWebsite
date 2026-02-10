@@ -9,7 +9,13 @@
     startDate: string;
     endDate: string;
     observations: string;
+    updatedAt?: string;
   }
+
+  let { initialData = {}, onSave } = $props<{
+    initialData?: Partial<FormState>;
+    onSave: (data: FormState) => void;
+  }>();
 
   // --- STATE ---
   let form = $state<FormState>({
@@ -21,7 +27,26 @@
     startDate: "",
     endDate: "",
     observations: "",
+    ...initialData,
   });
+
+  $effect(() => {
+    form = {
+      name: "",
+      antibiotic: "",
+      dose: "",
+      route: "",
+      pps: null,
+      startDate: "",
+      endDate: "",
+      observations: "",
+      ...initialData,
+    };
+  });
+
+  function handleSave() {
+    onSave(form);
+  }
 </script>
 
 {#snippet lineInput(
@@ -30,34 +55,35 @@
   update: (v: string) => void,
   type: string = "text",
 )}
-  <div class="flex items-end gap-2 w-full mb-3">
-    <span class="font-bold text-gray-700 uppercase whitespace-nowrap text-sm"
-      >{label}:</span
-    >
+  <label class="block mb-3">
+    <span class="form-label">{label}</span>
     <input
       {type}
       {value}
       oninput={(e) => update((e.currentTarget as HTMLInputElement).value)}
-      class="w-full border-b border-gray-600 outline-none bg-transparent px-1 text-sm text-blue-900 font-medium pb-0.5"
+      class="form-input"
     />
-  </div>
+  </label>
 {/snippet}
 
-<div
-  class="max-w-md mx-auto p-6 bg-white shadow-xl border border-gray-300 font-sans print:shadow-none print:border-none"
->
-  <header class="flex items-start gap-3 mb-6">
-    <div
-      class="w-12 h-12 shrink-0 border border-gray-300 rounded-full flex items-center justify-center bg-gray-50 text-[8px] text-center p-1 text-gray-500"
-    >
-      Logo<br />Comité
-    </div>
-    <div class="w-full pt-2">
-      <h1
-        class="font-serif font-bold text-lg text-center uppercase underline decoration-1 underline-offset-4 text-gray-800 tracking-wide"
+<div class="form-container">
+  <header class="form-header">
+    <div class="flex items-center gap-4 w-full">
+      <div
+        class="w-12 h-12 shrink-0 border border-gray-300 rounded-full flex items-center justify-center bg-gray-50 text-[8px] text-center p-1 text-gray-500"
       >
-        Comité de Infecciones
-      </h1>
+        Logo<br />Comité
+      </div>
+      <div class="w-full text-center">
+        <h1 class="form-title mb-0 underline decoration-1 underline-offset-4">
+          Comité de Infecciones
+        </h1>
+        {#if form.updatedAt}
+          <p class="text-[10px] text-gray-400 mt-1">
+            Actualizado: {new Date(form.updatedAt).toLocaleString()}
+          </p>
+        {/if}
+      </div>
     </div>
   </header>
 
@@ -76,39 +102,27 @@
     )}
 
     <div class="flex items-center gap-4 mb-4 mt-2">
-      <span class="font-bold text-gray-700 uppercase text-sm">PPS:</span>
+      <span class="form-label mb-0">PPS:</span>
 
       <div class="flex items-center gap-2">
-        <span class="font-bold text-xl leading-none">-</span>
-        <label class="cursor-pointer relative">
+        <label class="form-checkbox-label">
           <input
             type="checkbox"
             checked={form.pps === "negative"}
             onchange={() => (form.pps = "negative")}
-            class="peer appearance-none w-8 h-6 border border-black bg-transparent"
-          />
-          <div
-            class="hidden peer-checked:flex absolute inset-0 items-center justify-center pointer-events-none font-bold text-blue-900"
-          >
-            ✓
-          </div>
+            class="form-checkbox"
+          /> -
         </label>
       </div>
 
       <div class="flex items-center gap-2">
-        <span class="font-bold text-xl leading-none">+</span>
-        <label class="cursor-pointer relative">
+        <label class="form-checkbox-label">
           <input
             type="checkbox"
             checked={form.pps === "positive"}
             onchange={() => (form.pps = "positive")}
-            class="peer appearance-none w-8 h-6 border border-black bg-transparent"
-          />
-          <div
-            class="hidden peer-checked:flex absolute inset-0 items-center justify-center pointer-events-none font-bold text-blue-900"
-          >
-            ✓
-          </div>
+            class="form-checkbox"
+          /> +
         </label>
       </div>
     </div>
@@ -127,17 +141,16 @@
     )}
 
     <div class="mt-4">
-      <span class="font-bold text-gray-700 uppercase text-sm block mb-1"
-        >Observaciones:</span
-      >
-      <div class="relative w-full">
-        <textarea
-          bind:value={form.observations}
-          class="w-full bg-transparent outline-none text-sm leading-8 resize-none text-blue-900 font-medium"
-          style="background-image: repeating-linear-gradient(transparent, transparent 31px, #4b5563 31px, #4b5563 32px); line-height: 32px; padding-top: 4px;"
-          rows="4"
-        ></textarea>
-      </div>
+      <label class="form-label">Observaciones</label>
+      <textarea
+        bind:value={form.observations}
+        class="form-textarea h-32"
+        rows="4"
+      ></textarea>
+    </div>
+
+    <div class="form-save-btn">
+      <button onclick={handleSave} class="form-btn-primary"> Guardar </button>
     </div>
   </div>
 </div>

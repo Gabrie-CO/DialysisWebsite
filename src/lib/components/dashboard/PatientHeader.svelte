@@ -24,7 +24,6 @@
   }>();
 </script>
 
-```typescript
 <header class="bg-white border-b border-gray-200 p-4 shadow-sm z-10">
   <div class="flex justify-between items-start">
     <div class="flex gap-4 items-center">

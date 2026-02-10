@@ -32,71 +32,17 @@
 <div
   class="max-w-3xl mx-auto p-8 bg-white shadow-md rounded-xl border border-gray-100 font-sans text-gray-800"
 >
-  <h2 class="text-2xl font-bold mb-6 text-gray-800">Patient Card</h2>
+  <div class="flex justify-between items-center mb-6">
+    <h2 class="text-2xl font-bold text-gray-800">Patient Card</h2>
+    {#if $form.updatedAt}
+      <p class="text-xs text-gray-500">
+        Last Updated: {new Date($form.updatedAt).toLocaleString()}
+      </p>
+    {/if}
+  </div>
 
   <form method="POST" use:enhance class="space-y-6">
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <div class="space-y-2">
-        <label for="date" class="block text-sm font-medium text-gray-700"
-          >Date</label
-        >
-        <input
-          id="date"
-          type="date"
-          bind:value={$form.date}
-          class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm px-3 py-2 border"
-        />
-        {#if $errors.date}
-          <p class="text-red-500 text-xs mt-1">{$errors.date}</p>
-        {/if}
-      </div>
-
-      <div class="space-y-2">
-        <label for="name" class="block text-sm font-medium text-gray-700"
-          >Name</label
-        >
-        <input
-          id="name"
-          type="text"
-          bind:value={$form.name}
-          class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm px-3 py-2 border"
-        />
-        {#if $errors.name}
-          <p class="text-red-500 text-xs mt-1">{$errors.name}</p>
-        {/if}
-      </div>
-
-      <div class="space-y-2">
-        <label for="age" class="block text-sm font-medium text-gray-700"
-          >Age</label
-        >
-        <input
-          id="age"
-          type="number"
-          bind:value={$form.age}
-          class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm px-3 py-2 border"
-        />
-        {#if $errors.age}
-          <p class="text-red-500 text-xs mt-1">{$errors.age}</p>
-        {/if}
-      </div>
-
-      <div class="space-y-2">
-        <label for="weight" class="block text-sm font-medium text-gray-700"
-          >Weight (kg)</label
-        >
-        <input
-          id="weight"
-          type="number"
-          step="0.1"
-          bind:value={$form.weight}
-          class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm px-3 py-2 border"
-        />
-        {#if $errors.weight}
-          <p class="text-red-500 text-xs mt-1">{$errors.weight}</p>
-        {/if}
-      </div>
-    </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
 
     <!-- Clinical Indicators -->
     <div
