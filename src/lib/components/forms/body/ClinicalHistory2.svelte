@@ -106,7 +106,13 @@
       albumina: string;
       glucosa: string;
     };
+    updatedAt?: string;
   }
+
+  let { initialData = {}, onSave } = $props<{
+    initialData?: Partial<FormState>;
+    onSave: (data: FormState) => void;
+  }>();
 
   // --- STATE ---
   let form = $state<FormState>({
@@ -191,7 +197,99 @@
       albumina: "",
       glucosa: "",
     },
+    ...initialData,
   });
+
+  $effect(() => {
+    form = {
+      exp: "",
+      date: "",
+      startDateHD: "",
+      name: "",
+      age: "",
+      sex: "",
+      civilStatus: "",
+      occupation: "",
+      birthPlace: "",
+      birthDate: "",
+      residence: "",
+      phone: "",
+      etiology: {
+        diabetes: false,
+        glomerulonephritis: false,
+        hypertension: false,
+        primaryGlomerulo: false,
+        ischemic: false,
+        lupus: false,
+        mesoamerican: false,
+        erpad: false,
+        undetermined: false,
+        obstructive: false,
+        prostatic: false,
+        nephrolithiasis: false,
+        preeclampsia: false,
+        other: false,
+        otherText: "",
+      },
+      frequency: "",
+      sessionTime: "",
+      membrane: "",
+      anticoagulation: "",
+      dryWeight: "",
+      heparinDose: "",
+      access: {
+        tempCatheter: false,
+        tunneledCatheter: false,
+        fav: false,
+        observation: "",
+      },
+      viral: { hbsag: "", acvhc: "", vih: "", updated: null },
+      currentIllness: "",
+      personalPathology: "",
+      familyHistory: "",
+      surgicalHistory: "",
+      exam: {
+        mucosas: "",
+        tcs: "",
+        respiratory: "",
+        fr: "",
+        cardiovascular: "",
+        ta: "",
+        fc: "",
+        abdomen: "",
+        snc: "",
+        residualRenal: "",
+        cc: "",
+      },
+      meds: {
+        erythropoietin: "",
+        caco3: "",
+        ferrousSulfate: "",
+        folicAcid: "",
+        other: "",
+      },
+      observations: "",
+      labs: {
+        hb: "",
+        hto: "",
+        leuco: "",
+        plaq: "",
+        na: "",
+        k: "",
+        calcio: "",
+        fosforo: "",
+        productoPC: "",
+        pth: "",
+        albumina: "",
+        glucosa: "",
+      },
+      ...initialData,
+    };
+  });
+
+  function handleSave() {
+    onSave(form);
+  }
 </script>
 
 {#snippet lineInput(
@@ -209,7 +307,7 @@
       type="text"
       {value}
       oninput={(e) => update((e.currentTarget as HTMLInputElement).value)}
-      class="w-full border-b border-black outline-none bg-transparent px-1 text-sm text-blue-900 pb-0"
+      class="form-input-line text-blue-900 pb-0"
     />
   </div>
 {/snippet}
@@ -252,32 +350,37 @@
     ></textarea>
   </div>
 {/snippet}
-<div
-  class="max-w-212.5 mx-auto p-8 bg-white shadow-xl text-gray-900 font-sans print:shadow-none print:max-w-none"
->
-  <header class="text-center mb-6 border-b-2 border-black pb-4">
-    <h1
-      class="text-2xl font-black text-gray-800 uppercase tracking-widest scale-x-110"
-    >
-      Diálisis de Honduras S.A.
-    </h1>
+<div class="form-container-wide">
+  <div class="form-save-btn">
+    <button onclick={() => onSave(form)} class="w-full h-full">
+      Guardar
+    </button>
+  </div>
+
+  <header
+    class="form-header flex-col items-center text-center border-b-2 border-black pb-4"
+  >
+    <h1 class="form-title scale-x-110 mb-2">Diálisis de Honduras S.A.</h1>
     <div class="w-2/3 mx-auto border-t border-black my-1"></div>
-    <p class="text-xs font-bold uppercase tracking-[0.4em] mb-4">
-      Brindando calidad de vida
-    </p>
+    <p class="form-subtitle mb-4">Brindando calidad de vida</p>
 
     <h2
-      class="text-xl font-bold font-serif uppercase underline decoration-double underline-offset-4"
+      class="text-xl font-bold font-serif uppercase underline decoration-double underline-offset-4 text-blue-900"
     >
       Historia Clinica
     </h2>
+    {#if form.updatedAt}
+      <p class="text-[10px] text-gray-400 mt-1">
+        Actualizado: {new Date(form.updatedAt).toLocaleString()}
+      </p>
+    {/if}
 
-    <div class="flex justify-center gap-12 mt-4 text-sm font-bold">
+    <div class="flex justify-center gap-12 mt-4 text-sm font-bold w-full">
       <div class="flex items-end gap-2 w-48">
         <span>Exp.</span>
         <input
           bind:value={form.exp}
-          class="border-b-2 border-dashed border-black w-full text-center"
+          class="form-input-line text-center border-black border-dashed"
         />
       </div>
       <div class="flex items-end gap-2 w-48">
@@ -285,17 +388,17 @@
         <input
           type="date"
           bind:value={form.date}
-          class="border-b border-black w-full text-center"
+          class="form-input-line text-center border-black"
         />
       </div>
     </div>
-    <div class="flex justify-end mt-2">
+    <div class="flex justify-end mt-2 w-full">
       <div class="flex items-end gap-2 w-64 text-xs font-bold">
         <span>FECHA DE INICIO DE 1ra. HD:</span>
         <input
           type="date"
           bind:value={form.startDateHD}
-          class="border-b border-black flex-1"
+          class="form-input-line flex-1 border-black"
         />
       </div>
     </div>
@@ -834,6 +937,10 @@
         />
       </div>
     </div>
+  </div>
+
+  <div class="mt-6 flex justify-end print:hidden">
+    <!-- Save button moved to top -->
   </div>
 
   <div class="text-center mt-12">

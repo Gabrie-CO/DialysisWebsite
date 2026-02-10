@@ -21,7 +21,13 @@
       stenosisProximal: CheckItem;
     };
     observation: string;
+    updatedAt?: string;
   }
+
+  let { initialData = {}, onSave } = $props<{
+    initialData?: Partial<FormState>;
+    onSave: (data: FormState) => void;
+  }>();
 
   // --- STATE ---
   let form = $state<FormState>({
@@ -39,6 +45,32 @@
       stenosisProximal: { active: null },
     },
     observation: "",
+    ...initialData,
+  });
+
+  $effect(() => {
+    form = {
+      patientName: "",
+      age: "",
+      statusColor: null,
+      fistulaType: {
+        autologous: false,
+        prosthetic: false,
+        ...initialData.fistulaType,
+      },
+      checks: {
+        mature: { active: null, ...initialData.checks?.mature },
+        stenosisYuxta: { active: null, ...initialData.checks?.stenosisYuxta },
+        accessoryVeins: { active: null, ...initialData.checks?.accessoryVeins },
+        stenosisProximal: {
+          active: null,
+          ...initialData.checks?.stenosisProximal,
+        },
+        ...initialData.checks,
+      },
+      observation: "",
+      ...initialData,
+    };
   });
 
   // --- LOGIC ---
@@ -101,53 +133,48 @@
   </tr>
 {/snippet}
 
-<div
-  class="max-w-lg mx-auto bg-white p-4 shadow-xl font-sans text-gray-800 print:shadow-none print:max-w-none border border-gray-300"
->
-  <header class="mb-4 border-b-2 border-red-800 pb-2">
-    <div class="flex items-center justify-center gap-2">
-      <div class="flex flex-col items-center">
-        <div class="relative w-10 h-8">
-          <div
-            class="absolute inset-0 bg-red-100 rounded-full opacity-50"
-          ></div>
-          <div class="absolute top-1 left-2 text-red-800 font-bold text-xl">
-            Kidney
-          </div>
+<div class="form-container">
+  <div class="form-save-btn">
+    <button onclick={() => onSave(form)} class="w-full h-full">
+      Guardar
+    </button>
+  </div>
+
+  <header class="form-header">
+    <div class="flex items-center justify-center gap-4 w-full">
+      <div class="relative w-12 h-10">
+        <div class="absolute inset-0 bg-red-100 rounded-full opacity-50"></div>
+        <div class="absolute top-1 left-3 text-red-800 font-bold text-xl">
+          Kidney
         </div>
       </div>
       <div class="text-center">
-        <h1 class="text-xl font-black text-blue-700 uppercase tracking-tighter">
-          Diálisis de Honduras S.A.
-        </h1>
-        <div
-          class="text-[10px] uppercase tracking-[0.3em] font-bold text-gray-500"
-        >
-          Brindando calidad de vida
-        </div>
+        <h1 class="form-title mb-0">Diálisis de Honduras S.A.</h1>
+        <div class="form-subtitle">Brindando calidad de vida</div>
+        {#if form.updatedAt}
+          <p class="text-[10px] text-gray-400 mt-1">
+            Actualizado: {new Date(form.updatedAt).toLocaleString()}
+          </p>
+        {/if}
       </div>
     </div>
   </header>
 
   <div class="grid grid-cols-12 gap-2 mb-4 items-center">
     <div class="col-span-8 flex items-end gap-1">
-      <label class="font-bold text-sm text-gray-700 whitespace-nowrap"
+      <label class="form-label mb-0 whitespace-nowrap"
         >Nombre del paciente</label
       >
       <input
         type="text"
         bind:value={form.patientName}
-        class="w-full border-b border-gray-500 outline-none bg-transparent px-1"
+        class="form-input-line"
       />
     </div>
 
     <div class="col-span-4 flex items-end gap-1">
-      <label class="font-bold text-sm text-gray-700">Edad</label>
-      <input
-        type="text"
-        bind:value={form.age}
-        class="w-full border-b border-gray-500 outline-none bg-transparent px-1"
-      />
+      <label class="form-label mb-0">Edad</label>
+      <input type="text" bind:value={form.age} class="form-input-line" />
     </div>
   </div>
 

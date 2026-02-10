@@ -1,7 +1,12 @@
 <script lang="ts">
-	import favicon from '$lib/assets/favicon.svg';
-
+	import favicon from "$lib/assets/favicon.svg";
+	import { setupConvex } from "convex-svelte";
+	import { PUBLIC_CONVEX_URL } from "$env/static/public";
+	import "../app.css";
+	import "$lib/styles/forms.css";
 	let { children } = $props();
+
+	setupConvex(PUBLIC_CONVEX_URL);
 </script>
 
 <svelte:head>

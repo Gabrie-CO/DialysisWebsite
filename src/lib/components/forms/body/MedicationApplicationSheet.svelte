@@ -17,7 +17,13 @@
   interface FormState {
     patientName: string;
     rows: MedicationRow[];
+    updatedAt?: string;
   }
+
+  let { initialData = {}, onSave } = $props<{
+    initialData?: Partial<FormState>;
+    onSave: (data: FormState) => void;
+  }>();
 
   // --- STATE ---
   // Initialize with 10 rows (The image shows 8, but 10 fills a page better)
@@ -34,6 +40,27 @@
       doctorSign: "",
       nurseSign: "",
     })),
+    ...initialData,
+  });
+
+  $effect(() => {
+    form = {
+      patientName: "",
+      rows:
+        initialData.rows ||
+        Array.from({ length: 10 }, (_, i) => ({
+          id: i + 1,
+          medication: "",
+          date: "",
+          route: "",
+          indications: "",
+          dose: "",
+          time: "",
+          doctorSign: "",
+          nurseSign: "",
+        })),
+      ...initialData,
+    };
   });
 
   // --- LOGIC ---
@@ -81,12 +108,14 @@
   </div>
 {/snippet}
 
-<div
-  class="max-w-300 mx-auto p-8 bg-white shadow-xl text-gray-800 font-sans print:shadow-none print:max-w-none print:p-2 landscape:w-full"
->
-  <header
-    class="flex justify-between items-center border-b-2 border-black pb-4 mb-6"
-  >
+<div class="form-container-wide">
+  <div class="form-save-btn">
+    <button onclick={() => onSave(form)} class="w-full h-full">
+      Guardar
+    </button>
+  </div>
+
+  <header class="form-header">
     <div class="flex items-center gap-4">
       <div
         class="w-12 h-12 bg-blue-900 rounded-full flex items-center justify-center text-white font-bold text-xl"
@@ -94,20 +123,21 @@
         DH
       </div>
       <div>
-        <h1 class="text-xl font-bold text-blue-900 uppercase">
-          Diálisis de Honduras S.A. de C.V.
-        </h1>
-        <p class="text-xs font-bold text-gray-500 uppercase tracking-widest">
-          Brindando calidad de vida
-        </p>
+        <h1 class="form-title mb-0">Diálisis de Honduras S.A. de C.V.</h1>
+        <p class="form-subtitle">Brindando calidad de vida</p>
       </div>
     </div>
     <div class="text-right">
       <h2
-        class="text-xl font-bold uppercase tracking-wide border-2 border-gray-800 px-4 py-1"
+        class="form-section-title bg-white border-2 border-gray-800 px-4 py-1"
       >
         Hoja de Aplicación de Medicamentos
       </h2>
+      {#if form.updatedAt}
+        <p class="text-[10px] text-gray-400 mt-1">
+          Actualizado: {new Date(form.updatedAt).toLocaleString()}
+        </p>
+      {/if}
     </div>
   </header>
 
@@ -115,13 +145,11 @@
     class="mb-6 flex items-end gap-4 bg-gray-50 p-4 border border-gray-200 rounded"
   >
     <label class="w-full">
-      <span class="font-bold text-sm text-gray-600 uppercase"
-        >Nombre del Paciente:</span
-      >
+      <span class="form-label text-sm">Nombre del Paciente:</span>
       <input
         type="text"
         bind:value={form.patientName}
-        class="w-full text-lg border-b-2 border-gray-400 bg-transparent outline-none focus:border-blue-800 px-1 py-1"
+        class="form-input-line text-lg py-1 border-b-2"
         placeholder="Ingrese nombre completo..."
       />
     </label>
