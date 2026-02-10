@@ -61,10 +61,8 @@
 </script>
 
 {#snippet checkboxCell(year: number, id: number)}
-  <td class="border border-gray-200 p-0 h-full relative">
-    <label
-      class="absolute inset-0 flex items-center justify-center cursor-pointer hover:bg-blue-50 transition-colors"
-    >
+  <td class="table-td-checkbox">
+    <label class="table-checkbox-label">
       <input
         type="checkbox"
         class="form-checkbox"
@@ -75,7 +73,7 @@
   </td>
 {/snippet}
 
-<div class="form-container">
+<div class="form-background">
   <div class="mb-6">
     <h2 class="form-title">Control de Fichas (Checklists)</h2>
     <p class="form-subtitle">Validación Anual</p>
@@ -86,22 +84,14 @@
     {/if}
   </div>
 
-  <div class="border border-gray-200 rounded-lg overflow-hidden shadow-sm">
-    <table class="w-full border-collapse">
+  <div class="table-container">
+    <table class="table-standard">
       <thead>
-        <tr class="bg-gray-50 border-b border-gray-200">
-          <th
-            class="border-r border-gray-200 p-3 w-12 text-center text-xs font-bold text-gray-500"
-            >N°</th
-          >
-          <th
-            class="border-r border-gray-200 p-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider"
-            >FICHAS</th
-          >
+        <tr class="table-header-row">
+          <th class="table-th w-12">N°</th>
+          <th class="table-th-left">FICHAS</th>
           {#each years as year}
-            <th
-              class="border-r border-gray-200 p-3 w-20 text-center text-xs font-bold text-gray-700 bg-gray-100/50 last:border-r-0"
-            >
+            <th class="table-th-year">
               {year}
             </th>
           {/each}
@@ -109,18 +99,12 @@
       </thead>
       <tbody>
         {#each LABELS as row}
-          <tr
-            class="h-12 border-b border-gray-200 last:border-0 hover:bg-gray-50/50 transition-colors"
-          >
-            <td
-              class="border-r border-gray-200 text-center text-xs text-gray-500 font-medium"
-            >
+          <tr class="table-row">
+            <td class="table-td-id">
               {row.id}
             </td>
 
-            <td
-              class="border-r border-gray-200 px-4 py-2 text-sm font-medium text-gray-800 leading-tight"
-            >
+            <td class="table-td-label">
               {row.label}
             </td>
 
@@ -134,8 +118,6 @@
   </div>
 
   <div class="form-save-btn">
-    <button onclick={handleSave} class="form-btn-primary">
-      Save Changes
-    </button>
+    <button onclick={handleSave} class="form-button"> Save Changes </button>
   </div>
 </div>

@@ -360,18 +360,88 @@
   ] as const;
 </script>
 
+{#snippet textInput(
+  label: string,
+  obj: any,
+  k: string,
+  placeholder: string = "",
+)}
+  <div>
+    <label class="form-label">
+      {label}
+      <input type="text" bind:value={obj[k]} class="form-input" {placeholder} />
+    </label>
+  </div>
+{/snippet}
+
+{#snippet dateInput(label: string, obj: any, k: string)}
+  <div>
+    <label class="form-label">
+      {label}
+      <input type="date" bind:value={obj[k]} class="form-input" />
+    </label>
+  </div>
+{/snippet}
+
 {#snippet checkbox(label: string, obj: any, k: string)}
   <div class="form-checkbox-label">
-    <input type="checkbox" id={k} bind:checked={obj[k]} class="form-checkbox" />
-    <label for={k} class="text-sm font-medium text-gray-700 cursor-pointer"
+    <input type="checkbox" bind:checked={obj[k]} class="form-checkbox" />
+    <label class="text-sm font-medium text-gray-700 cursor-pointer"
       >{label}</label
     >
+  </div>
+{/snippet}
+
+{#snippet radioGroup(
+  label: string,
+  obj: any,
+  k: string,
+  options: { value: any; label: string }[],
+)}
+  <div class="space-y-1">
+    {#if label}
+      <span class="font-bold text-sm text-gray-700">{label}:</span>
+    {/if}
+    <div class="flex gap-4">
+      {#each options as option}
+        <label class="flex items-center gap-2 cursor-pointer">
+          <input
+            type="radio"
+            checked={obj[k] === option.value}
+            onclick={() => (obj[k] = option.value)}
+            name={k}
+            class="form-radio"
+          />
+          <span class="text-sm">{option.label}</span>
+        </label>
+      {/each}
+    </div>
   </div>
 {/snippet}
 
 {#snippet sectionHeader(title: string)}
   <div class="form-section">
     <h3 class="form-section-title">{title}</h3>
+  </div>
+{/snippet}
+
+{#snippet textarea(
+  label: string,
+  obj: any,
+  k: string,
+  placeholder: string = "",
+  rows: number = 3,
+)}
+  <div>
+    <label class="form-label">
+      {label}
+      <textarea
+        bind:value={obj[k]}
+        class="form-input resize-none"
+        {rows}
+        {placeholder}
+      ></textarea>
+    </label>
   </div>
 {/snippet}
 
@@ -400,84 +470,28 @@
     </div>
   </header>
 
-  <div class="grid grid-cols-2 gap-6 mb-6">
-    <div class="col-span-2 md:col-span-1">
-      <label class="form-label"
-        >Nombre del Paciente <input
-          type="text"
-          bind:value={formData.patient.firstName}
-          class="form-input"
-        />
-      </label>
-    </div>
-    <div class="col-span-2 md:col-span-1">
-      <label class="form-label"
-        >Apellidos <input
-          type="text"
-          bind:value={formData.patient.lastName}
-          class="form-input"
-        />
-      </label>
-    </div>
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+    {@render textInput("Nombre del Paciente", formData.patient, "firstName")}
+    {@render textInput("Apellidos", formData.patient, "lastName")}
 
-    <div class="flex gap-4">
-      <span class="font-bold">Género:</span>
-      <label
-        ><input type="radio" value="F" bind:group={formData.patient.gender} /> F</label
-      >
-      <label
-        ><input type="radio" value="M" bind:group={formData.patient.gender} /> M</label
-      >
-    </div>
+    {@render radioGroup("Género", formData.patient, "gender", [
+      { value: "F", label: "F" },
+      { value: "M", label: "M" },
+    ])}
 
-    <div>
-      <label class="form-label"
-        >Fecha Nacimiento <input
-          type="date"
-          bind:value={formData.patient.dob}
-          class="form-input"
-        />
-      </label>
-    </div>
+    {@render dateInput("Fecha Nacimiento", formData.patient, "dob")}
 
-    <div class="col-span-2 grid grid-cols-4 gap-4">
-      <div>
-        <label class="form-label"
-          >Clínica <input
-            bind:value={formData.patient.clinic}
-            class="form-input"
-          />
-        </label>
-      </div>
-      <div>
-        <label class="form-label"
-          >Cubículo <input
-            bind:value={formData.patient.cubicle}
-            class="form-input"
-          />
-        </label>
-      </div>
-      <div>
-        <label class="form-label"
-          >Fecha Evento <input
-            type="date"
-            bind:value={formData.patient.eventDate}
-            class="form-input"
-          />
-        </label>
-      </div>
-      <div class="flex items-end gap-2">
-        <span class="text-xs font-bold">Enfermedades:</span>
-        <label class="text-xs"
-          ><input type="checkbox" bind:checked={formData.patient.diseases.dm} />
-          DM</label
-        >
-        <label class="text-xs"
-          ><input
-            type="checkbox"
-            bind:checked={formData.patient.diseases.hta}
-          /> HTA</label
-        >
+    <div class="col-span-1 md:col-span-2 grid grid-cols-1 md:grid-cols-4 gap-4">
+      {@render textInput("Clínica", formData.patient, "clinic")}
+      {@render textInput("Cubículo", formData.patient, "cubicle")}
+      {@render dateInput("Fecha Evento", formData.patient, "eventDate")}
+
+      <div class="flex flex-col justify-end pb-2">
+        <span class="text-xs font-bold mb-2">Enfermedades:</span>
+        <div class="flex gap-4">
+          {@render checkbox("DM", formData.patient.diseases, "dm")}
+          {@render checkbox("HTA", formData.patient.diseases, "hta")}
+        </div>
       </div>
     </div>
   </div>
@@ -623,14 +637,44 @@
           formData.medical.diagnosis,
           "diabeticFoot",
         )}
-        <div class="flex flex-col mt-2">
-          <label class="form-label text-xs"
-            >Otros <input
-              bind:value={formData.medical.diagnosis.other}
-              class="form-input"
-            />
-          </label>
-        </div>
+
+        {@render textInput("Otros", formData.medical.diagnosis, "other")}
+      </div>
+    </div>
+    <div>
+      <h4 class="form-label text-base border-b border-gray-100 pb-2 mb-4">
+        Impresión Diagnostica
+      </h4>
+      <div class="space-y-2">
+        {@render checkbox(
+          "Infección del Acceso Vascular",
+          formData.medical.diagnosis,
+          "vascularInfection",
+        )}
+        {@render checkbox("Neumonía", formData.medical.diagnosis, "pneumonia")}
+        {@render checkbox(
+          "Celulitis",
+          formData.medical.diagnosis,
+          "cellulitis",
+        )}
+        {@render checkbox(
+          "Infección Tracto Urinario",
+          formData.medical.diagnosis,
+          "uti",
+        )}
+        {@render checkbox(
+          "Resfriado común / Gripe",
+          formData.medical.diagnosis,
+          "cold",
+        )}
+        {@render checkbox("Tuberculosis", formData.medical.diagnosis, "tb")}
+        {@render checkbox(
+          "Pie Diabético",
+          formData.medical.diagnosis,
+          "diabeticFoot",
+        )}
+
+        {@render textInput("Otros", formData.medical.diagnosis, "other")}
       </div>
     </div>
     <div>
@@ -645,44 +689,16 @@
         )}
         {@render checkbox("Urocultivo", formData.medical.tests, "urineCulture")}
         {@render checkbox("Hemograma", formData.medical.tests, "hemogram")}
-        <div class="flex flex-col mt-2">
-          <label class="form-label text-xs"
-            >Otras <input
-              bind:value={formData.medical.tests.other}
-              class="form-input"
-            /></label
-          >
-        </div>
+
+        {@render textInput("Otras", formData.medical.tests, "other")}
       </div>
 
       <div class="mt-6 pt-4 border-t border-gray-100">
-        <label class="form-label mb-2"
-          >Se refiere <div class="flex gap-4 items-center mb-4">
-            <label class="flex items-center gap-2 cursor-pointer">
-              <input
-                type="radio"
-                value={true}
-                bind:group={formData.medical.referral.sent}
-                class="form-checkbox"
-              />
-              <span class="text-sm">SI</span>
-            </label>
-            <label class="flex items-center gap-2 cursor-pointer">
-              <input
-                type="radio"
-                value={false}
-                bind:group={formData.medical.referral.sent}
-                class="form-checkbox"
-              />
-              <span class="text-sm">NO</span>
-            </label>
-          </div>
-          <input
-            placeholder="Donde..."
-            bind:value={formData.medical.referral.where}
-            class="form-input"
-          />
-        </label>
+        {@render radioGroup("Se refiere", formData.medical.referral, "sent", [
+          { value: true, label: "SI" },
+          { value: false, label: "NO" },
+        ])}
+        {@render textInput("", formData.medical.referral, "where", "Donde...")}
       </div>
     </div>
   </div>
@@ -691,67 +707,29 @@
     {@render sectionHeader("HOJA DE SEGUIMIENTO")}
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-      <div>
-        <label class="form-label"
-          >Fecha de seguimiento
-          <input
-            type="date"
-            bind:value={formData.followUp.date}
-            class="form-input"
-          />
-        </label>
-      </div>
-      <div>
-        <label class="form-label"
-          >Paciente Hospitalizado
-          <div class="flex gap-4 mt-2">
-            <label class="flex items-center gap-2 cursor-pointer">
-              <input
-                type="radio"
-                value={true}
-                bind:group={formData.followUp.hospitalized}
-                class="form-checkbox"
-              />
-              <span class="text-sm">SI</span>
-            </label>
-            <label class="flex items-center gap-2 cursor-pointer">
-              <input
-                type="radio"
-                value={false}
-                bind:group={formData.followUp.hospitalized}
-                class="form-checkbox"
-              />
-              <span class="text-sm">NO</span>
-            </label>
-          </div>
-        </label>
-      </div>
+      {@render dateInput("Fecha de seguimiento", formData.followUp, "date")}
+
+      {@render radioGroup(
+        "Paciente Hospitalizado",
+        formData.followUp,
+        "hospitalized",
+        [
+          { value: true, label: "SI" },
+          { value: false, label: "NO" },
+        ],
+      )}
     </div>
 
     <div class="border border-gray-200 rounded-lg p-4 bg-gray-50/50 mb-6">
       <div class="font-bold text-gray-700 mb-2">Resultado</div>
       <div class="flex gap-4 flex-wrap mb-4">
-        <label class="form-checkbox-label"
-          ><input
-            type="checkbox"
-            bind:checked={formData.followUp.result.hemoculture}
-            class="form-checkbox"
-          /> Hemocultivo</label
-        >
-        <label class="form-checkbox-label"
-          ><input
-            type="checkbox"
-            bind:checked={formData.followUp.result.positive}
-            class="form-checkbox"
-          /> Positivo</label
-        >
-        <label class="form-checkbox-label"
-          ><input
-            type="checkbox"
-            bind:checked={formData.followUp.result.negative}
-            class="form-checkbox"
-          /> Negativo</label
-        >
+        {@render checkbox(
+          "Hemocultivo",
+          formData.followUp.result,
+          "hemoculture",
+        )}
+        {@render checkbox("Positivo", formData.followUp.result, "positive")}
+        {@render checkbox("Negativo", formData.followUp.result, "negative")}
       </div>
 
       <div class="mt-4 border-t border-gray-200 pt-3">
@@ -759,21 +737,17 @@
           >Agente Patógeno Cultivado</span
         >
         <div class="flex gap-6 items-start">
-          <label class="form-checkbox-label"
-            ><input
-              type="checkbox"
-              bind:checked={formData.followUp.result.pathogen.staphAureus}
-              class="form-checkbox"
-            /> Staphylococcus Aureus</label
-          >
+          {@render checkbox(
+            "Staphylococcus Aureus",
+            formData.followUp.result.pathogen,
+            "staphAureus",
+          )}
           <div class="flex flex-col flex-1">
-            <label class="form-label text-xs"
-              >Otros
-              <input
-                bind:value={formData.followUp.result.pathogen.other}
-                class="form-input"
-              />
-            </label>
+            {@render textInput(
+              "Otros",
+              formData.followUp.result.pathogen,
+              "other",
+            )}
           </div>
         </div>
       </div>
@@ -783,21 +757,17 @@
           >Sensibilidad Antibiótica</span
         >
         <div class="flex gap-6 items-start">
-          <label class="form-checkbox-label"
-            ><input
-              type="checkbox"
-              bind:checked={formData.followUp.result.sensitivity.vancomycin}
-              class="form-checkbox"
-            /> Vancomicina</label
-          >
+          {@render checkbox(
+            "Vancomicina",
+            formData.followUp.result.sensitivity,
+            "vancomycin",
+          )}
           <div class="flex flex-col flex-1">
-            <label class="form-label text-xs"
-              >Otros
-              <input
-                bind:value={formData.followUp.result.sensitivity.other}
-                class="form-input"
-              />
-            </label>
+            {@render textInput(
+              "Otros",
+              formData.followUp.result.sensitivity,
+              "other",
+            )}
           </div>
         </div>
       </div>
@@ -805,25 +775,17 @@
       <div
         class="mt-4 flex gap-4 items-center bg-blue-50/50 p-3 rounded-lg border border-blue-100"
       >
-        <span class="font-bold text-gray-700"
-          >Inicio tratamiento IV con Vancomicina:</span
-        >
-        <label class="flex items-center gap-2 cursor-pointer"
-          ><input
-            type="radio"
-            value={false}
-            bind:group={formData.followUp.treatmentStart.ivVancomycin}
-            class="form-checkbox"
-          /> NO</label
-        >
-        <label class="flex items-center gap-2 cursor-pointer"
-          ><input
-            type="radio"
-            value={true}
-            bind:group={formData.followUp.treatmentStart.ivVancomycin}
-            class="form-checkbox"
-          /> SI</label
-        >
+        <div class="flex items-center gap-4">
+          {@render radioGroup(
+            "Inicio tratamiento IV con Vancomicina",
+            formData.followUp.treatmentStart,
+            "ivVancomycin",
+            [
+              { value: false, label: "NO" },
+              { value: true, label: "SI" },
+            ],
+          )}
+        </div>
         <input
           placeholder="dosis"
           bind:value={formData.followUp.treatmentStart.dose}
@@ -843,27 +805,21 @@
     <h4 class="form-section-title bg-gray-50 p-2 rounded">
       Tratamiento (Registro de Administración)
     </h4>
-    <div
-      class="overflow-x-auto border border-gray-200 rounded-lg shadow-sm mb-6"
-    >
-      <table class="w-full text-xs border-collapse">
+    <div class="table-container mb-6">
+      <table class="table-standard text-xs">
         <thead>
-          <tr
-            class="bg-gray-50 border-b border-gray-200 text-gray-500 font-bold uppercase tracking-wider text-left"
-          >
-            <th class="p-3">Fechas De Admin</th>
-            <th class="p-3">Paciente Lo Trajo</th>
-            <th class="p-3">Dosis Indicada</th>
-            <th class="p-3">Dosis Administrada</th>
-            <th class="p-3">Vía</th>
-            <th class="p-3">Comentario</th>
+          <tr class="table-header-row">
+            <th class="table-th-left">Fechas De Admin</th>
+            <th class="table-th-left">Paciente Lo Trajo</th>
+            <th class="table-th-left">Dosis Indicada</th>
+            <th class="table-th-left">Dosis Administrada</th>
+            <th class="table-th-left">Vía</th>
+            <th class="table-th-left">Comentario</th>
           </tr>
         </thead>
         <tbody>
           {#each formData.followUp.logs as row}
-            <tr
-              class="hover:bg-gray-50 border-b border-gray-100 last:border-0 transition-colors"
-            >
+            <tr class="table-row">
               <td class="p-2"
                 ><input
                   type="date"
@@ -984,119 +940,74 @@
       <div
         class="flex justify-between items-center border-b border-gray-100 pb-2"
       >
-        <span class="font-medium"
-          >¿Paciente completo todas las dosis de su tratamiento?</span
-        >
-        <div class="flex gap-4">
-          <label class="flex items-center gap-2"
-            ><input
-              type="radio"
-              value="SI"
-              bind:group={formData.followUp.outcomes.completed}
-              class="form-checkbox"
-            /> SI</label
-          >
-          <label class="flex items-center gap-2"
-            ><input
-              type="radio"
-              value="NO"
-              bind:group={formData.followUp.outcomes.completed}
-              class="form-checkbox"
-            /> NO</label
-          >
+        <div class="flex gap-4 items-center">
+          {@render radioGroup(
+            "¿Paciente completo todas las dosis de su tratamiento?",
+            formData.followUp.outcomes,
+            "completed",
+            [
+              { value: "SI", label: "SI" },
+              { value: "NO", label: "NO" },
+            ],
+          )}
         </div>
       </div>
 
       <div class="flex flex-col gap-2 border-b border-gray-100 pb-2">
         <div class="flex justify-between items-center">
-          <span class="font-medium">¿Paciente abandono su Tratamiento?</span>
-          <div class="flex gap-4">
-            <label class="flex items-center gap-2"
-              ><input
-                type="radio"
-                value="SI"
-                bind:group={formData.followUp.outcomes.abandoned}
-                class="form-checkbox"
-              /> SI</label
-            >
-            <label class="flex items-center gap-2"
-              ><input
-                type="radio"
-                value="NO"
-                bind:group={formData.followUp.outcomes.abandoned}
-                class="form-checkbox"
-              /> NO</label
-            >
-          </div>
+          {@render radioGroup(
+            "¿Paciente abandono su Tratamiento?",
+            formData.followUp.outcomes,
+            "abandoned",
+            [
+              { value: "SI", label: "SI" },
+              { value: "NO", label: "NO" },
+            ],
+          )}
         </div>
         <div class="flex items-center gap-4 mt-2">
-          <span class="text-sm font-medium w-24">¿Por qué?</span>
-          <input
-            bind:value={formData.followUp.outcomes.whyAbandoned}
-            class="form-input flex-1"
-          />
+          {@render textInput(
+            "¿Por qué?",
+            formData.followUp.outcomes,
+            "whyAbandoned",
+          )}
         </div>
       </div>
 
       <div
         class="flex justify-between items-center border-b border-gray-100 pb-2"
       >
-        <span class="font-medium">¿Continúa manifestando Fiebre?</span>
-        <div class="flex gap-4">
-          <label class="flex items-center gap-2"
-            ><input
-              type="radio"
-              value="SI"
-              bind:group={formData.followUp.outcomes.continuingFever}
-              class="form-checkbox"
-            /> SI</label
-          >
-          <label class="flex items-center gap-2"
-            ><input
-              type="radio"
-              value="NO"
-              bind:group={formData.followUp.outcomes.continuingFever}
-              class="form-checkbox"
-            /> NO</label
-          >
-        </div>
+        {@render radioGroup(
+          "¿Continúa manifestando Fiebre?",
+          formData.followUp.outcomes,
+          "continuingFever",
+          [
+            { value: "SI", label: "SI" },
+            { value: "NO", label: "NO" },
+          ],
+        )}
       </div>
 
       <div
         class="flex justify-between items-center border-b border-gray-100 pb-2"
       >
-        <span class="font-medium"
-          >¿Fue necesario volver a referir al paciente?</span
-        >
-        <div class="flex gap-4">
-          <label class="flex items-center gap-2"
-            ><input
-              type="radio"
-              value="SI"
-              bind:group={formData.followUp.outcomes.referredAgain}
-              class="form-checkbox"
-            /> SI</label
-          >
-          <label class="flex items-center gap-2"
-            ><input
-              type="radio"
-              value="NO"
-              bind:group={formData.followUp.outcomes.referredAgain}
-              class="form-checkbox"
-            /> NO</label
-          >
-        </div>
+        {@render radioGroup(
+          "¿Fue necesario volver a referir al paciente?",
+          formData.followUp.outcomes,
+          "referredAgain",
+          [
+            { value: "SI", label: "SI" },
+            { value: "NO", label: "NO" },
+          ],
+        )}
       </div>
 
       <div class="mt-4">
-        <label class="form-label"
-          >Comentario Final
-          <textarea
-            bind:value={formData.followUp.outcomes.finalComment}
-            class="form-input h-24"
-          ></textarea>
-          ></label
-        >
+        {@render textarea(
+          "Comentario Final",
+          formData.followUp.outcomes,
+          "finalComment",
+        )}
       </div>
     </div>
 

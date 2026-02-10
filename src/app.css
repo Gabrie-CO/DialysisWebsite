@@ -18,8 +18,10 @@
 .title-text {
     @apply text-lg font-bold text-blue-800
 }
-.comment-card {
     @apply h-5 w-5 rounded border-gray-300 text-blue-600 focus:ring-blue-50
+}
+.form-radio {
+    @apply h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500
 }
 .form-label {
     @apply block text-sm font-medium text-gray-700
@@ -44,4 +46,39 @@
 }
 .form-header {
     @apply flex justify-between items-center mb-6;
+}
+
+/* Table Styles */
+.table-container {
+    @apply border border-gray-200 rounded-lg overflow-hidden shadow-sm;
+}
+.table-standard {
+    @apply w-full border-collapse;
+}
+.table-header-row {
+    @apply bg-gray-50 border-b border-gray-200;
+}
+.table-th {
+    @apply border-r border-gray-200 p-3 text-center text-xs font-bold text-gray-500;
+}
+.table-th-left {
+    @apply border-r border-gray-200 p-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider;
+}
+.table-th-year {
+    @apply border-r border-gray-200 p-3 w-20 text-center text-xs font-bold text-gray-700 bg-gray-100/50 last:border-r-0;
+}
+.table-row {
+    @apply h-12 border-b border-gray-200 last:border-0 hover:bg-gray-50/50 transition-colors;
+}
+.table-td-id {
+    @apply border-r border-gray-200 text-center text-xs text-gray-500 font-medium;
+}
+.table-td-label {
+    @apply border-r border-gray-200 px-4 py-2 text-sm font-medium text-gray-800 leading-tight;
+}
+.table-td-checkbox {
+    @apply border border-gray-200 p-0 h-full relative;
+}
+.table-checkbox-label {
+    @apply absolute inset-0 flex items-center justify-center cursor-pointer hover:bg-blue-50 transition-colors;
 }
