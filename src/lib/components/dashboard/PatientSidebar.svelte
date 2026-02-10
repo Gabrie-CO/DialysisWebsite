@@ -14,15 +14,26 @@
 <aside
   class="w-64 bg-white border-r border-gray-200 flex flex-col shrink-0 h-full"
 >
-  <div class="p-4 border-b border-gray-100">
-    <h2 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
-      Patients
-    </h2>
-    <input
-      type="text"
-      placeholder="Search name or code..."
-      class="w-full bg-gray-50 border border-gray-200 rounded px-2 py-1 text-sm outline-none focus:border-blue-500"
-    />
+  <div class="p-4 border-b border-gray-100 space-y-4">
+    <a
+      href="/"
+      class="flex items-center gap-2 text-blue-600 hover:text-blue-800 font-bold text-sm transition-colors group"
+    >
+      <span class="group-hover:-translate-x-1 transition-transform">&larr;</span
+      >
+      Clinic Overview
+    </a>
+
+    <div>
+      <h2 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
+        Patients
+      </h2>
+      <input
+        type="text"
+        placeholder="Search name or code..."
+        class="w-full bg-gray-50 border border-gray-200 rounded px-2 py-1 text-sm outline-none focus:border-blue-500"
+      />
+    </div>
   </div>
 
   <div class="flex-1 overflow-y-auto">
