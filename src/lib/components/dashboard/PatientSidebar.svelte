@@ -3,7 +3,7 @@
   import { api } from "../../../../convex/_generated/api";
 
   let { selectedPatientId, onSelect } = $props<{
-    selectedPatientId: string;
+    selectedPatientId: string | null;
     onSelect: (id: string) => void;
   }>();
 
