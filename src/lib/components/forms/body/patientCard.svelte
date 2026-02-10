@@ -1,36 +1,61 @@
 <script lang="ts">
-  import { superForm, defaults } from "sveltekit-superforms";
-  import { zod } from "sveltekit-superforms/adapters";
-  import { patientCardSchema } from "$lib/schemas/patientCard";
-  import type { z } from "zod";
   import { untrack } from "svelte";
 
+  interface PatientCardData {
+    elderly80_90: boolean;
+    malnutrition: boolean;
+    preservedDiuresis: boolean;
+    time: string;
+    qd: string;
+    qb: string;
+    ktvt: string;
+    filter: string;
+    observations: string;
+    signature: string;
+    updatedAt?: string;
+  }
+
   let { initialData, onSave } = $props<{
-    initialData: z.infer<typeof patientCardSchema>;
-    onSave: (data: z.infer<typeof patientCardSchema>) => void;
+    initialData: Partial<PatientCardData>;
+    onSave: (data: PatientCardData) => void;
   }>();
 
-  // Initialize Superform in SPA mode
-  const { form, enhance } = superForm(
-    defaults(
-      untrack(() => initialData),
-      zod(patientCardSchema as any),
-    ),
-    {
-      SPA: true,
-      validators: zod(patientCardSchema as any),
-      onUpdate: async ({ form }) => {
-        if (form.valid) {
-          onSave(form.data);
-        }
-      },
-    },
-  );
-
-  // Sync initialData when it changes (e.g. switching patients)
-  $effect(() => {
-    form.set(initialData);
+  // Initialize local state
+  let form = $state<PatientCardData>({
+    elderly80_90: false,
+    malnutrition: false,
+    preservedDiuresis: false,
+    time: "",
+    qd: "",
+    qb: "",
+    ktvt: "",
+    filter: "",
+    observations: "",
+    signature: "",
+    ...untrack(() => initialData),
   });
+
+  // Sync state when initialData changes (e.g. switching patients)
+  $effect(() => {
+    form = {
+      elderly80_90: false,
+      malnutrition: false,
+      preservedDiuresis: false,
+      time: "",
+      qd: "",
+      qb: "",
+      ktvt: "",
+      filter: "",
+      observations: "",
+      signature: "",
+      ...initialData,
+    };
+  });
+
+  function handleSubmit(e: Event) {
+    e.preventDefault();
+    onSave(form);
+  }
 </script>
 
 <div
@@ -38,14 +63,14 @@
 >
   <div class="flex justify-between items-center mb-6">
     <h2 class="text-2xl font-bold text-gray-800">Patient Card</h2>
-    {#if $form.updatedAt}
+    {#if form.updatedAt}
       <p class="text-xs text-gray-500">
-        Last Updated: {new Date($form.updatedAt).toLocaleString()}
+        Last Updated: {new Date(form.updatedAt).toLocaleString()}
       </p>
     {/if}
   </div>
 
-  <form method="POST" use:enhance class="space-y-6">
+  <form onsubmit={handleSubmit} class="space-y-6">
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
 
     <!-- Clinical Indicators -->
@@ -58,7 +83,7 @@
         <input
           id="elderly80_90"
           type="checkbox"
-          bind:checked={$form.elderly80_90}
+          bind:checked={form.elderly80_90}
           class="h-5 w-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
         />
         <label for="elderly80_90" class="flex flex-col cursor-pointer">
@@ -73,7 +98,7 @@
         <input
           id="malnutrition"
           type="checkbox"
-          bind:checked={$form.malnutrition}
+          bind:checked={form.malnutrition}
           class="h-5 w-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
         />
         <label
@@ -89,7 +114,7 @@
         <input
           id="preservedDiuresis"
           type="checkbox"
-          bind:checked={$form.preservedDiuresis}
+          bind:checked={form.preservedDiuresis}
           class="h-5 w-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
         />
         <label
@@ -108,7 +133,7 @@
         <input
           id="time"
           type="text"
-          bind:value={$form.time}
+          bind:value={form.time}
           class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm px-3 py-2 border"
         />
       </div>
@@ -120,7 +145,7 @@
         <input
           id="qd"
           type="text"
-          bind:value={$form.qd}
+          bind:value={form.qd}
           class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm px-3 py-2 border"
         />
       </div>
@@ -132,7 +157,7 @@
         <input
           id="qb"
           type="text"
-          bind:value={$form.qb}
+          bind:value={form.qb}
           class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm px-3 py-2 border"
         />
       </div>
@@ -146,7 +171,7 @@
         <input
           id="ktvt"
           type="text"
-          bind:value={$form.ktvt}
+          bind:value={form.ktvt}
           class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm px-3 py-2 border"
         />
       </div>
@@ -158,7 +183,7 @@
         <input
           id="filter"
           type="text"
-          bind:value={$form.filter}
+          bind:value={form.filter}
           class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm px-3 py-2 border"
         />
       </div>
@@ -170,7 +195,7 @@
       >
       <textarea
         id="observations"
-        bind:value={$form.observations}
+        bind:value={form.observations}
         rows="4"
         class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm px-3 py-2 border resize-none"
       ></textarea>

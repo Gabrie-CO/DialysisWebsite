@@ -149,6 +149,12 @@
       icon: "📅",
       desc: "Monthly patient progress",
     },
+    {
+      id: "debug",
+      title: "Debug Refresh",
+      icon: "🧪",
+      desc: "Check form re-rendering",
+    },
   ];
 </script>
 
@@ -319,6 +325,27 @@
                   });
                 }}
               />
+            {:else if activeDocument === "debug"}
+              <div
+                class="bg-white p-12 rounded-2xl border-4 border-dashed border-blue-100 flex flex-col items-center gap-4"
+              >
+                <div class="text-6xl animate-bounce">🧪</div>
+                <h2 class="text-2xl font-black text-blue-900">
+                  Debug Renderer
+                </h2>
+                <p class="text-gray-500 font-medium">
+                  This component was rendered at:
+                </p>
+                <div
+                  class="bg-blue-50 px-6 py-3 rounded-xl font-mono text-blue-700 font-bold text-xl border border-blue-100"
+                >
+                  {new Date().toLocaleTimeString()}
+                </div>
+                <p class="text-xs text-gray-400 mt-4">
+                  If this time updates when you click the box, re-rendering is
+                  working.
+                </p>
+              </div>
             {/if}
           </div>
         {/if}
