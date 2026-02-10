@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { page } from "$app/state";
   import { useQuery, useConvexClient } from "convex-svelte";
   import { api } from "../../../convex/_generated/api";
   import PatientSidebar from "$lib/components/dashboard/PatientSidebar.svelte";
@@ -39,10 +40,18 @@
   };
 
   // Local State
-  let selectedPatientId = $state("");
+  let selectedPatientId = $state(page.url.searchParams.get("id") || "");
   let activeTab = $state("timeline");
   let activeDocument = $state<string | null>(null);
   let isSidebarOpen = $state(false);
+
+  // Sync selectedPatientId with URL param if it changes
+  $effect(() => {
+    const urlId = page.url.searchParams.get("id");
+    if (urlId && urlId !== selectedPatientId) {
+      selectedPatientId = urlId;
+    }
+  });
 
   // Derived
   let patients = $derived(patientsQuery.data || []);
@@ -50,7 +59,7 @@
     patients.find((p: any) => p._id === selectedPatientId) || patients[0],
   );
 
-  // Initialize selectedPatientId
+  // Initialize selectedPatientId if not set and patients loaded
   $effect(() => {
     if (!selectedPatientId && patients.length > 0) {
       selectedPatientId = patients[0]._id;

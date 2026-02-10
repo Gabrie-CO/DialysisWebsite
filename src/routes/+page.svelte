@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { goto } from "$app/navigation";
   import PatientSidebar from "$lib/components/dashboard/PatientSidebar.svelte";
   import Chair from "$lib/components/dashboard/Chair.svelte";
   import ActiveAlerts from "$lib/components/dashboard/ActiveAlerts.svelte";
@@ -7,6 +8,10 @@
 
   // State management
   let selectedPatientId = $state<string | null>(null);
+
+  function selectPatient(id: string) {
+    goto(`/dashboard?id=${id}`);
+  }
 
   // Mock Data for 3 Patients
   const mockPatients = [
@@ -46,10 +51,6 @@
   const totalPatients = mockPatients.length;
   const totalChairs = 12; // Static or dynamic
   const infectionCount = 1; // Logic placeholder
-
-  function selectPatient(id: string) {
-    selectedPatientId = id;
-  }
 
   function resetToDashboard() {
     selectedPatientId = null;
