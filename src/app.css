@@ -1,84 +1,108 @@
 @import "tailwindcss";
 
 .h2-text {
-    @apply text-2xl font-bold text-gray-800
+  @apply text-2xl font-bold text-gray-800
 }
+
 .xs-small-text {
-    @apply text-xs text-gray-500
+  @apply text-xs text-gray-500
 }
+
 .text-click {
-    @apply text-sm font-medium text-gray-900 cursor-pointer
+  @apply text-sm font-medium text-gray-900 cursor-pointer
 }
+
 .grid-card {
-    @apply text-2xl font-bold text-gray-800
+  @apply text-2xl font-bold text-gray-800
 }
+
 .md-checkbox {
-    @apply flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-100 hover:border-blue-200 transition-colors
+  @apply flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-100 hover:border-blue-200 transition-colors
 }
+
 .title-text {
-    @apply text-lg font-bold text-blue-800
+  @apply text-lg font-bold text-blue-800
 }
-    @apply h-5 w-5 rounded border-gray-300 text-blue-600 focus:ring-blue-50
-}
+
+@apply h-5 w-5 rounded border-gray-300 text-blue-600 focus:ring-blue-50 {}
+
 .form-radio {
-    @apply h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500
+  @apply h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500
 }
+
 .form-label {
-    @apply block text-sm font-medium text-gray-700
+  @apply block text-sm font-medium text-gray-700
 }
+
 .form-input {
-    @apply block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm px-3 py-2 border
+  @apply block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm px-3 py-2 border
 }
+
 .form-button {
-    @apply inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors
+  @apply inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors
 }
+
 .form-gap {
-    @apply space-y-2 pt-4
+  @apply space-y-2 pt-4
 }
+
 .footer-gap {
-    @apply pt-6 mt-6 border-t border-gray-100 flex justify-end
+  @apply pt-6 mt-6 border-t border-gray-100 flex justify-end
 }
+
 .form-grid-gap {
-    @applyspace-y-2
+  @applyspace-y-2
 }
+
 .form-background {
-    @apply max-w-3xl mx-auto p-8 bg-white shadow-md rounded-xl border border-gray-100 font-sans text-gray-800
+  @apply max-w-3xl mx-auto p-8 bg-white shadow-md rounded-xl border border-gray-100 font-sans text-gray-800
 }
+
 .form-header {
-    @apply flex justify-between items-center mb-6;
+  @apply flex justify-between items-center mb-6;
 }
 
 /* Table Styles */
 .table-container {
-    @apply border border-gray-200 rounded-lg overflow-hidden shadow-sm;
+  @apply border border-gray-200 rounded-lg overflow-hidden shadow-sm;
 }
+
 .table-standard {
-    @apply w-full border-collapse;
+  @apply w-full border-collapse;
 }
+
 .table-header-row {
-    @apply bg-gray-50 border-b border-gray-200;
+  @apply bg-gray-50 border-b border-gray-200;
 }
+
 .table-th {
-    @apply border-r border-gray-200 p-3 text-center text-xs font-bold text-gray-500;
+  @apply border-r border-gray-200 p-3 text-center text-xs font-bold text-gray-500;
 }
+
 .table-th-left {
-    @apply border-r border-gray-200 p-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider;
+  @apply border-r border-gray-200 p-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider;
 }
+
 .table-th-year {
-    @apply border-r border-gray-200 p-3 w-20 text-center text-xs font-bold text-gray-700 bg-gray-100/50 last:border-r-0;
+  @apply border-r border-gray-200 p-3 w-20 text-center text-xs font-bold text-gray-700 bg-gray-100/50 last:border-r-0;
 }
+
 .table-row {
-    @apply h-12 border-b border-gray-200 last:border-0 hover:bg-gray-50/50 transition-colors;
+  @apply h-12 border-b border-gray-200 last:border-0 hover:bg-gray-50/50 transition-colors;
 }
+
 .table-td-id {
-    @apply border-r border-gray-200 text-center text-xs text-gray-500 font-medium;
+  @apply border-r border-gray-200 text-center text-xs text-gray-500 font-medium;
 }
+
 .table-td-label {
-    @apply border-r border-gray-200 px-4 py-2 text-sm font-medium text-gray-800 leading-tight;
+  @apply border-r border-gray-200 px-4 py-2 text-sm font-medium text-gray-800 leading-tight;
 }
+
 .table-td-checkbox {
-    @apply border border-gray-200 p-0 h-full relative;
+  @apply border border-gray-200 p-0 h-full relative;
 }
+
 .table-checkbox-label {
-    @apply absolute inset-0 flex items-center justify-center cursor-pointer hover:bg-blue-50 transition-colors;
+  @apply absolute inset-0 flex items-center justify-center cursor-pointer hover:bg-blue-50 transition-colors;
 }
