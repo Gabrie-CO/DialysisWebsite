@@ -3,6 +3,7 @@
   import { zod } from "sveltekit-superforms/adapters";
   import { patientCardSchema } from "$lib/schemas/patientCard";
   import type { z } from "zod";
+  import { untrack } from "svelte";
 
   let { initialData, onSave } = $props<{
     initialData: z.infer<typeof patientCardSchema>;
@@ -10,8 +11,11 @@
   }>();
 
   // Initialize Superform in SPA mode
-  const { form, errors, constraints, enhance } = superForm(
-    defaults(initialData, zod(patientCardSchema as any)),
+  const { form, enhance } = superForm(
+    defaults(
+      untrack(() => initialData),
+      zod(patientCardSchema as any),
+    ),
     {
       SPA: true,
       validators: zod(patientCardSchema as any),

@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { untrack } from "svelte";
+
   // --- TYPES ---
   type TrafficColor = "red" | "yellow" | "green" | null;
 
@@ -45,7 +47,7 @@
       stenosisProximal: { active: null },
     },
     observation: "",
-    ...initialData,
+    ...untrack(() => initialData),
   });
 
   $effect(() => {
@@ -163,18 +165,19 @@
   <div class="grid grid-cols-12 gap-2 mb-4 items-center">
     <div class="col-span-8 flex items-end gap-1">
       <label class="form-label mb-0 whitespace-nowrap"
-        >Nombre del paciente</label
-      >
-      <input
-        type="text"
-        bind:value={form.patientName}
-        class="form-input-line"
-      />
+        >Nombre del paciente <input
+          type="text"
+          bind:value={form.patientName}
+          class="form-input-line"
+        />
+      </label>
     </div>
 
     <div class="col-span-4 flex items-end gap-1">
-      <label class="form-label mb-0">Edad</label>
-      <input type="text" bind:value={form.age} class="form-input-line" />
+      <label class="form-label mb-0"
+        >Edad
+        <input type="text" bind:value={form.age} class="form-input-line" />
+      </label>
     </div>
   </div>
 
@@ -249,12 +252,11 @@
 
     <div class="border-t border-black min-h-20 bg-gray-100 p-2">
       <label class="font-bold text-sm block text-gray-700 mb-1"
-        >Observacion:</label
-      >
-      <textarea
-        bind:value={form.observation}
-        class="w-full h-16 bg-transparent outline-none resize-none text-sm text-gray-900 leading-snug"
-      ></textarea>
+        >Observacion: <textarea
+          bind:value={form.observation}
+          class="w-full h-16 bg-transparent outline-none resize-none text-sm text-gray-900 leading-snug"
+        ></textarea>
+      </label>
     </div>
   </div>
 </div>

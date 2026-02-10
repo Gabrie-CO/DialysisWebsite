@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { untrack } from "svelte";
+
   // --- TYPES ---
   // Defining types to avoid TypeScript errors
   type RadioState = string;
@@ -201,7 +203,7 @@
       { date: "", obs: "" },
       { date: "", obs: "" },
     ],
-    ...initialData,
+    ...untrack(() => initialData),
   });
 
   $effect(() => {

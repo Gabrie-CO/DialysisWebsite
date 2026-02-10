@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { untrack } from "svelte";
   // --- TYPES ---
   type SerologyStatus = "pos" | "neg" | null;
 
@@ -87,7 +88,7 @@
       { id: "pth", label: "PTH", values: {} },
       { id: "ktv", label: "KTV", values: {} },
     ],
-    ...initialData,
+    ...untrack(() => initialData),
   });
 
   $effect(() => {
@@ -260,36 +261,41 @@
     class="grid grid-cols-12 gap-4 items-end bg-blue-50/50 p-3 rounded border border-blue-100 mb-4"
   >
     <div class="col-span-12 md:col-span-5">
-      <label class="form-label">Nombre del Paciente</label>
-      <input
-        type="text"
-        bind:value={form.patient.name}
-        class="form-input-line font-semibold"
-      />
+      <label class="form-label"
+        >Nombre del Paciente <input
+          type="text"
+          bind:value={form.patient.name}
+          class="form-input-line font-semibold"
+        />
+      </label>
     </div>
     <div class="col-span-6 md:col-span-2">
-      <label class="form-label">Edad</label>
-      <input
-        type="text"
-        bind:value={form.patient.age}
-        class="form-input-line font-semibold text-center"
-      />
+      <label class="form-label"
+        >Edad <input
+          type="text"
+          bind:value={form.patient.age}
+          class="form-input-line font-semibold text-center"
+        />
+      </label>
     </div>
     <div class="col-span-6 md:col-span-3">
-      <label class="form-label">No. Expediente</label>
-      <input
-        type="text"
-        bind:value={form.patient.fileNumber}
-        class="form-input-line font-semibold text-center"
-      />
+      <label class="form-label"
+        >No. Expediente
+        <input
+          type="text"
+          bind:value={form.patient.fileNumber}
+          class="form-input-line font-semibold text-center"
+        />
+      </label>
     </div>
     <div class="col-span-6 md:col-span-2">
-      <label class="form-label">Año</label>
-      <input
-        type="text"
-        bind:value={form.patient.year}
-        class="form-input-line font-semibold text-center"
-      />
+      <label class="form-label"
+        >Año <input
+          type="text"
+          bind:value={form.patient.year}
+          class="form-input-line font-semibold text-center"
+        />
+      </label>
     </div>
   </div>
 </div>
@@ -303,7 +309,7 @@
 </div>
 
 <div class="overflow-x-auto border-2 border-black">
-  <table class="w-full border-collapse min-w-[1000px]">
+  <table class="w-full border-collapse min-w-250">
     <thead>
       <tr class="bg-gray-200">
         <th

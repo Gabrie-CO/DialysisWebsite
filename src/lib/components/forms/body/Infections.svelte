@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { untrack } from "svelte";
+
   // --- TYPES ---
   interface FormState {
     name: string;
@@ -27,7 +29,7 @@
     startDate: "",
     endDate: "",
     observations: "",
-    ...initialData,
+    ...untrack(() => initialData),
   });
 
   $effect(() => {
@@ -141,12 +143,14 @@
     )}
 
     <div class="mt-4">
-      <label class="form-label">Observaciones</label>
-      <textarea
-        bind:value={form.observations}
-        class="form-textarea h-32"
-        rows="4"
-      ></textarea>
+      <label class="form-label"
+        >Observaciones <textarea
+          bind:value={form.observations}
+          class="form-textarea h-32"
+          rows="4"
+        ></textarea>
+        ></label
+      >
     </div>
 
     <div class="form-save-btn">

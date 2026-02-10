@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { untrack } from "svelte";
+
   // --- TYPES ---
   type Route = "IV" | "VO" | "SC" | "IM" | "";
 
@@ -40,7 +42,7 @@
       doctorSign: "",
       nurseSign: "",
     })),
-    ...initialData,
+    ...untrack(() => initialData),
   });
 
   $effect(() => {
