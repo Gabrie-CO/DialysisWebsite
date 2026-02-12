@@ -1,5 +1,13 @@
 <script lang="ts">
+  import { superForm, defaults } from "sveltekit-superforms";
+  import { zod } from "sveltekit-superforms/adapters";
+  import { examControlsSchema } from "$lib/schemas/examControlsSchema";
+  import type { z } from "zod";
   import { untrack } from "svelte";
+
+  // UI Components
+  import TextInput from "../ui/TextInput.svelte";
+
   // --- TYPES ---
   type SerologyStatus = "pos" | "neg" | null;
 
@@ -18,142 +26,57 @@
     "DICIEMBRE",
   ];
 
-  interface ExamRow {
-    id: string;
-    label: string;
-    values: Record<string, string>;
-  }
-
-  interface FormState {
-    patient: {
-      name: string;
-      age: string;
-      fileNumber: string;
-      year: string;
-    };
-    serology: {
-      hepB: SerologyStatus;
-      hepC: SerologyStatus;
-      vih: SerologyStatus;
-      tb: SerologyStatus;
-    };
-    rows: ExamRow[];
-    updatedAt?: string;
-  }
-
   let { initialData = {}, onSave } = $props<{
-    initialData?: Partial<FormState>;
-    onSave: (data: FormState) => void;
+    initialData?: Partial<z.infer<typeof examControlsSchema>>;
+    onSave: (data: z.infer<typeof examControlsSchema>) => void;
   }>();
 
-  // --- STATE ---
-  let form = $state<FormState>({
-    patient: {
-      name: "",
-      age: "",
-      fileNumber: "",
-      year: new Date().getFullYear().toString(),
+  // Initialize Superform in SPA mode
+  const { form, enhance } = superForm(
+    defaults(
+      // @ts-ignore
+      untrack(() => initialData || {}),
+      zod(examControlsSchema as any),
+    ),
+    {
+      SPA: true,
+      dataType: "json",
+      validators: zod(examControlsSchema as any),
+      onUpdate: async ({ form }) => {
+        if (form.valid) {
+          onSave(form.data);
+        }
+      },
     },
-    serology: {
-      hepB: null,
-      hepC: null,
-      vih: null,
-      tb: null,
-    },
-    rows: [
-      { id: "hb", label: "HB", values: {} },
-      { id: "htc", label: "HTC", values: {} },
-      { id: "leu", label: "LEU", values: {} },
-      { id: "plaqueta", label: "PLAQUETA", values: {} },
-      { id: "glucosa", label: "GLUCOSA", values: {} },
-      { id: "urea", label: "UREA", values: {} },
-      { id: "creatinina", label: "CREATININA", values: {} },
-      { id: "acido_urico", label: "ACIDO URICO", values: {} },
-      { id: "albumina", label: "ALBUMINA", values: {} },
-      { id: "colesterol", label: "COLESTEROL", values: {} },
-      { id: "trigliceridos", label: "TRIGLICERIDOS", values: {} },
-      { id: "sodio", label: "SODIO", values: {} },
-      { id: "potasio", label: "POTASIO", values: {} },
-      { id: "fosfatasa", label: "FOSFATASA / ALCALINA", values: {} },
-      { id: "calcio", label: "CALCIO", values: {} },
-      { id: "fosforo", label: "FOSFORO", values: {} },
-      { id: "hierro", label: "NIVELES HIERRO", values: {} },
+  );
 
-      // Serology Rows
-      { id: "hepb", label: "HEP B", values: {} },
-      { id: "hepc", label: "HEP C", values: {} },
-      { id: "vih", label: "VIH", values: {} },
-      { id: "tb", label: "TB", values: {} },
-
-      { id: "pth", label: "PTH", values: {} },
-      { id: "ktv", label: "KTV", values: {} },
-    ],
-    ...untrack(() => initialData),
-  });
-
+  // Sync initialData when it changes
   $effect(() => {
-    form = {
-      patient: {
-        name: "",
-        age: "",
-        fileNumber: "",
-        year: new Date().getFullYear().toString(),
-        ...initialData.patient,
-      },
-      serology: {
-        hepB: null,
-        hepC: null,
-        vih: null,
-        tb: null,
-        ...initialData.serology,
-      },
-      rows: initialData.rows || [
-        { id: "hb", label: "HB", values: {} },
-        { id: "htc", label: "HTC", values: {} },
-        { id: "leu", label: "LEU", values: {} },
-        { id: "plaqueta", label: "PLAQUETA", values: {} },
-        { id: "glucosa", label: "GLUCOSA", values: {} },
-        { id: "urea", label: "UREA", values: {} },
-        { id: "creatinina", label: "CREATININA", values: {} },
-        { id: "acido_urico", label: "ACIDO URICO", values: {} },
-        { id: "albumina", label: "ALBUMINA", values: {} },
-        { id: "colesterol", label: "COLESTEROL", values: {} },
-        { id: "trigliceridos", label: "TRIGLICERIDOS", values: {} },
-        { id: "sodio", label: "SODIO", values: {} },
-        { id: "potasio", label: "POTASIO", values: {} },
-        { id: "fosfatasa", label: "FOSFATASA / ALCALINA", values: {} },
-        { id: "calcio", label: "CALCIO", values: {} },
-        { id: "fosforo", label: "FOSFORO", values: {} },
-        { id: "hierro", label: "NIVELES HIERRO", values: {} },
-        { id: "hepb", label: "HEP B", values: {} },
-        { id: "hepc", label: "HEP C", values: {} },
-        { id: "vih", label: "VIH", values: {} },
-        { id: "tb", label: "TB", values: {} },
-        { id: "pth", label: "PTH", values: {} },
-        { id: "ktv", label: "KTV", values: {} },
-      ],
-      ...initialData,
-    };
+    if (initialData) {
+      const currentForm = untrack(() => $form);
+      // @ts-ignore
+      form.set({ ...currentForm, ...initialData });
+    }
   });
 
   // --- LOGIC ---
   function setSerology(
-    key: keyof FormState["serology"],
+    key: keyof typeof $form.serology,
     status: SerologyStatus,
   ) {
-    form.serology[key] = status;
+    // @ts-ignore
+    $form.serology[key] = status;
   }
 
   function updateCell(rowId: string, month: string, value: string) {
-    const row = form.rows.find((r) => r.id === rowId);
+    const row = $form.rows.find((r: any) => r.id === rowId);
     if (row) {
       row.values[month] = value;
+      $form.rows = [...$form.rows]; // Trigger update
     }
   }
 
-  function isSerologyRow(
-    id: string,
-  ): id is keyof FormState["serology"] | string {
+  function isSerologyRow(id: string): boolean {
     return ["hepb", "hepc", "vih", "tb"].includes(id);
   }
 </script>
@@ -221,157 +144,120 @@
 {/snippet}
 
 <div class="form-container-wide">
-  <div class="form-save-btn">
-    <button onclick={() => onSave(form)} class="w-full h-full">
-      Guardar
-    </button>
-  </div>
-
-  <header class="form-header">
-    <div class="flex items-center gap-3">
-      <div class="relative w-12 h-10 shrink-0">
-        <div
-          class="absolute inset-0 bg-red-800 rounded-full opacity-20 rotate-45 transform scale-x-75"
-        ></div>
-        <div
-          class="absolute inset-0 border-2 border-blue-900 rounded-full transform -rotate-12 scale-75"
-        ></div>
-        <div
-          class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[8px] font-bold text-blue-900"
-        >
-          DH
-        </div>
-      </div>
-      <div class="flex flex-col">
-        <h1 class="form-title mb-0 leading-none">Diálisis de Honduras S.A.</h1>
-        <span class="form-subtitle mt-0.5">Brindando calidad de vida</span>
-      </div>
-    </div>
-    <div class="text-right hidden sm:block">
-      <div class="text-xs text-gray-400 font-mono">FORM-DH-2025</div>
-      {#if form.updatedAt}
-        <p class="text-[10px] text-gray-400 mt-1">
-          Actualizado: {new Date(form.updatedAt).toLocaleString()}
-        </p>
-      {/if}
-    </div>
+  <header class="form-header mb-6">
+    <h2 class="h2-text">Control de Examenes</h2>
+    {#if $form.updatedAt}
+      <p class="small-text">
+        Actualizado: {new Date($form.updatedAt).toLocaleString()}
+      </p>
+    {/if}
   </header>
 
-  <div
-    class="grid grid-cols-12 gap-4 items-end bg-blue-50/50 p-3 rounded border border-blue-100 mb-4"
-  >
-    <div class="col-span-12 md:col-span-5">
-      <label class="form-label"
-        >Nombre del Paciente <input
-          type="text"
-          bind:value={form.patient.name}
-          class="form-input-line font-semibold"
-        />
-      </label>
+  <form method="POST" use:enhance>
+    <div class="form-section-card mb-4">
+      <div class="form-section-title"><h3>Datos del Paciente</h3></div>
+      <div class="grid grid-cols-12 gap-4 items-end p-3">
+        <div class="col-span-12 md:col-span-5">
+          <TextInput
+            label="Nombre del Paciente"
+            bind:value={$form.patient.name}
+          />
+        </div>
+        <div class="col-span-6 md:col-span-2">
+          <TextInput label="Edad" bind:value={$form.patient.age} />
+        </div>
+        <div class="col-span-6 md:col-span-3">
+          <TextInput
+            label="No. Expediente"
+            bind:value={$form.patient.fileNumber}
+          />
+        </div>
+        <div class="col-span-6 md:col-span-2">
+          <TextInput label="Año" bind:value={$form.patient.year} />
+        </div>
+      </div>
     </div>
-    <div class="col-span-6 md:col-span-2">
-      <label class="form-label"
-        >Edad <input
-          type="text"
-          bind:value={form.patient.age}
-          class="form-input-line font-semibold text-center"
-        />
-      </label>
-    </div>
-    <div class="col-span-6 md:col-span-3">
-      <label class="form-label"
-        >No. Expediente
-        <input
-          type="text"
-          bind:value={form.patient.fileNumber}
-          class="form-input-line font-semibold text-center"
-        />
-      </label>
-    </div>
-    <div class="col-span-6 md:col-span-2">
-      <label class="form-label"
-        >Año <input
-          type="text"
-          bind:value={form.patient.year}
-          class="form-input-line font-semibold text-center"
-        />
-      </label>
-    </div>
-  </div>
-</div>
 
-<div class="form-section">
-  <h2
-    class="form-section-title text-center tracking-widest inline-block w-full"
-  >
-    Control de Examenes
-  </h2>
-</div>
+    <div class="form-section-card">
+      <div class="form-section-title"><h3>Control de Examenes</h3></div>
+      <div class="overflow-x-auto border-2 border-black">
+        <table class="w-full border-collapse min-w-250">
+          <thead>
+            <tr class="bg-gray-200">
+              <th
+                class="border border-black p-2 text-[10px] font-bold w-40 sticky left-0 bg-gray-200 z-10 text-left"
+              >
+                NOMBRE DEL PACIENTE
+              </th>
+              {#each months as month}
+                <th
+                  class="border border-black p-1 text-[9px] font-bold w-20 uppercase"
+                >
+                  {month}
+                </th>
+              {/each}
+            </tr>
+            <tr class="bg-gray-100">
+              <th
+                class="border border-black p-1 text-[10px] font-bold sticky left-0 bg-gray-100 z-10 text-center italic"
+              >
+                TIPO DE EXAMEN
+              </th>
+              <th colspan="12" class="border border-black bg-gray-50"></th>
+            </tr>
+          </thead>
+          <tbody>
+            {#each $form.rows as row}
+              <tr class="hover:bg-gray-50 group h-8">
+                <td
+                  class="border border-black px-2 py-1 text-[10px] font-bold sticky left-0 bg-white group-hover:bg-gray-50 z-10"
+                >
+                  {row.label}
+                </td>
 
-<div class="overflow-x-auto border-2 border-black">
-  <table class="w-full border-collapse min-w-250">
-    <thead>
-      <tr class="bg-gray-200">
-        <th
-          class="border border-black p-2 text-[10px] font-bold w-40 sticky left-0 bg-gray-200 z-10 text-left"
-        >
-          NOMBRE DEL PACIENTE
-        </th>
-        {#each months as month}
-          <th
-            class="border border-black p-1 text-[9px] font-bold w-20 uppercase"
-          >
-            {month}
-          </th>
-        {/each}
-      </tr>
-      <tr class="bg-gray-100">
-        <th
-          class="border border-black p-1 text-[10px] font-bold sticky left-0 bg-gray-100 z-10 text-center italic"
-        >
-          TIPO DE EXAMEN
-        </th>
-        <th colspan="12" class="border border-black bg-gray-50"></th>
-      </tr>
-    </thead>
-    <tbody>
-      {#each form.rows as row}
-        <tr class="hover:bg-gray-50 group h-8">
-          <td
-            class="border border-black px-2 py-1 text-[10px] font-bold sticky left-0 bg-white group-hover:bg-gray-50 z-10"
-          >
-            {row.label}
-          </td>
-
-          {#if isSerologyRow(row.id)}
-            <td colspan="12" class="border border-black p-0 bg-gray-50/30">
-              {#if row.id === "hepb"}
-                {@render serologyControl("Hep B", form.serology.hepB, (v) =>
-                  setSerology("hepB", v),
-                )}
-              {:else if row.id === "hepc"}
-                {@render serologyControl("Hep C", form.serology.hepC, (v) =>
-                  setSerology("hepC", v),
-                )}
-              {:else if row.id === "vih"}
-                {@render serologyControl("VIH", form.serology.vih, (v) =>
-                  setSerology("vih", v),
-                )}
-              {:else if row.id === "tb"}
-                {@render serologyControl("TB", form.serology.tb, (v) =>
-                  setSerology("tb", v),
-                )}
-              {/if}
-            </td>
-          {:else}
-            {#each months as month}
-              {@render inputCell(row.id, month, row.values[month])}
+                {#if isSerologyRow(row.id)}
+                  <td
+                    colspan="12"
+                    class="border border-black p-0 bg-gray-50/30"
+                  >
+                    {#if row.id === "hepb"}
+                      {@render serologyControl(
+                        "Hep B",
+                        $form.serology.hepB,
+                        (v) => setSerology("hepB", v),
+                      )}
+                    {:else if row.id === "hepc"}
+                      {@render serologyControl(
+                        "Hep C",
+                        $form.serology.hepC,
+                        (v) => setSerology("hepC", v),
+                      )}
+                    {:else if row.id === "vih"}
+                      {@render serologyControl("VIH", $form.serology.vih, (v) =>
+                        setSerology("vih", v),
+                      )}
+                    {:else if row.id === "tb"}
+                      {@render serologyControl("TB", $form.serology.tb, (v) =>
+                        setSerology("tb", v),
+                      )}
+                    {/if}
+                  </td>
+                {:else}
+                  {#each months as month}
+                    {@render inputCell(row.id, month, row.values[month])}
+                  {/each}
+                {/if}
+              </tr>
             {/each}
-          {/if}
-        </tr>
-      {/each}
-    </tbody>
-  </table>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="form-save-btn mt-4">
+      <button type="submit" class="form-button"> Guardar </button>
+    </div>
+  </form>
 </div>
 
 <style>

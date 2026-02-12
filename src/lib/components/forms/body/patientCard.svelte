@@ -5,6 +5,10 @@
   import type { z } from "zod";
   import { untrack } from "svelte";
 
+  // UI Components
+  import TextInput from "../ui/TextInput.svelte";
+  import Checkbox from "../ui/Checkbox.svelte";
+
   let { initialData, onSave } = $props<{
     initialData: z.infer<typeof patientCardSchema>;
     onSave: (data: z.infer<typeof patientCardSchema>) => void;
@@ -37,82 +41,31 @@
   <div
     class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pt-4 border-t border-gray-100"
   >
-    <div class="md-checkbox">
-      <input
-        id="elderly80_90"
-        type="checkbox"
-        bind:checked={$form.elderly80_90}
-        class="comment-card"
-      />
-      <label for="elderly80_90" class="flex flex-col cursor-pointer">
-        <span class="small-text">Elderly (80-90)</span>
-        <span class="xsmall-text">(WHO Standard)</span>
-      </label>
+    <div class="flex flex-col">
+      <Checkbox label="Elderly (80-90)" bind:checked={$form.elderly80_90} />
+      <span class="xsmall-text ml-8 text-gray-500">(WHO Standard)</span>
     </div>
 
-    <div class="md-checkbox">
-      <input
-        id="malnutrition"
-        type="checkbox"
-        bind:checked={$form.malnutrition}
-        class="h-5 w-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-      />
-      <label for="malnutrition" class="text-click">Malnutrition</label>
-    </div>
+    <Checkbox label="Malnutrition" bind:checked={$form.malnutrition} />
 
-    <div class="md-checkbox">
-      <input
-        id="preservedDiuresis"
-        type="checkbox"
-        bind:checked={$form.preservedDiuresis}
-        class="h-5 w-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-      />
-      <label for="preservedDiuresis" class="text-click"
-        >Preserved Diuresis</label
-      >
-    </div>
+    <Checkbox
+      label="Preserved Diuresis"
+      bind:checked={$form.preservedDiuresis}
+    />
   </div>
 {/snippet}
 
 {#snippet dialysisParameters()}
   <div class="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4">
-    <div class="form-grid-gap">
-      <label for="time" class="form-label">Time (min)</label>
-      <input id="time" type="text" bind:value={$form.time} class="form-input" />
-    </div>
-
-    <div class="form-grid-gap">
-      <label for="qd" class="form-label">Qd</label>
-      <input id="qd" type="text" bind:value={$form.qd} class="form-input" />
-    </div>
-
-    <div class="form-grid-gap">
-      <label for="qb" class="form-label">Qb</label>
-      <input id="qb" type="text" bind:value={$form.qb} class="form-input" />
-    </div>
-  
-
-  
-    <div class="form-grid-gap">
-      <label for="ktvt" class="form-label">KT/v T</label>
-      <input id="ktvt" type="text" bind:value={$form.ktvt} class="form-input" />
-    </div>
-
-    <div class="form-grid-gap">
-      <label for="filter" class="form-label">Filter</label>
-      <input
-        id="filter"
-        type="text"
-        bind:value={$form.filter}
-        class="form-input"
-      />
-    </div>
-</div>
+    <TextInput label="Time (min)" bind:value={$form.time} />
+    <TextInput label="Qd" bind:value={$form.qd} />
+    <TextInput label="Qb" bind:value={$form.qb} />
+    <TextInput label="KT/v T" bind:value={$form.ktvt} />
+    <TextInput label="Filter" bind:value={$form.filter} />
+  </div>
 {/snippet}
 
-<div
-  class="form-background"
->
+<div class="form-container">
   <div class="form-header">
     <h2 class="h2-text">Patient Card</h2>
     {#if $form.updatedAt}
@@ -122,28 +75,21 @@
     {/if}
   </div>
 
-  <form method="POST" use:enhance class="form-gap">
+  <form method="POST" use:enhance class="space-y-6">
     <!-- Clinical Indicators -->
     {@render clinicalIndicators()}
     {@render dialysisParameters()}
 
-    <div class="form-gap">
-      <label for="observations" class="form-label">Observations</label>
-      <textarea
-        id="observations"
+    <div class="pt-4">
+      <TextInput
+        label="Observations"
         bind:value={$form.observations}
-        rows="4"
-        class="form-input resize-none"
-      ></textarea>
+        placeholder="Enter observations..."
+      />
     </div>
 
-    <div class="footer-gap">
-      <button
-        type="submit"
-        class="form-button"
-      >
-        Save Changes
-      </button>
+    <div class="form-save-btn">
+      <button type="submit" class="form-button"> Save Changes </button>
     </div>
   </form>
 </div>

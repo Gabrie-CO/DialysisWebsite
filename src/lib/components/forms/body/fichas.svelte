@@ -1,7 +1,14 @@
 <script lang="ts">
+  import { superForm, defaults } from "sveltekit-superforms";
+  import { zod } from "sveltekit-superforms/adapters";
+  import { fichasSchema } from "$lib/schemas/fichasSchema";
+  import type { z } from "zod";
+  import { untrack } from "svelte";
+  import Checkbox from "../ui/Checkbox.svelte";
+
   let { initialData = {}, onSave } = $props<{
-    initialData?: Record<string, number[]> & { updatedAt?: string };
-    onSave: (data: Record<string, number[]>) => void;
+    initialData?: Partial<z.infer<typeof fichasSchema>>;
+    onSave: (data: z.infer<typeof fichasSchema>) => void;
   }>();
 
   // --- CONFIG ---
@@ -24,100 +31,140 @@
     { id: 13, label: "Referencias" },
   ];
 
-  // --- STATE ---
-  // Local state to track checkboxes: { [year]: Set<id> }
-  let checkedState = $state<Record<string, Set<number>>>({});
-
-  // Initialize state from initialData
+  // Initialize Superform in SPA mode
+  const { form, enhance } = superForm(
+    defaults(
+      // @ts-ignore
+      untrack(() => initialData || {}),
+      zod(fichasSchema as any),
+    ),
+    {
+      SPA: true,
+      dataType: "json",
+      validators: zod(fichasSchema as any),
+      onUpdate: async ({ form }) => {
+        if (form.valid) {
+          onSave(form.data);
+        }
+      },
+    },
+  );
+  // Sync initialData
   $effect(() => {
-    const newState: Record<string, Set<number>> = {};
-    years.forEach((year) => {
-      const yearStr = year.toString();
-      const existingIds = initialData[yearStr] || [];
-      newState[yearStr] = new Set(existingIds);
-    });
-    checkedState = newState;
+    if (initialData) {
+      const currentForm = untrack(() => $form);
+      // Create a new object to modify before setting form
+      // @ts-ignore
+      const newData = { ...currentForm, ...initialData };
+
+      // Ensure checklist object exists for years
+      years.forEach((year) => {
+        if (!newData.checklist[year.toString()]) {
+          newData.checklist[year.toString()] = [];
+        }
+      });
+
+      // @ts-ignore
+      form.set(newData);
+    }
   });
 
-  function toggle(year: number, id: number, value: boolean) {
+  function toggle(year: number, id: number, checked: boolean) {
     const yearStr = year.toString();
-    const currentSet = new Set(checkedState[yearStr] || []);
-    if (value) {
-      currentSet.add(id);
+    const currentList = $form.checklist[yearStr] || [];
+
+    if (checked) {
+      if (!currentList.includes(id)) {
+        $form.checklist[yearStr] = [...currentList, id];
+      }
     } else {
-      currentSet.delete(id);
+      $form.checklist[yearStr] = currentList.filter((x: any) => x !== id);
     }
-    checkedState[yearStr] = currentSet;
   }
 
-  function handleSave() {
-    // Convert Sets back to arrays for storage
-    const dataToSave: Record<string, number[]> = {};
-    Object.entries(checkedState).forEach(([year, set]) => {
-      dataToSave[year] = Array.from(set);
-    });
-    onSave(dataToSave);
+  function isChecked(year: number, id: number) {
+    return $form.checklist[year.toString()]?.includes(id) || false;
   }
 </script>
 
 {#snippet checkboxCell(year: number, id: number)}
-  <td class="table-td-checkbox">
-    <label class="table-checkbox-label">
+  <td
+    class="p-2 border border-black dark:border-gray-700 text-center relative bg-white dark:bg-zinc-800"
+  >
+    <div class="flex items-center justify-center">
       <input
         type="checkbox"
-        class="form-checkbox"
-        checked={checkedState[year.toString()]?.has(id) || false}
+        class="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+        checked={isChecked(year, id)}
         onchange={(e) => toggle(year, id, e.currentTarget.checked)}
       />
-    </label>
+    </div>
   </td>
 {/snippet}
 
-<div class="form-background">
-  <div class="mb-6">
-    <h2 class="form-title">Control de Fichas (Checklists)</h2>
-    <p class="form-subtitle">Validación Anual</p>
-    {#if initialData.updatedAt}
-      <p class="text-[10px] text-gray-400 mt-1 text-center">
-        Actualizado: {new Date(initialData.updatedAt).toLocaleString()}
+<div class="form-container-wide">
+  <header class="form-header mb-6">
+    <h2 class="h2-text">Control de Fichas (Checklists)</h2>
+    {#if $form.updatedAt}
+      <p class="small-text">
+        Actualizado: {new Date($form.updatedAt).toLocaleString()}
       </p>
     {/if}
-  </div>
+  </header>
 
-  <div class="table-container">
-    <table class="table-standard">
-      <thead>
-        <tr class="table-header-row">
-          <th class="table-th w-12">N°</th>
-          <th class="table-th-left">FICHAS</th>
-          {#each years as year}
-            <th class="table-th-year">
-              {year}
-            </th>
-          {/each}
-        </tr>
-      </thead>
-      <tbody>
-        {#each LABELS as row}
-          <tr class="table-row">
-            <td class="table-td-id">
-              {row.id}
-            </td>
+  <form method="POST" use:enhance>
+    <div class="form-section-card">
+      <div class="form-section-title"><h3>Control de Fichas</h3></div>
+      <div class="overflow-x-auto border-2 border-black rounded shadow-sm">
+        <table class="w-full border-collapse">
+          <thead class="bg-blue-900 text-white">
+            <tr>
+              <th
+                class="p-3 text-sm font-bold border-r border-blue-800 w-12 text-center"
+                >N°</th
+              >
+              <th
+                class="p-3 text-sm font-bold border-r border-blue-800 text-left"
+                >FICHAS</th
+              >
+              {#each years as year}
+                <th
+                  class="p-3 text-sm font-bold border-r border-blue-800 last:border-0 w-24 text-center"
+                >
+                  {year}
+                </th>
+              {/each}
+            </tr>
+          </thead>
+          <tbody class="bg-gray-50">
+            {#each LABELS as row}
+              <tr
+                class="hover:bg-blue-50 transition-colors border-b border-gray-300 last:border-0"
+              >
+                <td
+                  class="p-3 text-center font-bold text-gray-600 border-r border-gray-300"
+                >
+                  {row.id}
+                </td>
 
-            <td class="table-td-label">
-              {row.label}
-            </td>
+                <td
+                  class="p-3 text-sm font-medium text-gray-800 border-r border-gray-300"
+                >
+                  {row.label}
+                </td>
 
-            {#each years as year}
-              {@render checkboxCell(year, row.id)}
+                {#each years as year}
+                  {@render checkboxCell(year, row.id)}
+                {/each}
+              </tr>
             {/each}
-          </tr>
-        {/each}
-      </tbody>
-    </table>
-  </div>
+          </tbody>
+        </table>
+      </div>
+    </div>
 
-  <div class="form-save-btn">
-    <button onclick={handleSave} class="form-button"> Save Changes </button>
-  </div>
+    <div class="mt-8 flex justify-end">
+      <button type="submit" class="form-button px-8"> Guardar Cambios </button>
+    </div>
+  </form>
 </div>
