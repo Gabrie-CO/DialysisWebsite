@@ -65,7 +65,7 @@
   </div>
 {/snippet}
 
-<div class="form-container">
+<div class="form-section-card">
   <div class="form-header">
     <h2 class="h2-text">Patient Card</h2>
     {#if $form.updatedAt}
