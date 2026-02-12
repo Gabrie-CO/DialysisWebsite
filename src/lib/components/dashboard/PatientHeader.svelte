@@ -17,16 +17,39 @@
     [key: string]: any;
   }
 
-  let { patient, activeTab, onTabChange } = $props<{
+  let { patient, activeTab, onTabChange, onMenuClick } = $props<{
     patient: Patient;
     activeTab: string;
     onTabChange: (tab: string) => void;
+    onMenuClick?: () => void;
   }>();
 </script>
 
 <header class="bg-white border-b border-gray-200 p-4 shadow-sm z-10">
   <div class="flex justify-between items-start">
     <div class="flex gap-4 items-center">
+      <!-- Hamburger Menu (Mobile Only) -->
+      <button
+        class="md:hidden p-2 -ml-2 text-gray-600 hover:bg-gray-100 rounded-lg"
+        onclick={onMenuClick}
+        aria-label="Open sidebar"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke-width="1.5"
+          stroke="currentColor"
+          class="w-6 h-6"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"
+          />
+        </svg>
+      </button>
+
       <div
         class="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold text-lg"
       >

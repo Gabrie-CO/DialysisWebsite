@@ -2,22 +2,40 @@
   import { useQuery } from "convex-svelte";
   import { api } from "../../../../convex/_generated/api";
 
-  let { selectedPatientId, onSelect } = $props<{
+  let {
+    selectedPatientId,
+    onSelect,
+    mobileOpen = false,
+    onClose,
+  } = $props<{
     selectedPatientId: string;
     onSelect: (id: string) => void;
+    mobileOpen?: boolean;
+    onClose?: () => void;
   }>();
 
   // Renaming to patientsQuery since it seems to be fetching a list
   const patientsQuery = useQuery(api.patients.get);
 </script>
 
+<!-- Mobile Overlay Backdrops are handled in parent, this is just the drawer -->
 <aside
-  class="w-64 bg-white border-r border-gray-200 flex flex-col shrink-0 h-full"
+  class="fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200 flex flex-col shrink-0 h-full transform transition-transform duration-300 ease-in-out md:translate-x-0 md:static md:inset-auto md:flex
+  {mobileOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full'}"
 >
   <div class="p-4 border-b border-gray-100">
-    <h2 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
-      Patients
-    </h2>
+    <div class="flex justify-between items-center mb-2">
+      <h2 class="text-xs font-bold text-gray-500 uppercase tracking-wider">
+        Patients
+      </h2>
+      <button
+        class="md:hidden p-1 rounded hover:bg-gray-100 text-gray-500"
+        onclick={onClose}
+        aria-label="Close sidebar"
+      >
+        ✕
+      </button>
+    </div>
     <input
       type="text"
       placeholder="Search name or code..."

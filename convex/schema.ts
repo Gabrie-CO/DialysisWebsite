@@ -16,10 +16,13 @@ export default defineSchema({
             )
         ),
         tokenIdentifier: v.string(),
-
-        // Patient specific fields
         dateOfBirth: v.optional(v.string()), // ISO date string
         gender: v.optional(v.string()),
+    }).index("by_token", ["tokenIdentifier"]),
+
+    patients: defineTable({
+        userId: v.id("users"), // Link config
+        // Patient specific fields
         dryWeight: v.optional(v.number()),
         code: v.optional(v.string()), // e.g. "PT-123"
         alerts: v.optional(v.array(v.string())),
@@ -42,7 +45,7 @@ export default defineSchema({
             signature: v.string(),
             updatedAt: v.optional(v.string()),
         })),
-        // Fichas (Checklists) - Key: Year (e.g., "2026"), Value: Array of IDs of checked items
+        // Fichas (Checklists)
         fichas: v.optional(v.record(v.string(), v.array(v.number()))),
 
         // Infections
@@ -66,8 +69,8 @@ export default defineSchema({
         hemodialysis: v.optional(v.any()),
         medicationSheet: v.optional(v.any()),
         examControls: v.optional(v.any()),
-        monthlyProgress: v.optional(v.any()), // Using v.any() for the large complex object to allow flexibility and easier updates
-    }).index("by_token", ["tokenIdentifier"]),
+        monthlyProgress: v.optional(v.any()),
+    }).index("by_user", ["userId"]),
 
     monthlyAssessments: defineTable({
         patientId: v.id("users"),

@@ -1,160 +1,102 @@
 <script lang="ts">
+  import { superForm, defaults } from "sveltekit-superforms";
+  import { zod } from "sveltekit-superforms/adapters";
+  import { infectionsSchema } from "$lib/schemas/infectionsSchema";
+  import type { z } from "zod";
   import { untrack } from "svelte";
 
-  // --- TYPES ---
-  interface FormState {
-    name: string;
-    antibiotic: string;
-    dose: string;
-    route: string;
-    pps: "negative" | "positive" | null;
-    startDate: string;
-    endDate: string;
-    observations: string;
-    updatedAt?: string;
-  }
+  // UI Components
+  import TextInput from "../ui/TextInput.svelte";
+  import DateInput from "../ui/DateInput.svelte";
+  import Checkbox from "../ui/Checkbox.svelte";
+  import RadioGroup from "../ui/RadioGroup.svelte";
 
   let { initialData = {}, onSave } = $props<{
-    initialData?: Partial<FormState>;
-    onSave: (data: FormState) => void;
+    initialData?: Partial<z.infer<typeof infectionsSchema>>;
+    onSave: (data: z.infer<typeof infectionsSchema>) => void;
   }>();
 
-  // --- STATE ---
-  let form = $state<FormState>({
-    name: "",
-    antibiotic: "",
-    dose: "",
-    route: "",
-    pps: null,
-    startDate: "",
-    endDate: "",
-    observations: "",
-    ...untrack(() => initialData),
-  });
+  // Initialize Superform in SPA mode
+  const { form, enhance } = superForm(
+    defaults(
+      // @ts-ignore
+      untrack(() => initialData || {}),
+      zod(infectionsSchema as any),
+    ),
+    {
+      SPA: true,
+      validators: zod(infectionsSchema as any),
+      onUpdate: async ({ form }) => {
+        if (form.valid) {
+          onSave(form.data);
+        }
+      },
+    },
+  );
 
+  // Sync initialData when it changes
   $effect(() => {
-    form = {
-      name: "",
-      antibiotic: "",
-      dose: "",
-      route: "",
-      pps: null,
-      startDate: "",
-      endDate: "",
-      observations: "",
-      ...initialData,
-    };
+    if (initialData) {
+      const currentForm = untrack(() => $form);
+      // @ts-ignore
+      form.set({ ...currentForm, ...initialData });
+    }
   });
-
-  function handleSave() {
-    onSave(form);
-  }
 </script>
 
-{#snippet lineInput(
-  label: string,
-  value: string,
-  update: (v: string) => void,
-  type: string = "text",
-)}
-  <label class="block mb-3">
-    <span class="form-label">{label}</span>
-    <input
-      {type}
-      {value}
-      oninput={(e) => update((e.currentTarget as HTMLInputElement).value)}
-      class="form-input"
-    />
-  </label>
-{/snippet}
-
 <div class="form-container">
-  <header class="form-header">
-    <div class="flex items-center gap-4 w-full">
-      <div
-        class="w-12 h-12 shrink-0 border border-gray-300 rounded-full flex items-center justify-center bg-gray-50 text-[8px] text-center p-1 text-gray-500"
-      >
-        Logo<br />Comité
-      </div>
-      <div class="w-full text-center">
-        <h1 class="form-title mb-0 underline decoration-1 underline-offset-4">
-          Comité de Infecciones
-        </h1>
-        {#if form.updatedAt}
-          <p class="text-[10px] text-gray-400 mt-1">
-            Actualizado: {new Date(form.updatedAt).toLocaleString()}
-          </p>
-        {/if}
-      </div>
-    </div>
+  <header class="form-header mb-6">
+    <h2 class="h2-text">Comité de Infecciones</h2>
+    {#if $form.updatedAt}
+      <p class="small-text">
+        Actualizado: {new Date($form.updatedAt).toLocaleString()}
+      </p>
+    {/if}
   </header>
 
-  <div class="space-y-1">
-    {@render lineInput("Nombre", form.name, (v) => (form.name = v))}
-    {@render lineInput(
-      "Antibiótico",
-      form.antibiotic,
-      (v) => (form.antibiotic = v),
-    )}
-    {@render lineInput("Dosis", form.dose, (v) => (form.dose = v))}
-    {@render lineInput(
-      "Vía de Administración",
-      form.route,
-      (v) => (form.route = v),
-    )}
+  <form method="POST" use:enhance class="space-y-4">
+    <div class="form-section-card">
+      <div class="form-section-title"><h3>Datos del Tratamiento</h3></div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 p-4">
+        <TextInput label="Nombre" bind:value={$form.name} />
+        <TextInput label="Antibiótico" bind:value={$form.antibiotic} />
+        <TextInput label="Dosis" bind:value={$form.dose} />
+        <TextInput label="Vía de Administración" bind:value={$form.route} />
 
-    <div class="flex items-center gap-4 mb-4 mt-2">
-      <span class="form-label mb-0">PPS:</span>
-
-      <div class="flex items-center gap-2">
-        <label class="form-checkbox-label">
-          <input
-            type="checkbox"
-            checked={form.pps === "negative"}
-            onchange={() => (form.pps = "negative")}
-            class="form-checkbox"
-          /> -
-        </label>
-      </div>
-
-      <div class="flex items-center gap-2">
-        <label class="form-checkbox-label">
-          <input
-            type="checkbox"
-            checked={form.pps === "positive"}
-            onchange={() => (form.pps = "positive")}
-            class="form-checkbox"
-          /> +
-        </label>
+        <div class="md:col-span-2 flex items-center gap-4 pt-2">
+          <span class="form-label mb-0">PPS:</span>
+          <RadioGroup
+            row
+            name="pps"
+            options={[
+              { value: "negative", label: "-" },
+              { value: "positive", label: "+" },
+            ]}
+            bind:value={$form.pps}
+          />
+        </div>
       </div>
     </div>
 
-    {@render lineInput(
-      "Fecha de Inicio",
-      form.startDate,
-      (v) => (form.startDate = v),
-      "date",
-    )}
-    {@render lineInput(
-      "Fecha de Finalización",
-      form.endDate,
-      (v) => (form.endDate = v),
-      "date",
-    )}
+    <div class="form-section-card">
+      <div class="form-section-title"><h3>Detalles y Fechas</h3></div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 p-4">
+        <DateInput label="Fecha de Inicio" bind:value={$form.startDate} />
+        <DateInput label="Fecha de Finalización" bind:value={$form.endDate} />
 
-    <div class="mt-4">
-      <label class="form-label"
-        >Observaciones <textarea
-          bind:value={form.observations}
-          class="form-textarea h-32"
-          rows="4"
-        ></textarea>
-        ></label
-      >
+        <div class="md:col-span-2">
+          <label class="form-label mb-1">Observaciones</label>
+          <textarea
+            class="form-input w-full min-h-[100px]"
+            bind:value={$form.observations}
+            placeholder="Observaciones..."
+          ></textarea>
+        </div>
+      </div>
     </div>
 
     <div class="form-save-btn">
-      <button onclick={handleSave} class="form-btn-primary"> Guardar </button>
+      <button type="submit" class="form-button"> Guardar </button>
     </div>
-  </div>
+  </form>
 </div>
