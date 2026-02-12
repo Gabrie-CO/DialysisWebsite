@@ -15,6 +15,7 @@
   import MedicationApplicationSheet from "$lib/components/forms/body/MedicationApplicationSheet.svelte";
   import ExamControls from "$lib/components/forms/body/examControls.svelte";
   import MonthlyProgress from "$lib/components/forms/body/monthlyProgress.svelte";
+  import ErrorBoundary from "$lib/components/ui/ErrorBoundary.svelte";
 
   import type { PageData } from "./$types";
 
@@ -88,66 +89,111 @@
       title: "Ficha de Paciente",
       icon: "📋",
       desc: "General patient information",
+      component: PatientCard,
+      dataKey: "patientCard",
+      defaultData: DEFAULT_PATIENT_CARD,
+      mutation: api.patients.updatePatientCard,
+      argKey: "patientCardData",
     },
     {
       id: "fichas",
       title: "Fichas (Checklists)",
       icon: "✅",
       desc: "Annual checklists validation",
+      component: Fichas,
+      dataKey: "fichas",
+      mutation: api.patients.updateFichas,
+      argKey: "fichasData",
     },
     {
       id: "cidh",
       title: "Infection Control (CIDH)",
       icon: "🦠",
       desc: "Report infection signs/events",
+      component: CIDH,
+      dataKey: "cidh",
+      mutation: api.patients.updateCIDH,
+      argKey: "cidhData",
     },
     {
       id: "clinicalHistory",
       title: "Clinical History",
       icon: "🏥",
       desc: "Complete clinical history",
+      component: ClinicHistory,
+      dataKey: "clinicHistoryOld",
+      mutation: api.patients.updateClinicHistoryOld,
+      argKey: "data",
     },
     {
       id: "clinicalHistory2",
       title: "Clinical History 2",
       icon: "🏥",
       desc: "Alternative clinical history",
+      component: ClinicalHistory2,
+      dataKey: "clinicalHistory",
+      mutation: api.patients.updateClinicalHistory,
+      argKey: "clinicalHistoryData",
     },
     {
       id: "fistula",
       title: "Fistula Check",
       icon: "💉",
       desc: "Fistula monitoring",
+      component: Fistula,
+      dataKey: "fistula",
+      mutation: api.patients.updateFistula,
+      argKey: "data",
     },
     {
       id: "hemodialysisSheet",
       title: "Hemodialysis Sheet",
       icon: "🩸",
       desc: "Daily hemodialysis record",
+      component: HemodialysisSheet,
+      dataKey: "hemodialysis",
+      mutation: api.patients.updateHemodialysis,
+      argKey: "data",
     },
     {
       id: "infections",
       title: "Infections",
       icon: "🤒",
       desc: "Infection tracking",
+      component: Infections,
+      dataKey: "infections",
+      mutation: api.patients.updateInfections,
+      argKey: "infectionsData",
     },
     {
       id: "medicationSheet",
       title: "Medication Sheet",
       icon: "💊",
       desc: "Medication administration",
+      component: MedicationApplicationSheet,
+      dataKey: "medicationSheet",
+      mutation: api.patients.updateMedicationSheet,
+      argKey: "data",
     },
     {
       id: "examControls",
       title: "Exam Controls",
       icon: "🔬",
       desc: "Laboratory exam controls",
+      component: ExamControls,
+      dataKey: "examControls",
+      mutation: api.patients.updateExamControls,
+      argKey: "data",
     },
     {
       id: "monthlyProgress",
       title: "Monthly Progress",
       icon: "📅",
       desc: "Monthly patient progress",
+      component: MonthlyProgress,
+      dataKey: "monthlyProgress",
+      mutation: api.patients.updateMonthlyProgress,
+      argKey: "data",
     },
     {
       id: "debug",
@@ -156,6 +202,10 @@
       desc: "Check form re-rendering",
     },
   ];
+
+  let activeDocConfig = $derived(
+    AVAILABLE_DOCUMENTS.find((d) => d.id === activeDocument),
+  );
 </script>
 
 <div class="flex h-screen w-full bg-gray-100 font-sans overflow-hidden">
@@ -191,6 +241,7 @@
         </div>
       {:else if activeTab === "forms"}
         {#if !activeDocument}
+          <!-- Forms dashboard-->
           <div class="max-w-4xl mx-auto">
             <h3 class="text-center font-bold text-gray-700 text-xl mb-6">
               Select Document
@@ -208,145 +259,29 @@
               {/each}
             </div>
           </div>
-        {:else}
+        {:else if activeDocConfig}
+          <!-- individual form loop -->
+          {@const Component = activeDocConfig.component}
           <div class="max-w-4xl mx-auto space-y-6">
             <button
-              class="text-gray-400 hover:text-black font-bold"
+              type="button"
+              class="text-gray-400 hover:text-black font-bold relative z-50 cursor-pointer mb-4 inline-flex items-center gap-1"
               onclick={() => (activeDocument = null)}>&larr; Back</button
             >
-
-            {#if activeDocument === "patientCard"}
-              <PatientCard
-                initialData={patient?.patientCard || DEFAULT_PATIENT_CARD}
+            <ErrorBoundary>
+              <Component
+                initialData={(patient as any)?.[activeDocConfig.dataKey] ||
+                  activeDocConfig.defaultData ||
+                  {}}
                 onSave={async (formData) => {
-                  await convex.mutation(api.patients.updatePatientCard, {
+                  await convex.mutation(activeDocConfig.mutation, {
                     patientId: selectedPatientId as any,
-                    patientCardData: formData,
-                  });
+                    [activeDocConfig.argKey]: formData,
+                  } as any);
                 }}
               />
-            {:else if activeDocument === "fichas"}
-              <Fichas
-                initialData={patient?.fichas || {}}
-                onSave={async (data) => {
-                  await convex.mutation(api.patients.updateFichas, {
-                    patientId: selectedPatientId as any,
-                    fichasData: data,
-                  });
-                }}
               />
-            {:else if activeDocument === "cidh"}
-              <CIDH
-                initialData={patient?.cidh || {}}
-                onSave={async (data) => {
-                  await convex.mutation(api.patients.updateCIDH, {
-                    patientId: selectedPatientId as any,
-                    cidhData: data,
-                  });
-                }}
-              />
-            {:else if activeDocument === "clinicalHistory"}
-              <ClinicHistory
-                initialData={patient?.clinicHistoryOld || {}}
-                onSave={async (data) => {
-                  await convex.mutation(api.patients.updateClinicHistoryOld, {
-                    patientId: selectedPatientId as any,
-                    data: data,
-                  });
-                }}
-              />
-            {:else if activeDocument === "clinicalHistory2"}
-              <ClinicalHistory2
-                initialData={patient?.clinicalHistory || {}}
-                onSave={async (data) => {
-                  await convex.mutation(api.patients.updateClinicalHistory, {
-                    patientId: selectedPatientId as any,
-                    clinicalHistoryData: data,
-                  });
-                }}
-              />
-            {:else if activeDocument === "fistula"}
-              <Fistula
-                initialData={patient?.fistula || {}}
-                onSave={async (data) => {
-                  await convex.mutation(api.patients.updateFistula, {
-                    patientId: selectedPatientId as any,
-                    data: data,
-                  });
-                }}
-              />
-            {:else if activeDocument === "hemodialysisSheet"}
-              <HemodialysisSheet
-                initialData={patient?.hemodialysis || {}}
-                onSave={async (data) => {
-                  await convex.mutation(api.patients.updateHemodialysis, {
-                    patientId: selectedPatientId as any,
-                    data: data,
-                  });
-                }}
-              />
-            {:else if activeDocument === "infections"}
-              <Infections
-                initialData={patient?.infections || {}}
-                onSave={async (data) => {
-                  await convex.mutation(api.patients.updateInfections, {
-                    patientId: selectedPatientId as any,
-                    infectionsData: data,
-                  });
-                }}
-              />
-            {:else if activeDocument === "medicationSheet"}
-              <MedicationApplicationSheet
-                initialData={patient?.medicationSheet || {}}
-                onSave={async (data) => {
-                  await convex.mutation(api.patients.updateMedicationSheet, {
-                    patientId: selectedPatientId as any,
-                    data: data,
-                  });
-                }}
-              />
-            {:else if activeDocument === "examControls"}
-              <ExamControls
-                initialData={patient?.examControls || {}}
-                onSave={async (data) => {
-                  await convex.mutation(api.patients.updateExamControls, {
-                    patientId: selectedPatientId as any,
-                    data: data,
-                  });
-                }}
-              />
-            {:else if activeDocument === "monthlyProgress"}
-              <MonthlyProgress
-                initialData={patient?.monthlyProgress || {}}
-                onSave={async (data) => {
-                  await convex.mutation(api.patients.updateMonthlyProgress, {
-                    patientId: selectedPatientId as any,
-                    data: data,
-                  });
-                }}
-              />
-            {:else if activeDocument === "debug"}
-              <div
-                class="bg-white p-12 rounded-2xl border-4 border-dashed border-blue-100 flex flex-col items-center gap-4"
-              >
-                <div class="text-6xl animate-bounce">🧪</div>
-                <h2 class="text-2xl font-black text-blue-900">
-                  Debug Renderer
-                </h2>
-                <p class="text-gray-500 font-medium">
-                  This component was rendered at:
-                </p>
-                <div
-                  class="bg-blue-50 px-6 py-3 rounded-xl font-mono text-blue-700 font-bold text-xl border border-blue-100"
-                >
-                  {new Date().toLocaleTimeString()}
-                </div>
-                <p class="text-xs text-gray-400 mt-4">
-                  If this time updates when you click the box, re-rendering is
-                  working.
-                </p>
-              </div>
-            {/if}
+            </ErrorBoundary>
           </div>
         {/if}
       {/if}

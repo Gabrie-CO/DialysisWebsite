@@ -1,815 +1,493 @@
 <script lang="ts">
+  import { superForm, defaults } from "sveltekit-superforms";
+  import { zod } from "sveltekit-superforms/adapters";
+  import { monthlyProgressSchema } from "$lib/schemas/monthlyProgressSchema";
+  import type { z } from "zod";
   import { untrack } from "svelte";
-  interface FormState {
-    meta: {
-      month: string;
-      fileNumber: string; // Expediente
-      doctorSignature: string;
-      updatedAt?: string;
-    };
-    patient: {
-      name: string;
-      admission: {
-        active: boolean | null; // Si/No
-        dateIn: string;
-        dateOut: string;
-      };
-      diagnosis: string;
-    };
-    generalStatus: {
-      transfusions: {
-        active: boolean | null;
-        count: string;
-      };
-      interdialyticGain: string;
-      generalState: string;
-      appetite: string;
-      residualDiuresis: {
-        active: boolean | null; // Si/No
-        type: string; // 'Normal' or 'Disminuido'
-      };
-    };
-    comorbidities: {
-      // Left Column
-      hypotension: boolean | null;
-      hypertension: boolean | null;
-      pruritus: boolean | null;
-      precordialPain: boolean | null;
-      hypoglycemia: boolean | null;
-      headache: boolean | null;
-      // Right Column
-      lumbalgia: boolean | null;
-      cramps: boolean | null;
-      nausea: boolean | null; // Nauseas / Vomitos
-      pyrogenicCrisis: boolean | null;
-      bacteremia: boolean | null;
-      // Text
-      treatment: string;
-      other: string;
-    };
-    access: {
-      fav: string; // 'autologa' | 'protesica'
-      cvc: string; // 'permacath' | 'temporal'
-      functionality: string; // 'funcional' | 'disfuncional'
-      exam: string;
-    };
-    dialysisParams: {
-      volemia: boolean | null; // Si/No (Adecuado?)
-      anemia: boolean | null;
-      nutrition: boolean | null;
-      metabolism: boolean | null;
-      lipids: boolean | null;
-      ktv: boolean | null;
-    };
-    currentTreatment: {
-      vitamins: string;
-      epo: string;
-      iron: string;
-      carnitine: string;
-      antihypertensives: string;
-      others: string;
-    };
-    prescription: {
-      time: string;
-      filter: string;
-      buffer: string; // Tampon
-      sodium: string;
-      qb: string;
-      qd: string;
-      dryWeight: string;
-      anticoagulation: string;
-      conductivity: string;
-      ktvTarget: string;
-      temperature: string;
-    };
-  }
+
+  // UI Components
+  import TextInput from "../ui/TextInput.svelte";
+  import Checkbox from "../ui/Checkbox.svelte";
+  import RadioGroup from "../ui/RadioGroup.svelte";
+  import DateInput from "../ui/DateInput.svelte";
 
   let { initialData = {}, onSave } = $props<{
-    initialData?: Partial<FormState>;
-    onSave: (data: FormState) => void;
+    initialData?: Partial<z.infer<typeof monthlyProgressSchema>>;
+    onSave: (data: z.infer<typeof monthlyProgressSchema>) => void;
   }>();
 
-  let form = $state<FormState>({
-    meta: {
-      month: "",
-      fileNumber: "", // Expediente
-      doctorSignature: "",
-    },
-    patient: {
-      name: "",
-      admission: {
-        active: null, // Si/No
-        dateIn: "",
-        dateOut: "",
-      },
-      diagnosis: "",
-    },
-    generalStatus: {
-      transfusions: {
-        active: null,
-        count: "",
-      },
-      interdialyticGain: "",
-      generalState: "",
-      appetite: "",
-      residualDiuresis: {
-        active: null, // Si/No
-        type: "", // 'Normal' or 'Disminuido'
+  // Initialize Superform in SPA mode
+  const { form, enhance } = superForm(
+    defaults(
+      // @ts-ignore
+      untrack(() => initialData || {}),
+      zod(monthlyProgressSchema as any),
+    ),
+    {
+      SPA: true,
+      dataType: "json",
+      validators: zod(monthlyProgressSchema as any),
+      onUpdate: async ({ form }) => {
+        if (form.valid) {
+          onSave(form.data);
+        }
       },
     },
-    comorbidities: {
-      // Left Column
-      hypotension: null,
-      hypertension: null,
-      pruritus: null,
-      precordialPain: null,
-      hypoglycemia: null,
-      headache: null,
-      // Right Column
-      lumbalgia: null,
-      cramps: null,
-      nausea: null, // Nauseas / Vomitos
-      pyrogenicCrisis: null,
-      bacteremia: null,
-      // Text
-      treatment: "",
-      other: "",
-    },
-    access: {
-      fav: "", // 'autologa' | 'protesica'
-      cvc: "", // 'permacath' | 'temporal'
-      functionality: "", // 'funcional' | 'disfuncional'
-      exam: "",
-    },
-    dialysisParams: {
-      volemia: null, // Si/No (Adecuado?)
-      anemia: null,
-      nutrition: null,
-      metabolism: null,
-      lipids: null,
-      ktv: null,
-    },
-    currentTreatment: {
-      vitamins: "",
-      epo: "",
-      iron: "",
-      carnitine: "",
-      antihypertensives: "",
-      others: "",
-    },
-    prescription: {
-      time: "",
-      filter: "",
-      buffer: "", // Tampon
-      sodium: "",
-      qb: "",
-      qd: "",
-      dryWeight: "",
-      anticoagulation: "",
-      conductivity: "",
-      ktvTarget: "",
-      temperature: "",
-    },
-    ...untrack(() => initialData),
+  );
+
+  // Sync initialData when it changes
+  $effect(() => {
+    if (initialData) {
+      const currentForm = untrack(() => $form);
+      // @ts-ignore
+      form.set({ ...currentForm, ...initialData });
+    }
   });
 
-  $effect(() => {
-    form = {
-      meta: {
-        month: "",
-        fileNumber: "",
-        doctorSignature: "",
-        ...initialData.meta,
-      },
-      patient: {
-        name: "",
-        admission: {
-          active: null,
-          dateIn: "",
-          dateOut: "",
-          ...initialData.patient?.admission,
-        },
-        diagnosis: "",
-        ...initialData.patient,
-      },
-      generalStatus: {
-        transfusions: {
-          active: null,
-          count: "",
-          ...initialData.generalStatus?.transfusions,
-        },
-        interdialyticGain: "",
-        generalState: "",
-        appetite: "",
-        residualDiuresis: {
-          active: null,
-          type: "",
-          ...initialData.generalStatus?.residualDiuresis,
-        },
-        ...initialData.generalStatus,
-      },
-      comorbidities: {
-        hypotension: null,
-        hypertension: null,
-        pruritus: null,
-        precordialPain: null,
-        hypoglycemia: null,
-        headache: null,
-        lumbalgia: null,
-        cramps: null,
-        nausea: null,
-        pyrogenicCrisis: null,
-        bacteremia: null,
-        treatment: "",
-        other: "",
-        ...initialData.comorbidities,
-      },
-      access: {
-        fav: "",
-        cvc: "",
-        functionality: "",
-        exam: "",
-        ...initialData.access,
-      },
-      dialysisParams: {
-        volemia: null,
-        anemia: null,
-        nutrition: null,
-        metabolism: null,
-        lipids: null,
-        ktv: null,
-        ...initialData.dialysisParams,
-      },
-      currentTreatment: {
-        vitamins: "",
-        epo: "",
-        iron: "",
-        carnitine: "",
-        antihypertensives: "",
-        others: "",
-        ...initialData.currentTreatment,
-      },
-      prescription: {
-        time: "",
-        filter: "",
-        buffer: "",
-        sodium: "",
-        qb: "",
-        qd: "",
-        dryWeight: "",
-        anticoagulation: "",
-        conductivity: "",
-        ktvTarget: "",
-        temperature: "",
-        ...initialData.prescription,
-      },
-      // svelte-ignore state_referenced_locally
-      ...initialData,
-    };
-  });
+  const yesNoOptions = [
+    { value: true, label: "SI" },
+    { value: false, label: "NO" },
+  ];
+
+  const functionalOptions = [
+    { value: "funcional", label: "Funcional" },
+    { value: "disfuncional", label: "Disfuncional" },
+  ];
+
+  const typeOptions = [
+    { value: "Normal", label: "Normal" },
+    { value: "Disminuido", label: "Disminuido" },
+  ];
 </script>
 
-// --- SNIPPETS --- // A reusable Yes/No Toggle that mimics the box style //
-{#snippet yesNo(
-  label: string,
-  value: boolean | null,
-  setFn: (v: boolean) => void,
-)}
-  <div
-    class="flex items-center justify-between text-xs py-2 border-b border-gray-100 last:border-0"
-  >
-    <span class="font-medium text-gray-700">{label}</span>
-    <div class="flex gap-3">
-      <label class="flex items-center gap-1 cursor-pointer">
-        <span class="text-[10px]">SI</span>
-        <input
-          type="radio"
-          name={label}
-          checked={value === true}
-          onclick={() => setFn(true)}
-          class="form-checkbox h-4 w-4"
-        />
-      </label>
-      <label class="flex items-center gap-1 cursor-pointer">
-        <span class="text-[10px]">NO</span>
-        <input
-          type="radio"
-          name={label}
-          checked={value === false}
-          onclick={() => setFn(false)}
-          class="form-checkbox h-4 w-4"
-        />
-      </label>
-    </div>
-  </div>
-{/snippet}
-
-{#snippet lineInput(
-  label: string,
-  value: string,
-  setValue: (v: string) => void,
-)}
-  <label class="flex flex-col gap-1 w-full">
-    <span class="form-label text-xs">{label}</span>
-    <input
-      type="text"
-      {value}
-      oninput={(e) => setValue((e.currentTarget as HTMLInputElement).value)}
-      class="form-input"
-    />
-  </label>
-{/snippet}
 <div class="form-container">
-  <div class="form-save-btn">
-    <button onclick={() => onSave(form)} class="form-btn-primary">
-      Guardar
-    </button>
-  </div>
-
-  <header class="form-header">
-    <div>
-      <h1 class="form-title">Evolución Mensual</h1>
-    </div>
-    <div class="text-right">
-      <h2 class="text-lg font-bold text-gray-800">
-        Diálisis de Honduras S.A. de C.V.
-      </h2>
-      <p class="text-xs font-bold text-gray-500">Desde 1999</p>
-      <p class="form-subtitle">Brindando calidad de vida</p>
-      {#if form.meta.updatedAt}
-        <p class="text-[10px] text-gray-400 mt-1">
-          Actualizado: {new Date(form.meta.updatedAt).toLocaleString()}
-        </p>
-      {/if}
-    </div>
+  <header class="form-header mb-6">
+    <h2 class="h2-text">Evolución Mensual</h2>
+    {#if $form.meta.updatedAt}
+      <p class="small-text">
+        Actualizado: {new Date($form.meta.updatedAt).toLocaleString()}
+      </p>
+    {/if}
   </header>
 
-  <div class="grid grid-cols-12 gap-6 mb-8 border-b border-gray-100 pb-8">
-    <label class="col-span-12 md:col-span-6 block">
-      <span class="form-label">Nombre</span>
-      <input bind:value={form.patient.name} class="form-input" />
-    </label>
-    <label class="col-span-6 md:col-span-3 block">
-      <span class="form-label">Mes</span>
-      <input bind:value={form.meta.month} class="form-input" />
-    </label>
-    <label class="col-span-6 md:col-span-3 block">
-      <span class="form-label">Expediente</span>
-      <input bind:value={form.meta.fileNumber} class="form-input" />
-    </label>
-
-    <div class="col-span-12 md:col-span-5 flex flex-col gap-2">
-      <span class="form-label">Ingresos</span>
-      <div class="flex items-center gap-4 h-10">
-        <label class="form-checkbox-label"
-          ><input
-            type="radio"
-            bind:group={form.patient.admission.active}
-            value={true}
-            class="form-checkbox"
-          /> SI</label
-        >
-        <label class="form-checkbox-label"
-          ><input
-            type="radio"
-            bind:group={form.patient.admission.active}
-            value={false}
-            class="form-checkbox"
-          /> NO</label
-        >
-      </div>
-      <label class="mt-2 block">
-        <span class="form-label">Fecha de Ingreso</span>
-        <input
-          type="date"
-          bind:value={form.patient.admission.dateIn}
-          class="form-input"
-        />
-      </label>
-    </div>
-    <label class="col-span-12 md:col-span-7 block">
-      <span class="form-label">Fecha de Egreso</span>
-      <input
-        type="date"
-        bind:value={form.patient.admission.dateOut}
-        class="form-input"
-      />
-    </label>
-
-    <label class="col-span-12 block">
-      <span class="form-label">Diagnósticos</span>
-      <input bind:value={form.patient.diagnosis} class="form-input" />
-    </label>
-  </div>
-
-  <div class="grid grid-cols-12 gap-6 mb-8 border-b border-gray-100 pb-8">
-    <div class="col-span-12 md:col-span-6">
-      <label class="form-label"
-        >Transfusiones <div class="flex items-center gap-4 mb-2">
-          <label class="form-checkbox-label"
-            ><input
-              type="radio"
-              bind:group={form.generalStatus.transfusions.active}
-              value={true}
-              class="form-checkbox"
-            /> SI</label
-          >
-          <label class="form-checkbox-label"
-            ><input
-              type="radio"
-              bind:group={form.generalStatus.transfusions.active}
-              value={false}
-              class="form-checkbox"
-            /> NO</label
-          >
+  <form method="POST" use:enhance class="space-y-8">
+    <!-- Header Fields -->
+    <div class="form-section-card">
+      <div
+        class="grid grid-cols-1 md:grid-cols-12 gap-6 pb-6 border-b border-gray-100"
+      >
+        <div class="md:col-span-6">
+          <TextInput label="Nombre" bind:value={$form.patient.name} />
         </div>
-        <label class="block">
-          <span class="form-label text-xs">Número</span>
-          <input
-            bind:value={form.generalStatus.transfusions.count}
-            class="form-input w-24"
+        <div class="md:col-span-3">
+          <TextInput label="Mes" bind:value={$form.meta.month} />
+        </div>
+        <div class="md:col-span-3">
+          <TextInput label="Expediente" bind:value={$form.meta.fileNumber} />
+        </div>
+
+        <div class="md:col-span-5 flex flex-col gap-2">
+          <span class="form-label mb-0">Ingresos</span>
+          <RadioGroup
+            row
+            name="admissionActive"
+            options={yesNoOptions}
+            bind:value={$form.patient.admission.active}
           />
-        </label>
-      </label>
-    </div>
-    <label class="col-span-12 md:col-span-6 block">
-      <span class="form-label">Ganancias Promedio Interdiálisis</span>
-      <input
-        bind:value={form.generalStatus.interdialyticGain}
-        class="form-input"
-      />
-    </label>
+          <DateInput
+            label="Fecha de Ingreso"
+            bind:value={$form.patient.admission.dateIn}
+          />
+        </div>
 
-    <div class="col-span-12 md:col-span-6 grid grid-cols-2 gap-4">
-      <label class="block">
-        <span class="form-label">Estado General</span>
-        <input
-          bind:value={form.generalStatus.generalState}
-          class="form-input"
-        />
-      </label>
-      <label class="block">
-        <span class="form-label">Apetito</span>
-        <input bind:value={form.generalStatus.appetite} class="form-input" />
-      </label>
-    </div>
+        <div class="md:col-span-7">
+          <DateInput
+            label="Fecha de Egreso"
+            bind:value={$form.patient.admission.dateOut}
+          />
+        </div>
 
-    <div class="col-span-12 md:col-span-6">
-      <span class="form-label">Diuresis Residual</span>
-      <div class="flex items-center gap-4 mb-2">
-        <label class="form-checkbox-label"
-          ><input
-            type="radio"
-            bind:group={form.generalStatus.residualDiuresis.active}
-            value={true}
-            class="form-checkbox"
-          /> SI</label
-        >
-        <label class="form-checkbox-label"
-          ><input
-            type="radio"
-            bind:group={form.generalStatus.residualDiuresis.active}
-            value={false}
-            class="form-checkbox"
-          /> NO</label
-        >
-      </div>
-      <div class="flex gap-4">
-        <label class="flex items-center gap-2"
-          ><input
-            type="radio"
-            bind:group={form.generalStatus.residualDiuresis.type}
-            value="Normal"
-            class="form-checkbox"
-          /> Normal</label
-        >
-        <label class="flex items-center gap-2"
-          ><input
-            type="radio"
-            bind:group={form.generalStatus.residualDiuresis.type}
-            value="Disminuido"
-            class="form-checkbox"
-          /> Disminuido</label
-        >
+        <div class="md:col-span-12">
+          <TextInput
+            label="Diagnósticos"
+            bind:value={$form.patient.diagnosis}
+          />
+        </div>
       </div>
     </div>
-  </div>
 
-  <div class="grid grid-cols-12 gap-6 mb-8 border-b border-gray-100 pb-8">
-    <div class="col-span-12 md:col-span-6">
-      <h3 class="form-section-title mb-4">Comorbilidad Interdialftica</h3>
-      <div class="space-y-2">
-        {@render yesNo(
-          "HIPOTENSIÓN ARTERIAL",
-          form.comorbidities.hypotension,
-          (v) => (form.comorbidities.hypotension = v),
-        )}
-        {@render yesNo(
-          "HIPERTENSIÓN ARTERIAL",
-          form.comorbidities.hypertension,
-          (v) => (form.comorbidities.hypertension = v),
-        )}
-        {@render yesNo(
-          "PRURITO",
-          form.comorbidities.pruritus,
-          (v) => (form.comorbidities.pruritus = v),
-        )}
-        {@render yesNo(
-          "DOLOR PRECORDIAL",
-          form.comorbidities.precordialPain,
-          (v) => (form.comorbidities.precordialPain = v),
-        )}
-        {@render yesNo(
-          "HIPOGLUCEMIA",
-          form.comorbidities.hypoglycemia,
-          (v) => (form.comorbidities.hypoglycemia = v),
-        )}
-        {@render yesNo(
-          "CEFALEA",
-          form.comorbidities.headache,
-          (v) => (form.comorbidities.headache = v),
-        )}
-        {@render yesNo(
-          "LUMBALGIA",
-          form.comorbidities.lumbalgia,
-          (v) => (form.comorbidities.lumbalgia = v),
-        )}
-        {@render yesNo(
-          "CALAMBRES",
-          form.comorbidities.cramps,
-          (v) => (form.comorbidities.cramps = v),
-        )}
-        {@render yesNo(
-          "NAUSEAS / VÓMITOS",
-          form.comorbidities.nausea,
-          (v) => (form.comorbidities.nausea = v),
-        )}
-        {@render yesNo(
-          "CRISIS PIRÓGENAS",
-          form.comorbidities.pyrogenicCrisis,
-          (v) => (form.comorbidities.pyrogenicCrisis = v),
-        )}
-        {@render yesNo(
-          "BACTEREMIA",
-          form.comorbidities.bacteremia,
-          (v) => (form.comorbidities.bacteremia = v),
-        )}
-      </div>
-
-      <div class="mt-6 pt-4 border-t border-gray-100 space-y-4">
-        <div>
-          <label class="form-label"
-            >Tratamiento <input
-              bind:value={form.comorbidities.treatment}
-              class="form-input"
+    <!-- General Status -->
+    <div class="form-section-card">
+      <div class="form-section-title"><h3>Estado General</h3></div>
+      <div
+        class="grid grid-cols-1 md:grid-cols-12 gap-6 pb-6 border-b border-gray-100"
+      >
+        <div class="md:col-span-6">
+          <div class="mb-2">
+            <span class="form-label">Transfusiones</span>
+            <RadioGroup
+              row
+              name="transfusionsActive"
+              options={yesNoOptions}
+              bind:value={$form.generalStatus.transfusions.active}
             />
-          </label>
+          </div>
+          <TextInput
+            label="Número"
+            bind:value={$form.generalStatus.transfusions.count}
+          />
         </div>
-        <div>
-          <label class="form-label"
-            >Otros
-            <input bind:value={form.comorbidities.other} class="form-input" />
-          </label>
+        <div class="md:col-span-6">
+          <TextInput
+            label="Ganancias Promedio Interdiálisis"
+            bind:value={$form.generalStatus.interdialyticGain}
+          />
         </div>
-      </div>
-    </div>
-
-    <div class="col-span-12 md:col-span-6">
-      <h3 class="form-section-title mb-4">Acceso Vascular</h3>
-      <div class="space-y-6">
-        <div>
-          <label class="form-label mb-2"
-            >FAV
-            <div class="grid grid-cols-2 gap-2">
-              <label class="form-checkbox-label"
-                ><input
-                  type="radio"
-                  bind:group={form.access.fav}
-                  value="autologa"
-                  class="form-checkbox"
-                /> Autóloga</label
-              >
-              <label class="form-checkbox-label"
-                ><input
-                  type="radio"
-                  bind:group={form.access.fav}
-                  value="protesica"
-                  class="form-checkbox"
-                /> Protésica</label
-              >
-            </div>
-          </label>
+        <div class="md:col-span-6 grid grid-cols-2 gap-4">
+          <TextInput
+            label="Estado General"
+            bind:value={$form.generalStatus.generalState}
+          />
+          <TextInput
+            label="Apetito"
+            bind:value={$form.generalStatus.appetite}
+          />
         </div>
-
-        <div>
-          <label class="form-label mb-2"
-            >CVC <div class="grid grid-cols-2 gap-2">
-              <label class="form-checkbox-label"
-                ><input
-                  type="radio"
-                  bind:group={form.access.cvc}
-                  value="permacath"
-                  class="form-checkbox"
-                /> Permacath</label
-              >
-              <label class="form-checkbox-label"
-                ><input
-                  type="radio"
-                  bind:group={form.access.cvc}
-                  value="temporal"
-                  class="form-checkbox"
-                /> Temporal</label
-              >
-            </div>
-          </label>
-        </div>
-
-        <div>
-          <label class="form-label mb-2"
-            >Funcionamiento <div class="grid grid-cols-2 gap-2">
-              <label class="form-checkbox-label"
-                ><input
-                  type="radio"
-                  bind:group={form.access.functionality}
-                  value="funcional"
-                  class="form-checkbox"
-                /> Funcional</label
-              >
-              <label class="form-checkbox-label"
-                ><input
-                  type="radio"
-                  bind:group={form.access.functionality}
-                  value="disfuncional"
-                  class="form-checkbox"
-                /> Disfuncional</label
-              >
-            </div>
-          </label>
-        </div>
-
-        <div>
-          <label class="form-label"
-            >Examen Físico del Acceso Vascular
-            <input bind:value={form.access.exam} class="form-input" />
-          </label>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="grid grid-cols-12 gap-6 mb-8 border-b border-gray-100 pb-8">
-    <div class="col-span-12 md:col-span-6">
-      <h3 class="form-section-title mb-4">Parámetros de Diálisis</h3>
-      <div class="grid grid-cols-2 gap-4">
-        <div class="space-y-2 border-r border-gray-100 pr-4">
-          {@render yesNo(
-            "CONTROL DE VOLEMMIA: Adecuado?",
-            form.dialysisParams.volemia,
-            (v) => (form.dialysisParams.volemia = v),
-          )}
-          {@render yesNo(
-            "CONTROL DE ANEMIA: Adecuado?",
-            form.dialysisParams.anemia,
-            (v) => (form.dialysisParams.anemia = v),
-          )}
-          {@render yesNo(
-            "ESTADO NUTRICIONAL: Adecuado?",
-            form.dialysisParams.nutrition,
-            (v) => (form.dialysisParams.nutrition = v),
-          )}
-        </div>
-        <div class="space-y-2">
-          {@render yesNo(
-            "METABOLISMO P/Ca: Adecuado?",
-            form.dialysisParams.metabolism,
-            (v) => (form.dialysisParams.metabolism = v),
-          )}
-          {@render yesNo(
-            "PERFIL LÍPIDO: Adecuado?",
-            form.dialysisParams.lipids,
-            (v) => (form.dialysisParams.lipids = v),
-          )}
-          {@render yesNo(
-            "KT/V: Adecuado?",
-            form.dialysisParams.ktv,
-            (v) => (form.dialysisParams.ktv = v),
-          )}
-        </div>
-      </div>
-    </div>
-
-    <div class="col-span-12 md:col-span-6">
-      <h3 class="form-section-title mb-4">Tratamiento Actual</h3>
-      <div class="grid grid-cols-2 gap-4">
-        {@render lineInput(
-          "VITAMINAS",
-          form.currentTreatment.vitamins,
-          (v) => (form.currentTreatment.vitamins = v),
-        )}
-        {@render lineInput(
-          "EPO",
-          form.currentTreatment.epo,
-          (v) => (form.currentTreatment.epo = v),
-        )}
-        {@render lineInput(
-          "HIERRO IV",
-          form.currentTreatment.iron,
-          (v) => (form.currentTreatment.iron = v),
-        )}
-        {@render lineInput(
-          "LEVOCARNITINA",
-          form.currentTreatment.carnitine,
-          (v) => (form.currentTreatment.carnitine = v),
-        )}
-        {@render lineInput(
-          "ANTIHIPERTENSIVOS",
-          form.currentTreatment.antihypertensives,
-          (v) => (form.currentTreatment.antihypertensives = v),
-        )}
-        {@render lineInput(
-          "OTROS",
-          form.currentTreatment.others,
-          (v) => (form.currentTreatment.others = v),
-        )}
-      </div>
-    </div>
-  </div>
-
-  <div class="mb-8">
-    <h3 class="form-section-title mb-4">Prescripción de Hemodiálisis</h3>
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-      <div class="space-y-4">
-        {@render lineInput(
-          "TIEMPO",
-          form.prescription.time,
-          (v) => (form.prescription.time = v),
-        )}
-        {@render lineInput(
-          "FILTRO",
-          form.prescription.filter,
-          (v) => (form.prescription.filter = v),
-        )}
-        {@render lineInput(
-          "TAMPON",
-          form.prescription.buffer,
-          (v) => (form.prescription.buffer = v),
-        )}
-        {@render lineInput(
-          "SODIO",
-          form.prescription.sodium,
-          (v) => (form.prescription.sodium = v),
-        )}
-        <div class="flex items-end gap-2">
-          <label class="form-label mb-0 w-12"
-            >Qb
-            <input
-              bind:value={form.prescription.qb}
-              class="form-input flex-1"
+        <div class="md:col-span-6">
+          <span class="form-label">Diuresis Residual</span>
+          <div class="flex flex-col gap-2">
+            <RadioGroup
+              row
+              name="residualDiuresisActive"
+              options={yesNoOptions}
+              bind:value={$form.generalStatus.residualDiuresis.active}
             />
-            <span class="text-xs text-gray-500 mb-2">ml/min</span>
-          </label>
-        </div>
-        <div class="flex items-end gap-2">
-          <label class="form-label mb-0 w-12"
-            >Qd
-            <input
-              bind:value={form.prescription.qd}
-              class="form-input flex-1"
+            <RadioGroup
+              row
+              name="residualDiuresisType"
+              options={typeOptions}
+              bind:value={$form.generalStatus.residualDiuresis.type}
             />
-            <span class="text-xs text-gray-500 mb-2">ml/min</span>
-          </label>
+          </div>
         </div>
-      </div>
-
-      <div class="space-y-4">
-        {@render lineInput(
-          "PESO SECO",
-          form.prescription.dryWeight,
-          (v) => (form.prescription.dryWeight = v),
-        )}
-        {@render lineInput(
-          "ANTIGUAGULACIÓN",
-          form.prescription.anticoagulation,
-          (v) => (form.prescription.anticoagulation = v),
-        )}
-        {@render lineInput(
-          "CONDUCTIVIDAD",
-          form.prescription.conductivity,
-          (v) => (form.prescription.conductivity = v),
-        )}
-        {@render lineInput(
-          "KT/V (t) (1.4)",
-          form.prescription.ktvTarget,
-          (v) => (form.prescription.ktvTarget = v),
-        )}
-        {@render lineInput(
-          "TEMPERATURA",
-          form.prescription.temperature,
-          (v) => (form.prescription.temperature = v),
-        )}
       </div>
     </div>
-  </div>
+
+    <!-- Comorbilidad -->
+    <div class="form-section-card">
+      <div class="form-section-title"><h3>Comorbilidad Interdialftica</h3></div>
+      <div
+        class="grid grid-cols-1 md:grid-cols-12 gap-6 pb-6 border-b border-gray-100"
+      >
+        <div class="md:col-span-6">
+          <div class="space-y-4">
+            <div class="flex items-center justify-between">
+              <span class="text-sm font-medium">HIPOTENSIÓN ARTERIAL</span>
+              <RadioGroup
+                row
+                name="hypotension"
+                options={yesNoOptions}
+                bind:value={$form.comorbidities.hypotension}
+              />
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-sm font-medium">HIPERTENSIÓN ARTERIAL</span>
+              <RadioGroup
+                row
+                name="hypertension"
+                options={yesNoOptions}
+                bind:value={$form.comorbidities.hypertension}
+              />
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-sm font-medium">PRURITO</span>
+              <RadioGroup
+                row
+                name="pruritus"
+                options={yesNoOptions}
+                bind:value={$form.comorbidities.pruritus}
+              />
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-sm font-medium">DOLOR PRECORDIAL</span>
+              <RadioGroup
+                row
+                name="precordialPain"
+                options={yesNoOptions}
+                bind:value={$form.comorbidities.precordialPain}
+              />
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-sm font-medium">HIPOGLUCEMIA</span>
+              <RadioGroup
+                row
+                name="hypoglycemia"
+                options={yesNoOptions}
+                bind:value={$form.comorbidities.hypoglycemia}
+              />
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-sm font-medium">CEFALEA</span>
+              <RadioGroup
+                row
+                name="headache"
+                options={yesNoOptions}
+                bind:value={$form.comorbidities.headache}
+              />
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-sm font-medium">LUMBALGIA</span>
+              <RadioGroup
+                row
+                name="lumbalgia"
+                options={yesNoOptions}
+                bind:value={$form.comorbidities.lumbalgia}
+              />
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-sm font-medium">CALAMBRES</span>
+              <RadioGroup
+                row
+                name="cramps"
+                options={yesNoOptions}
+                bind:value={$form.comorbidities.cramps}
+              />
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-sm font-medium">NAUSEAS / VÓMITOS</span>
+              <RadioGroup
+                row
+                name="nausea"
+                options={yesNoOptions}
+                bind:value={$form.comorbidities.nausea}
+              />
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-sm font-medium">CRISIS PIRÓGENAS</span>
+              <RadioGroup
+                row
+                name="pyrogenicCrisis"
+                options={yesNoOptions}
+                bind:value={$form.comorbidities.pyrogenicCrisis}
+              />
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-sm font-medium">BACTEREMIA</span>
+              <RadioGroup
+                row
+                name="bacteremia"
+                options={yesNoOptions}
+                bind:value={$form.comorbidities.bacteremia}
+              />
+            </div>
+          </div>
+
+          <div class="mt-6 space-y-4">
+            <TextInput
+              label="Tratamiento"
+              bind:value={$form.comorbidities.treatment}
+            />
+            <TextInput label="Otros" bind:value={$form.comorbidities.other} />
+          </div>
+        </div>
+
+        <div class="md:col-span-6">
+          <h3 class="form-section-title mb-4">Acceso Vascular</h3>
+          <div class="space-y-6">
+            <div>
+              <span class="form-label">FAV</span>
+              <RadioGroup
+                row
+                name="fav"
+                options={[
+                  { value: "autologa", label: "Autóloga" },
+                  { value: "protesica", label: "Protésica" },
+                ]}
+                bind:value={$form.access.fav}
+              />
+            </div>
+            <div>
+              <span class="form-label">CVC</span>
+              <RadioGroup
+                row
+                name="cvc"
+                options={[
+                  { value: "permacath", label: "Permacath" },
+                  { value: "temporal", label: "Temporal" },
+                ]}
+                bind:value={$form.access.cvc}
+              />
+            </div>
+            <div>
+              <span class="form-label">Funcionamiento</span>
+              <RadioGroup
+                row
+                name="functionality"
+                options={functionalOptions}
+                bind:value={$form.access.functionality}
+              />
+            </div>
+            <TextInput
+              label="Examen Físico del Acceso Vascular"
+              bind:value={$form.access.exam}
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Dialysis Params & Treatment -->
+    <div class="form-section-card">
+      <div
+        class="grid grid-cols-1 md:grid-cols-12 gap-6 pb-6 border-b border-gray-100"
+      >
+        <div class="md:col-span-6">
+          <h3 class="form-section-title mb-4">Parámetros de Diálisis</h3>
+          <div class="space-y-4">
+            <div class="flex items-center justify-between">
+              <span class="text-sm font-medium"
+                >CONTROL DE VOLEMMIA: Adecuado?</span
+              >
+              <RadioGroup
+                row
+                name="volemia"
+                options={yesNoOptions}
+                bind:value={$form.dialysisParams.volemia}
+              />
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-sm font-medium"
+                >CONTROL DE ANEMIA: Adecuado?</span
+              >
+              <RadioGroup
+                row
+                name="anemia"
+                options={yesNoOptions}
+                bind:value={$form.dialysisParams.anemia}
+              />
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-sm font-medium"
+                >ESTADO NUTRICIONAL: Adecuado?</span
+              >
+              <RadioGroup
+                row
+                name="nutrition"
+                options={yesNoOptions}
+                bind:value={$form.dialysisParams.nutrition}
+              />
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-sm font-medium"
+                >METABOLISMO P/Ca: Adecuado?</span
+              >
+              <RadioGroup
+                row
+                name="metabolism"
+                options={yesNoOptions}
+                bind:value={$form.dialysisParams.metabolism}
+              />
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-sm font-medium">PERFIL LÍPIDO: Adecuado?</span>
+              <RadioGroup
+                row
+                name="lipids"
+                options={yesNoOptions}
+                bind:value={$form.dialysisParams.lipids}
+              />
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-sm font-medium">KT/V: Adecuado?</span>
+              <RadioGroup
+                row
+                name="ktv"
+                options={yesNoOptions}
+                bind:value={$form.dialysisParams.ktv}
+              />
+            </div>
+          </div>
+        </div>
+
+        <div class="md:col-span-6">
+          <h3 class="form-section-title mb-4">Tratamiento Actual</h3>
+          <div class="grid grid-cols-2 gap-4">
+            <TextInput
+              label="VITAMINAS"
+              bind:value={$form.currentTreatment.vitamins}
+            />
+            <TextInput label="EPO" bind:value={$form.currentTreatment.epo} />
+            <TextInput
+              label="HIERRO IV"
+              bind:value={$form.currentTreatment.iron}
+            />
+            <TextInput
+              label="LEVOCARNITINA"
+              bind:value={$form.currentTreatment.carnitine}
+            />
+            <TextInput
+              label="ANTIHIPERTENSIVOS"
+              bind:value={$form.currentTreatment.antihypertensives}
+            />
+            <TextInput
+              label="OTROS"
+              bind:value={$form.currentTreatment.others}
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Prescription -->
+    <div class="form-section-card">
+      <div class="form-section-title">
+        <h3>Prescripción de Hemodiálisis</h3>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div class="space-y-4">
+          <TextInput label="TIEMPO" bind:value={$form.prescription.time} />
+          <TextInput label="FILTRO" bind:value={$form.prescription.filter} />
+          <TextInput label="TAMPON" bind:value={$form.prescription.buffer} />
+          <TextInput label="SODIO" bind:value={$form.prescription.sodium} />
+          <div class="flex items-end gap-2">
+            <div class="flex-1">
+              <TextInput label="Qb" bind:value={$form.prescription.qb} />
+            </div>
+            <span class="text-xs text-gray-500 mb-3">ml/min</span>
+          </div>
+          <div class="flex items-end gap-2">
+            <div class="flex-1">
+              <TextInput label="Qd" bind:value={$form.prescription.qd} />
+            </div>
+            <span class="text-xs text-gray-500 mb-3">ml/min</span>
+          </div>
+        </div>
+
+        <div class="space-y-4">
+          <TextInput
+            label="PESO SECO"
+            bind:value={$form.prescription.dryWeight}
+          />
+          <TextInput
+            label="ANTIGUAGULACIÓN"
+            bind:value={$form.prescription.anticoagulation}
+          />
+          <TextInput
+            label="CONDUCTIVIDAD"
+            bind:value={$form.prescription.conductivity}
+          />
+          <TextInput
+            label="KT/V META"
+            bind:value={$form.prescription.ktvTarget}
+          />
+          <TextInput
+            label="TEMPERATURA"
+            bind:value={$form.prescription.temperature}
+          />
+        </div>
+      </div>
+    </div>
+  </form>
 
   <div class="mt-12 text-center border-t border-gray-100 pt-8">
     <div class="inline-block border-t border-black px-12 pt-2">
