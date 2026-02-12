@@ -102,7 +102,7 @@
   </td>
 {/snippet}
 
-<div class="form-container-wide">
+
   <header class="form-header mb-6">
     <h2 class="h2-text">Control de Fichas (Checklists)</h2>
     {#if $form.updatedAt}
@@ -167,4 +167,3 @@
       <button type="submit" class="form-button px-8"> Guardar Cambios </button>
     </div>
   </form>
-</div>

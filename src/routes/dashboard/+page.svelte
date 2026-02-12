@@ -43,6 +43,7 @@
   let selectedPatientId = $state(page.url.searchParams.get("id") || "");
   let activeTab = $state("timeline");
   let activeDocument = $state<string | null>(null);
+  let isSidebarOpen = $state(false);
 
   // Sync selectedPatientId with URL param if it changes
   $effect(() => {
@@ -209,7 +210,27 @@
 </script>
 
 <div class="flex h-screen w-full bg-gray-100 font-sans overflow-hidden">
-  <PatientSidebar {selectedPatientId} onSelect={handleSelectPatient} />
+  <!-- Mobile Overlay -->
+  {#if isSidebarOpen}
+    <div
+      class="fixed inset-0 bg-black/50 z-40 md:hidden"
+      onclick={() => (isSidebarOpen = false)}
+      role="button"
+      tabindex="0"
+      onkeydown={(e) => e.key === "Escape" && (isSidebarOpen = false)}
+      aria-label="Close sidebar overlay"
+    ></div>
+  {/if}
+
+  <PatientSidebar
+    {selectedPatientId}
+    onSelect={(id) => {
+      handleSelectPatient(id);
+      isSidebarOpen = false; // Close sidebar on selection on mobile
+    }}
+    mobileOpen={isSidebarOpen}
+    onClose={() => (isSidebarOpen = false)}
+  />
 
   <div class="flex-1 flex flex-col min-w-0">
     <!-- PatientHeader expects strict Patient object. Ensure we pass compatible data -->
@@ -220,6 +241,7 @@
         activeTab = tab;
         activeDocument = null;
       }}
+      onMenuClick={() => (isSidebarOpen = true)}
     />
 
     <main class="flex-1 overflow-y-auto p-6 bg-gray-50">
