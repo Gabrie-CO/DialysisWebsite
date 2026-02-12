@@ -1,0 +1,13 @@
+.git
+.svelte-kit
+.vscode
+node_modules
+build
+.env
+.env.local
+npm-debug.log
+yarn-error.log
+test_output.txt
+coverage
+tests
+cypress
