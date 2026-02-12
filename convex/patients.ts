@@ -4,35 +4,87 @@ import { v } from "convex/values";
 export const get = query({
     args: {},
     handler: async (ctx) => {
-        // In a real app, you might only return patients if the user is an admin/doctor
         const users = await ctx.db.query("users").collect();
-        // Filter by role "patient" if strictly needed, or return all for now
-        return users.filter((u) => u.role === "patient");
+        const patients = await ctx.db.query("patients").collect();
+
+        const patientsMap = new Map(patients.map((p) => [p.userId, p]));
+
+        return users
+            .filter((u) => u.role === "patient")
+            .map((u) => {
+                const patientData = patientsMap.get(u._id);
+                return { ...u, ...patientData, _id: u._id }; // Start with user _id for frontend compatibility
+            });
     },
 });
 
 export const getById = query({
     args: { id: v.id("users") },
     handler: async (ctx, args) => {
-        return await ctx.db.get(args.id);
+        const user = await ctx.db.get(args.id);
+        if (!user) return null;
+
+        const patientData = await ctx.db
+            .query("patients")
+            .withIndex("by_user", (q) => q.eq("userId", args.id))
+            .unique();
+
+        return { ...user, ...patientData, _id: user._id };
     },
 });
 
 export const search = query({
     args: { query: v.string() },
     handler: async (ctx, args) => {
-        // Simple client-side filtering on server for now since full-text search requires more setup
         const users = await ctx.db.query("users").collect();
         const q = args.query.toLowerCase();
-        return users.filter(
+
+        const matchingUsers = users.filter(
             (u) =>
                 u.role === "patient" &&
                 ((u.firstName && u.firstName.toLowerCase().includes(q)) ||
-                    (u.lastName && u.lastName.toLowerCase().includes(q)) ||
-                    (u.code && u.code.toLowerCase().includes(q)))
+                    (u.lastName && u.lastName.toLowerCase().includes(q)))
         );
+
+        // Fetch patient data for matching users to check code
+        const results = await Promise.all(
+            matchingUsers.map(async (u) => {
+                const patientData = await ctx.db
+                    .query("patients")
+                    .withIndex("by_user", (q) => q.eq("userId", u._id))
+                    .unique();
+
+                // Check code match if provided in query
+                if (patientData?.code && patientData.code.toLowerCase().includes(q)) {
+                    return { ...u, ...patientData, _id: u._id };
+                }
+
+                // Return if name matched earlier
+                if (u.firstName?.toLowerCase().includes(q) || u.lastName?.toLowerCase().includes(q)) {
+                    return { ...u, ...patientData, _id: u._id };
+                }
+
+                return null;
+            })
+        );
+
+        return results.filter((r) => r !== null);
     },
 });
+
+// Helper to upsert patient data
+async function upsertPatientData(ctx: any, userId: any, data: any) {
+    const patientDoc = await ctx.db
+        .query("patients")
+        .withIndex("by_user", (q: any) => q.eq("userId", userId))
+        .unique();
+
+    if (patientDoc) {
+        await ctx.db.patch(patientDoc._id, data);
+    } else {
+        await ctx.db.insert("patients", { userId, ...data });
+    }
+}
 
 export const updatePatientCard = mutation({
     args: {
@@ -52,7 +104,7 @@ export const updatePatientCard = mutation({
         }),
     },
     handler: async (ctx, args) => {
-        await ctx.db.patch(args.patientId, {
+        await upsertPatientData(ctx, args.patientId, {
             patientCard: { ...args.patientCardData, updatedAt: new Date().toISOString() },
         });
     },
@@ -64,8 +116,8 @@ export const updateFichas = mutation({
         fichasData: v.record(v.string(), v.array(v.number())),
     },
     handler: async (ctx, args) => {
-        await ctx.db.patch(args.patientId, {
-            fichas: args.fichasData, // Fichas is a record, handling updatedAt might be tricky within the record. Skipping for now as user asked for forms.
+        await upsertPatientData(ctx, args.patientId, {
+            fichas: args.fichasData,
         });
     },
 });
@@ -86,7 +138,7 @@ export const updateInfections = mutation({
         }),
     },
     handler: async (ctx, args) => {
-        await ctx.db.patch(args.patientId, {
+        await upsertPatientData(ctx, args.patientId, {
             infections: { ...args.infectionsData, updatedAt: new Date().toISOString() },
         });
     },
@@ -98,7 +150,7 @@ export const updateClinicalHistory = mutation({
         clinicalHistoryData: v.any(),
     },
     handler: async (ctx, args) => {
-        await ctx.db.patch(args.patientId, {
+        await upsertPatientData(ctx, args.patientId, {
             clinicalHistory: { ...args.clinicalHistoryData, updatedAt: new Date().toISOString() },
         });
     },
@@ -107,48 +159,62 @@ export const updateClinicalHistory = mutation({
 export const updateCIDH = mutation({
     args: { patientId: v.id("users"), cidhData: v.any() },
     handler: async (ctx, args) => {
-        await ctx.db.patch(args.patientId, { cidh: { ...args.cidhData, updatedAt: new Date().toISOString() } });
+        await upsertPatientData(ctx, args.patientId, {
+            cidh: { ...args.cidhData, updatedAt: new Date().toISOString() },
+        });
     },
 });
 
 export const updateClinicHistoryOld = mutation({
     args: { patientId: v.id("users"), data: v.any() },
     handler: async (ctx, args) => {
-        await ctx.db.patch(args.patientId, { clinicHistoryOld: { ...args.data, updatedAt: new Date().toISOString() } });
+        await upsertPatientData(ctx, args.patientId, {
+            clinicHistoryOld: { ...args.data, updatedAt: new Date().toISOString() },
+        });
     },
 });
 
 export const updateFistula = mutation({
     args: { patientId: v.id("users"), data: v.any() },
     handler: async (ctx, args) => {
-        await ctx.db.patch(args.patientId, { fistula: { ...args.data, updatedAt: new Date().toISOString() } });
+        await upsertPatientData(ctx, args.patientId, {
+            fistula: { ...args.data, updatedAt: new Date().toISOString() },
+        });
     },
 });
 
 export const updateHemodialysis = mutation({
     args: { patientId: v.id("users"), data: v.any() },
     handler: async (ctx, args) => {
-        await ctx.db.patch(args.patientId, { hemodialysis: { ...args.data, updatedAt: new Date().toISOString() } });
+        await upsertPatientData(ctx, args.patientId, {
+            hemodialysis: { ...args.data, updatedAt: new Date().toISOString() },
+        });
     },
 });
 
 export const updateMedicationSheet = mutation({
     args: { patientId: v.id("users"), data: v.any() },
     handler: async (ctx, args) => {
-        await ctx.db.patch(args.patientId, { medicationSheet: { ...args.data, updatedAt: new Date().toISOString() } });
+        await upsertPatientData(ctx, args.patientId, {
+            medicationSheet: { ...args.data, updatedAt: new Date().toISOString() },
+        });
     },
 });
 
 export const updateExamControls = mutation({
     args: { patientId: v.id("users"), data: v.any() },
     handler: async (ctx, args) => {
-        await ctx.db.patch(args.patientId, { examControls: { ...args.data, updatedAt: new Date().toISOString() } });
+        await upsertPatientData(ctx, args.patientId, {
+            examControls: { ...args.data, updatedAt: new Date().toISOString() },
+        });
     },
 });
 
 export const updateMonthlyProgress = mutation({
     args: { patientId: v.id("users"), data: v.any() },
     handler: async (ctx, args) => {
-        await ctx.db.patch(args.patientId, { monthlyProgress: { ...args.data, updatedAt: new Date().toISOString() } });
+        await upsertPatientData(ctx, args.patientId, {
+            monthlyProgress: { ...args.data, updatedAt: new Date().toISOString() },
+        });
     },
 });
