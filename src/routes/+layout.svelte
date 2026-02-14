@@ -4,6 +4,8 @@
   import { env } from "$env/dynamic/public";
   import "../app.css";
   import ErrorBoundary from "$lib/components/ui/ErrorBoundary.svelte";
+  import { Toaster } from "svelte-sonner";
+  import NetworkStatus from "$lib/components/ui/NetworkStatus.svelte";
 
   let { children } = $props();
 
@@ -15,6 +17,9 @@
 <svelte:head>
   <link rel="icon" href={favicon} />
 </svelte:head>
+
+<Toaster position="top-center" richColors />
+<NetworkStatus />
 
 <ErrorBoundary>
   {@render children()}

@@ -1,3 +1,5 @@
+import * as Sentry from "@sentry/sveltekit";
+
 export type LogLevel = 'debug' | 'info' | 'warn' | 'error';
 
 class Logger {
@@ -31,8 +33,12 @@ class Logger {
 
     error(message: string, error?: any, data?: any) {
         console.error(this.formatMessage('error', message), error || '', data || '');
-        // Hook for Sentry or other monitoring services
-        // if (Sentry) Sentry.captureException(error);
+        // Capture exception in Sentry
+        if (error instanceof Error) {
+            Sentry.captureException(error, { extra: { message, data, context: this.context } });
+        } else {
+            Sentry.captureException(new Error(message), { extra: { originalError: error, data, context: this.context } });
+        }
     }
 }
 

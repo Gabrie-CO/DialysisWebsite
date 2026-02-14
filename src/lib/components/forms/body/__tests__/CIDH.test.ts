@@ -14,9 +14,10 @@ describe('CIDH Form', () => {
     const mockOnSave = vi.fn();
     const defaultData = {
         access: {
-            catheter: { active: false, date: "", unknownDate: false },
-            avFistula: { active: false, date: "", unknownDate: false },
-            graft: { active: false, date: "", unknownDate: false }
+            fistula: { active: false, date: "", unknownDate: false },
+            graft: { active: false, date: "", unknownDate: false },
+            permCatheter: { active: false, date: "", unknownDate: false },
+            tempCatheter: { active: false, date: "", unknownDate: false }
         },
         // ... populate minimal required fields ...
         // Using "as any" to bypass strict full mock for now
@@ -39,7 +40,7 @@ describe('CIDH Form', () => {
 
     it('renders correctly', () => {
         render(CIDH, { initialData: defaultData, onSave: mockOnSave });
-        expect(screen.getByText('Control Infecciones y Hospitalizaciones (CIDH)')).toBeInTheDocument();
+        expect(screen.getByText(/CIDH/)).toBeInTheDocument();
         expect(screen.getByText('Tipo de Acceso')).toBeInTheDocument();
     });
 

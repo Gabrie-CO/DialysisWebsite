@@ -3,6 +3,8 @@ WORKDIR /app
 COPY package*.json .
 RUN npm ci
 COPY . .
+ARG PUBLIC_CONVEX_URL
+ENV PUBLIC_CONVEX_URL=$PUBLIC_CONVEX_URL
 RUN npm run build
 RUN npm prune --production
 

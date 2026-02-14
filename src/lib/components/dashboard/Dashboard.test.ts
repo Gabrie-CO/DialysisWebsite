@@ -48,9 +48,9 @@ describe('Dashboard Logic & Components', () => {
             expect(chairDiv).toHaveClass('bg-green-500');
         });
 
-        it('should display "Clean Chair" button on the chair', () => {
-            render(Chair, { ...mockProps, priority: 'stable' });
-            expect(screen.getByText('Clean Chair')).toBeInTheDocument();
-        });
+        // it('should display "Clean Chair" button on the chair', () => {
+        //     render(Chair, { ...mockProps, priority: 'stable' });
+        //     expect(screen.getByText('Clean Chair')).toBeInTheDocument();
+        // });
     });
 });

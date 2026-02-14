@@ -1,8 +1,8 @@
-import { handleErrorWithSentry, sequence } from "@sentry/sveltekit";
+import { handleErrorWithSentry } from "@sentry/sveltekit";
 import * as Sentry from "@sentry/sveltekit";
 
 Sentry.init({
-    dsn: "YOUR_SENTRY_DSN_HERE", // Replace with your actual DSN
+    dsn: import.meta.env.PUBLIC_SENTRY_DSN,
     tracesSampleRate: 1.0,
 });
 
