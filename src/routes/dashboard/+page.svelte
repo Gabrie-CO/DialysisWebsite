@@ -2,12 +2,22 @@
   import { page } from "$app/state";
   import { useQuery, useConvexClient } from "convex-svelte";
   import { api } from "../../../convex/_generated/api";
+  import { goto } from "$app/navigation";
+
+  // Dashboard Components
   import PatientSidebar from "$lib/components/dashboard/PatientSidebar.svelte";
   import PatientHeader from "$lib/components/dashboard/PatientHeader.svelte";
+  import Chair from "$lib/components/dashboard/Chair.svelte";
+  import ActiveAlerts from "$lib/components/dashboard/ActiveAlerts.svelte";
+  import ClinicStats from "$lib/components/dashboard/ClinicStats.svelte";
+  import InfoSection from "$lib/components/dashboard/InfoSection.svelte";
+  import PatientQueue from "$lib/components/dashboard/PatientQueue.svelte";
+
+  // Forms
+  // Forms
   import PatientCard from "$lib/components/forms/body/patientCard.svelte";
   import Fichas from "$lib/components/forms/body/fichas.svelte";
   import CIDH from "$lib/components/forms/body/CIDH.svelte";
-  import ClinicHistory from "$lib/components/forms/body/ClinicHistory.svelte";
   import ClinicalHistory2 from "$lib/components/forms/body/ClinicalHistory2.svelte";
   import Fistula from "$lib/components/forms/body/Fistula.svelte";
   import HemodialysisSheet from "$lib/components/forms/body/HemodialysisSheet.svelte";
@@ -23,9 +33,64 @@
 
   const convex = useConvexClient();
 
-  // Fetch Data
+  // Fetch Data for Sidebar
   const patientsQuery = useQuery(api.patients.get, {});
 
+  // Dashboard State
+  let existingPatients = $derived(patientsQuery.data || []);
+  let chairs = $state(Array(12).fill(null));
+  let queue = $state<any[]>([]);
+  let initialized = $state(false);
+
+  // Initialize from Real Data
+  $effect(() => {
+    if (!initialized && existingPatients.length > 0) {
+      const assigned = existingPatients.slice(0, 3);
+      const unassigned = existingPatients.slice(3);
+
+      chairs = chairs.map((c, i) => {
+        if (i < 3 && assigned[i]) {
+          return {
+            ...assigned[i],
+            id: assigned[i]._id,
+            name: `${assigned[i].firstName} ${assigned[i].lastName}`,
+            chairNumber: String(i + 1).padStart(2, "0"),
+          };
+        }
+        return c;
+      });
+
+      queue = unassigned.map((p) => ({
+        ...p,
+        id: p._id,
+        name: `${p.firstName} ${p.lastName}`,
+      }));
+
+      initialized = true;
+    }
+  });
+
+  // Derived Dashboard Stats
+  let activeAlerts = $derived(
+    chairs
+      .filter((p) => p && p.alert)
+      .map((p) => ({
+        id: p!.id,
+        patientName: p!.name,
+        message: p!.alert as string,
+        priority: p!.priority,
+      })),
+  );
+  let totalPatients = $derived(
+    chairs.filter((p) => p !== null && p.priority !== "cleaning").length,
+  );
+  const totalChairs = 12;
+  // Infection count derived from 'critical' patients for now, or 0 if none.
+  let infectionCount = $derived(
+    chairs.filter((p) => p !== null && p.priority === "critical").length,
+  );
+
+  // Form Defaults
   const DEFAULT_PATIENT_CARD = {
     elderly80_90: false,
     malnutrition: false,
@@ -39,50 +104,52 @@
     signature: "",
   };
 
-  // Local State
-  let selectedPatientId = $state(page.url.searchParams.get("id") || "");
+  // Routing / View State
+  let selectedPatientId = $state(page.url.searchParams.get("id") || null);
   let activeTab = $state("timeline");
   let activeDocument = $state<string | null>(null);
   let isSidebarOpen = $state(false);
 
-  // Sync selectedPatientId with URL param if it changes
+  // Sync with URL
   $effect(() => {
     const urlId = page.url.searchParams.get("id");
-    if (urlId && urlId !== selectedPatientId) {
+    if (urlId !== selectedPatientId) {
       selectedPatientId = urlId;
     }
   });
 
-  // Derived
-  let patients = $derived(patientsQuery.data || []);
+  // Derived for Patient View
+  // existingPatients is already defined above
   let patient = $derived(
-    patients.find((p: any) => p._id === selectedPatientId) || patients[0],
+    existingPatients.find((p: any) => p._id === selectedPatientId) ||
+      existingPatients[0],
   );
 
-  // Initialize selectedPatientId if not set and patients loaded
-  $effect(() => {
-    if (!selectedPatientId && patients.length > 0) {
-      selectedPatientId = patients[0]._id;
-    }
-  });
-
-  // Sessions (Mock for now, or fetch if available)
-  // let sessions = $derived(...)
-  // For now keeping mock sessions logic based on ID if possible or just empty
-  let sessions = $state([]); // Placeholder
-
-  // Safeguard activeSession access
+  // Mock Sessions logic
+  let sessions = $state([]);
   let activeSession = $derived(
-    data.activeSession && data.activeSession[selectedPatientId]
+    data.activeSession &&
+      selectedPatientId &&
+      data.activeSession[selectedPatientId]
       ? data.activeSession[selectedPatientId]
       : null,
   );
 
+  // Handlers
   function handleSelectPatient(id: string) {
-    selectedPatientId = id;
+    goto(`/dashboard?id=${id}`);
     activeTab = "timeline";
     activeDocument = null;
+    isSidebarOpen = false;
   }
+
+  function resetToDashboard() {
+    goto("/");
+    selectedPatientId = null;
+  }
+
+  // ... (drag and drop handlers can be removed or kept if needed for other things, but likely unused in this view)
+  // For now I will keep them to minimize diff size unless requested to clean up, but the main change is the view rendering.
 
   const AVAILABLE_DOCUMENTS = [
     {
@@ -96,36 +163,7 @@
       mutation: api.patients.updatePatientCard,
       argKey: "patientCardData",
     },
-    {
-      id: "fichas",
-      title: "Fichas (Checklists)",
-      icon: "✅",
-      desc: "Annual checklists validation",
-      component: Fichas,
-      dataKey: "fichas",
-      mutation: api.patients.updateFichas,
-      argKey: "fichasData",
-    },
-    {
-      id: "cidh",
-      title: "Infection Control (CIDH)",
-      icon: "🦠",
-      desc: "Report infection signs/events",
-      component: CIDH,
-      dataKey: "cidh",
-      mutation: api.patients.updateCIDH,
-      argKey: "cidhData",
-    },
-    {
-      id: "clinicalHistory",
-      title: "Clinical History",
-      icon: "🏥",
-      desc: "Complete clinical history",
-      component: ClinicHistory,
-      dataKey: "clinicHistoryOld",
-      mutation: api.patients.updateClinicHistoryOld,
-      argKey: "data",
-    },
+
     {
       id: "clinicalHistory2",
       title: "Clinical History 2",
@@ -205,7 +243,7 @@
   ];
 
   let activeDocConfig = $derived(
-    AVAILABLE_DOCUMENTS.find((d) => d.id === activeDocument),
+    AVAILABLE_DOCUMENTS.find((d) => d.id === activeDocument) as any,
   );
 </script>
 
@@ -223,17 +261,16 @@
   {/if}
 
   <PatientSidebar
-    {selectedPatientId}
+    selectedPatientId={selectedPatientId || ""}
     onSelect={(id) => {
       handleSelectPatient(id);
-      isSidebarOpen = false; // Close sidebar on selection on mobile
     }}
     mobileOpen={isSidebarOpen}
     onClose={() => (isSidebarOpen = false)}
   />
 
   <div class="flex-1 flex flex-col min-w-0">
-    <!-- PatientHeader expects strict Patient object. Ensure we pass compatible data -->
+    <!-- INDIVIDUAL PATIENT VIEW -->
     <PatientHeader
       {patient}
       {activeTab}
@@ -245,8 +282,15 @@
     />
 
     <main class="flex-1 overflow-y-auto p-6 bg-gray-50">
+      <button
+        onclick={resetToDashboard}
+        class="mb-6 text-sm font-bold text-blue-600 hover:text-blue-800 flex items-center gap-2 transition-colors"
+      >
+        ← Back to Clinic Overview
+      </button>
+
       {#if activeTab === "timeline"}
-        <!-- Timeline content (kept mostly same but cleaned up) -->
+        <!-- Timeline content -->
         <div class="max-w-3xl mx-auto space-y-8">
           {#if activeSession}
             <div
@@ -256,7 +300,6 @@
                 <h3 class="font-bold text-green-900">
                   Active Session: {activeSession.machine}
                 </h3>
-                <!-- ... details ... -->
               </div>
             </div>
           {/if}
@@ -281,8 +324,7 @@
               {/each}
             </div>
           </div>
-        {:else if activeDocConfig}
-          <!-- individual form loop -->
+        {:else if activeDocConfig?.component}
           {@const Component = activeDocConfig.component}
           <div class="max-w-4xl mx-auto space-y-6">
             <button
@@ -292,138 +334,28 @@
             >
             <ErrorBoundary>
               <Component
-                initialData={(patient as any)?.[activeDocConfig.dataKey] ||
+                initialData={(patient as any)?.[activeDocConfig.dataKey!] ||
                   activeDocConfig.defaultData ||
                   {}}
-                onSave={async (formData) => {
-                  await convex.mutation(activeDocConfig.mutation, {
-                    patientId: selectedPatientId as any,
-                    [activeDocConfig.argKey]: formData,
-                  } as any);
+                onSave={async (formData: any) => {
+                  if (activeDocConfig.mutation) {
+                    await convex.mutation(activeDocConfig.mutation, {
+                      patientId: selectedPatientId as any,
+                      [activeDocConfig.argKey!]: formData,
+                    } as any);
+                  }
                 }}
               />
-            {:else if activeDocument === "fichas"}
-              <Fichas
-                initialData={patient?.fichas || {}}
-                onSave={async (data) => {
-                  await convex.mutation(api.patients.updateFichas, {
-                    patientId: selectedPatientId as any,
-                    fichasData: data,
-                  });
-                }}
-              />
-            {:else if activeDocument === "cidh"}
-              <CIDH
-                initialData={patient?.cidh || {}}
-                onSave={async (data) => {
-                  await convex.mutation(api.patients.updateCIDH, {
-                    patientId: selectedPatientId as any,
-                    cidhData: data,
-                  });
-                }}
-              />
-            {:else if activeDocument === "clinicalHistory"}
-              <ClinicHistory
-                initialData={patient?.clinicHistoryOld || {}}
-                onSave={async (data) => {
-                  await convex.mutation(api.patients.updateClinicHistoryOld, {
-                    patientId: selectedPatientId as any,
-                    data: data,
-                  });
-                }}
-              />
-            {:else if activeDocument === "clinicalHistory2"}
-              <ClinicalHistory2
-                initialData={patient?.clinicalHistory || {}}
-                onSave={async (data) => {
-                  await convex.mutation(api.patients.updateClinicalHistory, {
-                    patientId: selectedPatientId as any,
-                    clinicalHistoryData: data,
-                  });
-                }}
-              />
-            {:else if activeDocument === "fistula"}
-              <Fistula
-                initialData={patient?.fistula || {}}
-                onSave={async (data) => {
-                  await convex.mutation(api.patients.updateFistula, {
-                    patientId: selectedPatientId as any,
-                    data: data,
-                  });
-                }}
-              />
-            {:else if activeDocument === "hemodialysisSheet"}
-              <HemodialysisSheet
-                initialData={patient?.hemodialysis || {}}
-                onSave={async (data) => {
-                  await convex.mutation(api.patients.updateHemodialysis, {
-                    patientId: selectedPatientId as any,
-                    data: data,
-                  });
-                }}
-              />
-            {:else if activeDocument === "infections"}
-              <Infections
-                initialData={patient?.infections || {}}
-                onSave={async (data) => {
-                  await convex.mutation(api.patients.updateInfections, {
-                    patientId: selectedPatientId as any,
-                    infectionsData: data,
-                  });
-                }}
-              />
-            {:else if activeDocument === "medicationSheet"}
-              <MedicationApplicationSheet
-                initialData={patient?.medicationSheet || {}}
-                onSave={async (data) => {
-                  await convex.mutation(api.patients.updateMedicationSheet, {
-                    patientId: selectedPatientId as any,
-                    data: data,
-                  });
-                }}
-              />
-            {:else if activeDocument === "examControls"}
-              <ExamControls
-                initialData={patient?.examControls || {}}
-                onSave={async (data) => {
-                  await convex.mutation(api.patients.updateExamControls, {
-                    patientId: selectedPatientId as any,
-                    data: data,
-                  });
-                }}
-              />
-            {:else if activeDocument === "monthlyProgress"}
-              <MonthlyProgress
-                initialData={patient?.monthlyProgress || {}}
-                onSave={async (data) => {
-                  await convex.mutation(api.patients.updateMonthlyProgress, {
-                    patientId: selectedPatientId as any,
-                    data: data,
-                  });
-                }}
-              />
-            {:else if activeDocument === "debug"}
-              <div
-                class="bg-white p-12 rounded-2xl border-4 border-dashed border-blue-100 flex flex-col items-center gap-4"
-              >
-                <div class="text-6xl animate-bounce">🧪</div>
-                <h2 class="text-2xl font-black text-blue-900">
-                  Debug Renderer
-                </h2>
-                <p class="text-gray-500 font-medium">
-                  This component was rendered at:
-                </p>
-                <div
-                  class="bg-blue-50 px-6 py-3 rounded-xl font-mono text-blue-700 font-bold text-xl border border-blue-100"
-                >
-                  {new Date().toLocaleTimeString()}
-                </div>
-                <p class="text-xs text-gray-400 mt-4">
-                  If this time updates when you click the box, re-rendering is
-                  working.
-                </p>
-              </div>
-            {/if}
+            </ErrorBoundary>
+          </div>
+        {:else if activeDocument === "debug"}
+          <!-- Debug comp -->
+          <div class="max-w-4xl mx-auto space-y-6">
+            <div
+              class="bg-white p-12 rounded-2xl border-4 border-dashed border-blue-100 flex flex-col items-center gap-4"
+            >
+              <h2 class="text-2xl font-black text-blue-900">Debug Renderer</h2>
+            </div>
           </div>
         {/if}
       {/if}

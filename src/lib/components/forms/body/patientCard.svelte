@@ -8,9 +8,11 @@
   // UI Components
   import TextInput from "../ui/TextInput.svelte";
   import Checkbox from "../ui/Checkbox.svelte";
+  import FormSectionCard from "../../ui/FormSectionCard.svelte";
 
-  let { initialData, onSave } = $props<{
+  let { initialData, patientId, onSave } = $props<{
     initialData: z.infer<typeof patientCardSchema>;
+    patientId: string;
     onSave: (data: z.infer<typeof patientCardSchema>) => void;
   }>();
 
@@ -65,9 +67,8 @@
   </div>
 {/snippet}
 
-<div class="form-section-card">
+<FormSectionCard title="Patient Card" data={$form} patientId={patientId ?? ""}>
   <div class="form-header">
-    <h2 class="h2-text">Patient Card</h2>
     {#if $form.updatedAt}
       <p class="small-text">
         Last Updated: {new Date($form.updatedAt).toLocaleString()}
@@ -92,4 +93,4 @@
       <button type="submit" class="form-button"> Save Changes </button>
     </div>
   </form>
-</div>
+</FormSectionCard>

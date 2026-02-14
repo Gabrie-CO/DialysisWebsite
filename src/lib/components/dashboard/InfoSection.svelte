@@ -13,7 +13,7 @@
 </script>
 
 <div
-    class="bg-white px-4 py-3 rounded-2xl border border-gray-100 shadow-sm mt-8 inline-flex items-center gap-6"
+    class="bg-white px-4 py-3 rounded-2xl border border-gray-100 shadow-sm mt-8 inline-flex items-center gap-6 transform scale-125 origin-left"
 >
     <div class="flex items-center gap-4">
         <!-- Medium compact Pie Chart -->

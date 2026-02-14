@@ -12,7 +12,7 @@
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
 		"test": "vitest",
 		"docker:build": "docker build --build-arg PUBLIC_CONVEX_URL=$(grep PUBLIC_CONVEX_URL .env | cut -d '=' -f2) -t dialysis-website .",
-		"docker:run": "docker run -p 3000:3000 dialysis-website"
+		"docker:run": "docker run --env-file .env -p 3000:3000 dialysis-website"
 	},
 	"devDependencies": {
 		"@sveltejs/adapter-auto": "^7.0.0",

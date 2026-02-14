@@ -9,7 +9,9 @@
  */
 
 import type * as assessments from "../assessments.js";
+import type * as meetings from "../meetings.js";
 import type * as patients from "../patients.js";
+import type * as seed from "../seed.js";
 
 import type {
   ApiFromModules,
@@ -19,7 +21,9 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   assessments: typeof assessments;
+  meetings: typeof meetings;
   patients: typeof patients;
+  seed: typeof seed;
 }>;
 
 /**

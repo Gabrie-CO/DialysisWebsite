@@ -23,6 +23,8 @@ export default defineSchema({
     patients: defineTable({
         userId: v.id("users"), // Link config
         // Patient specific fields
+        priority: v.optional(v.string()), // critical, warning, stable
+        alert: v.optional(v.string()), // Single alert message from dashboard
         dryWeight: v.optional(v.number()),
         code: v.optional(v.string()), // e.g. "PT-123"
         alerts: v.optional(v.array(v.string())),
@@ -81,4 +83,29 @@ export default defineSchema({
     })
         .index("by_patient_month", ["patientId", "month", "year"])
         .index("by_patient_type", ["patientId", "type"]),
+
+    meetings: defineTable({
+        date: v.string(),
+        status: v.string(),
+        title: v.string(),
+        patientId: v.optional(v.id("users")), // Made optional to support legacy/empty meetings
+        type: v.optional(v.string()), // "session" | "pinned_item"
+        pinnedData: v.optional(v.any()), // Snapshot of data
+        chairId: v.optional(v.string()), // Store chair number/ID
+        weight: v.optional(v.object({ pre: v.string(), post: v.string() })),
+        condition: v.optional(v.string()), // e.g. "Stable", "Critical"
+        // Snapshot of patient card at the time of meeting
+        patientCardData: v.optional(v.object({
+            elderly80_90: v.boolean(),
+            malnutrition: v.boolean(),
+            preservedDiuresis: v.boolean(),
+            time: v.string(),
+            qd: v.string(),
+            qb: v.string(),
+            ktvt: v.string(),
+            filter: v.string(),
+            observations: v.string(),
+            signature: v.string(),
+        })),
+    }).index("by_patient_date", ["patientId", "date"]),
 });

@@ -15,7 +15,7 @@
   }>();
 
   // Renaming to patientsQuery since it seems to be fetching a list
-  const patientsQuery = useQuery(api.patients.get);
+  const patientsQuery: any = useQuery(api.patients.get);
 </script>
 
 <!-- Mobile Overlay Backdrops are handled in parent, this is just the drawer -->
@@ -47,7 +47,13 @@
     {#if patientsQuery.isLoading}
       <div class="p-4 text-sm text-gray-500">Loading patients...</div>
     {:else if patientsQuery.error}
-      <div class="p-4 text-sm text-red-500">Error loading patients</div>
+      <div class="p-4 text-sm text-red-500">
+        Error loading patients:
+        <pre class="mt-2 text-xs overflow-auto">{patientsQuery.error instanceof
+          Error
+            ? patientsQuery.error.toString()
+            : JSON.stringify(patientsQuery.error, null, 2)}</pre>
+      </div>
     {:else}
       {#each patientsQuery.data || [] as p}
         <button
