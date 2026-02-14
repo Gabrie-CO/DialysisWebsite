@@ -82,3 +82,44 @@ export const pinItem = mutation({
         return id;
     },
 });
+
+export const getQueue = query({
+    args: {},
+    handler: async (ctx) => {
+        const now = new Date();
+        const startOfDay = new Date(now.setUTCHours(0, 0, 0, 0)).toISOString();
+        const endOfDay = new Date(now.setUTCHours(23, 59, 59, 999)).toISOString();
+
+        // 1. Get all meetings for today
+        const meetings = await ctx.db
+            .query("meetings")
+            .withIndex("by_date", (q) => q.gte("date", startOfDay).lte("date", endOfDay))
+            .collect();
+
+        const patientIds = new Set(meetings.map((m) => m.patientId).filter(Boolean));
+
+        // 2. Fetch patient details and check presence
+        const queue = await Promise.all(
+            Array.from(patientIds).map(async (patientId) => {
+                if (!patientId) return null;
+
+                const patientData = await ctx.db
+                    .query("patients")
+                    .withIndex("by_user", (q) => q.eq("userId", patientId))
+                    .unique();
+
+                if (!patientData || !patientData.present) return null;
+
+                const user = await ctx.db.get(patientId);
+                return {
+                    ...user,
+                    ...patientData,
+                    _id: patientId, // Use user ID as main ID for frontend consistency
+                    meetingToday: meetings.find(m => m.patientId === patientId)
+                };
+            })
+        );
+
+        return queue.filter((p) => p !== null);
+    },
+});

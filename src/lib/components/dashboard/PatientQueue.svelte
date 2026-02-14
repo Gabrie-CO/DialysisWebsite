@@ -21,14 +21,14 @@
                 <div
                     class="p-3 bg-blue-50 hover:bg-blue-100 border border-blue-100 rounded-xl cursor-grab active:cursor-grabbing transition-colors relative group"
                     draggable="true"
-                    ondragstart={(e) => props.onDragStart(e, p.id)}
+                    ondragstart={(e) => props.onDragStart(e, p._id)}
                     ondblclick={(e) => {
                         e.preventDefault();
                         if (window.getSelection) {
                             window.getSelection()?.removeAllRanges();
                         }
                         if (props.onPatientDoubleClick)
-                            props.onPatientDoubleClick(p.id);
+                            props.onPatientDoubleClick(p._id);
                     }}
                     role="button"
                     tabindex="0"
@@ -39,13 +39,18 @@
                         onclick={(e) => {
                             e.stopPropagation();
                             if (props.onPatientDoubleClick)
-                                props.onPatientDoubleClick(p.id);
+                                props.onPatientDoubleClick(p._id);
                         }}
                         title="Auto-assign to next chair"
                     >
                         Auto-Assign
                     </button>
-                    <div class="font-bold text-gray-900">{p.name}</div>
+                    <div class="font-bold text-gray-900">
+                        {p.name ||
+                            (p.firstName && p.lastName
+                                ? `${p.firstName} ${p.lastName}`
+                                : "Unknown Patient")}
+                    </div>
                     {#if p.alert}
                         <div
                             class="text-[10px] text-red-500 font-bold uppercase mt-1"

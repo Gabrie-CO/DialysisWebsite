@@ -100,6 +100,46 @@ export const seedPatients = mutation({
                 });
             }
         }
-        return "Seeding complete!";
+        return "Patient seeding complete!";
+    },
+});
+
+export const seedTodayMeetings = mutation({
+    args: {},
+    handler: async (ctx) => {
+        const patients = await ctx.db.query("patients").collect();
+        const now = new Date();
+        const isoDate = now.toISOString();
+        const startOfDay = new Date(now.setUTCHours(0, 0, 0, 0)).toISOString();
+        const endOfDay = new Date(now.setUTCHours(23, 59, 59, 999)).toISOString();
+
+        let count = 0;
+
+        for (const patient of patients) {
+            // Check if meeting exists for today
+            const existingMeeting = await ctx.db
+                .query("meetings")
+                .withIndex("by_patient_date", (q) => q.eq("patientId", patient.userId))
+                .filter((q) => q.gte(q.field("date"), startOfDay) && q.lte(q.field("date"), endOfDay))
+                .first();
+
+            if (!existingMeeting) {
+                await ctx.db.insert("meetings", {
+                    patientId: patient.userId,
+                    date: isoDate,
+                    status: "scheduled",
+                    title: "Scheduled Dialysis",
+                    condition: "Stable",
+                });
+                count++;
+            }
+
+            // Ensure patient is marked as present
+            if (!patient.present) {
+                await ctx.db.patch(patient._id, { present: true });
+            }
+        }
+
+        return `Seeded ${count} meetings for today and updated presence.`;
     },
 });

@@ -3,6 +3,8 @@
   import { setupConvex } from "convex-svelte";
   import { env } from "$env/dynamic/public";
   import "../app.css";
+  import ErrorBoundary from "$lib/components/ui/ErrorBoundary.svelte";
+
   let { children } = $props();
 
   try {
@@ -14,4 +16,6 @@
   <link rel="icon" href={favicon} />
 </svelte:head>
 
-{@render children()}
+<ErrorBoundary>
+  {@render children()}
+</ErrorBoundary>

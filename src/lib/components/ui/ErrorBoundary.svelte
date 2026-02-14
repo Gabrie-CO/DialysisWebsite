@@ -2,6 +2,8 @@
     let { children } = $props();
     let error = $state<Error | null>(null);
 
+    import { logger } from "$lib/services/logger";
+
     // New Svelte 5 error boundary mechanism: <svelte:boundary>
     // However, to catch errors and show UI, we use the boundary snippet.
     // Wait, <svelte:boundary> is for catching errors. usage:
@@ -18,7 +20,7 @@
 
 <svelte:boundary
     onerror={(e) => {
-        console.error("Boundary caught error:", e);
+        logger.error("Boundary caught error:", e);
     }}
 >
     {@render children()}

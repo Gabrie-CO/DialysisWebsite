@@ -42,8 +42,13 @@
   // Chairs: Array of 12
   let chairs = $state(Array(12).fill(null));
 
-  // Queue: Remaining patients
-  let queue = $state<any[]>([]);
+  // Queue: Fetched from backend, filtered by those not in chairs
+  const queueQuery = useQuery(api.meetings.getQueue, {});
+  let queue = $derived(
+    (queueQuery.data || []).filter(
+      (p) => !chairs.some((main) => main && main.id === p._id),
+    ),
+  );
 
   // Derived Dashboard Stats
   let activeAlerts = $derived(
@@ -119,17 +124,10 @@
   }
 
   function signOutPatient(chairIndex: number) {
-    const patient = chairs[chairIndex];
-    if (patient) {
-      // Cleaning logic could go here
+    const p = chairs[chairIndex];
+    if (p) {
+      // Return to queue (implicitly happens because they are removed from chairs)
       chairs[chairIndex] = null;
-      // Return to queue?
-      queue.push({
-        id: patient.id,
-        name: patient.name,
-        priority: "stable",
-        alert: null,
-      });
     }
   }
 
@@ -144,7 +142,7 @@
 
   function dismissPatient() {
     if (activeChairForAction) {
-      const { index } = activeChairForAction;
+      const { index, patient: p } = activeChairForAction;
       // Mark as Cleaning
       chairs[index] = {
         id: "cleaning",
@@ -153,6 +151,13 @@
         chairNumber: String(index + 1).padStart(2, "0"),
         alert: null,
       };
+
+      // Mark patient as not present (removes from queue query)
+      convex.mutation(api.patients.setPresence, {
+        patientId: p.id || p._id, // Handle both shapes if needed
+        present: false,
+      });
+
       activeChairForAction = null;
     }
   }
@@ -160,14 +165,20 @@
   function handleQueueDoubleClick(patientId: string) {
     const chairIndex = chairs.findIndex((c) => c === null);
     if (chairIndex !== -1) {
-      const patientIndex = queue.findIndex((p) => p.id === patientId);
+      const patientIndex = queue.findIndex((p) => p._id === patientId);
       if (patientIndex !== -1) {
         const p = queue[patientIndex];
         chairs[chairIndex] = {
-          ...p,
+          id: p._id,
+          name:
+            p.firstName && p.lastName
+              ? `${p.firstName} ${p.lastName}`
+              : "Unknown Patient",
+          priority: p.priority || "stable",
+          alert: p.alert,
           chairNumber: String(chairIndex + 1).padStart(2, "0"),
         };
-        queue.splice(patientIndex, 1);
+        // queue.splice is NOT needed because queue is derived
       }
     } else {
       alert("No available chairs!");
@@ -194,16 +205,22 @@
   function handleDrop(event: DragEvent, chairIndex: number) {
     event.preventDefault();
     const patientId = event.dataTransfer!.getData("text/plain");
-    const patientIndex = queue.findIndex((p) => p.id === patientId);
+    const patientIndex = queue.findIndex((p) => p._id === patientId);
 
     if (patientIndex !== -1 && chairs[chairIndex] === null) {
       const p = queue[patientIndex];
       // Determine priority based on patient data (keeping existing)
       chairs[chairIndex] = {
-        ...p,
+        id: p._id,
+        name:
+          (p.firstName && p.lastName
+            ? `${p.firstName} ${p.lastName}`
+            : "Unknown Patient"),
+        priority: p.priority || "stable",
+        alert: p.alert,
         chairNumber: String(chairIndex + 1).padStart(2, "0"),
       };
-      queue.splice(patientIndex, 1);
+      // queue splice not needed
     }
   }
 

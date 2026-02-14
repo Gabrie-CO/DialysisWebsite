@@ -218,3 +218,15 @@ export const updateMonthlyProgress = mutation({
         });
     },
 });
+
+export const setPresence = mutation({
+    args: {
+        patientId: v.id("users"),
+        present: v.boolean(),
+    },
+    handler: async (ctx, args) => {
+        await upsertPatientData(ctx, args.patientId, {
+            present: args.present,
+        });
+    },
+});

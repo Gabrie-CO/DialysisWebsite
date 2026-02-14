@@ -23,6 +23,7 @@ export default defineSchema({
     patients: defineTable({
         userId: v.id("users"), // Link config
         // Patient specific fields
+        present: v.optional(v.boolean()), // checked in / in building
         priority: v.optional(v.string()), // critical, warning, stable
         alert: v.optional(v.string()), // Single alert message from dashboard
         dryWeight: v.optional(v.number()),
@@ -107,5 +108,6 @@ export default defineSchema({
             observations: v.string(),
             signature: v.string(),
         })),
-    }).index("by_patient_date", ["patientId", "date"]),
+    }).index("by_patient_date", ["patientId", "date"])
+        .index("by_date", ["date"]),
 });
