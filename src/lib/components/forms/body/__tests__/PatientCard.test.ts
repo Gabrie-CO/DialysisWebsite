@@ -6,9 +6,17 @@ import { OfflineService } from '$lib/services/offline';
 // Mock dependencies
 // Verified fix
 vi.mock('convex-svelte', () => ({
-    useConvexClient: vi.fn(),
-    useQuery: vi.fn(),
-    useMutation: vi.fn()
+    useConvexClient: vi.fn(() => ({
+        mutation: vi.fn()
+    })),
+    useQuery: vi.fn(() => ({
+        isLoading: false,
+        data: null
+    })),
+    useMutation: vi.fn(() => ({
+        mutate: vi.fn(),
+        isLoading: false
+    }))
 }));
 
 vi.mock('$lib/services/offline', () => ({

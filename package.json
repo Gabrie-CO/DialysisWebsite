@@ -11,7 +11,7 @@
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
 		"test": "vitest",
-		"docker:build": "docker build --build-arg PUBLIC_CONVEX_URL=$(grep PUBLIC_CONVEX_URL .env | cut -d '=' -f2) -t dialysis-website .",
+		"docker:build": "node -e \"const fs=require('fs'); const env=fs.readFileSync('.env','utf8'); const match=env.match(/PUBLIC_CONVEX_URL=(.*)/); if(!match) { console.error('PUBLIC_CONVEX_URL not found in .env'); process.exit(1); } const url=match[1].trim(); require('child_process').spawn('docker', ['build', '--build-arg', 'PUBLIC_CONVEX_URL=' + url, '-t', 'dialysis-website', '.'], {stdio: 'inherit', shell: true});\"",
 		"docker:run": "docker run --env-file .env -p 3000:3000 dialysis-website"
 	},
 	"devDependencies": {

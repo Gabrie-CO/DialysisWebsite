@@ -9,6 +9,19 @@ import { cidhZodSchema as cidhSchema } from '$lib/schemas/cidhZodSchema';
 // Mock convex-svelte if used inside CIDH (it is not directly used, passed via props usually, but let's check).
 // CIDH uses superForm which might need some mocking of $page or similar if not in a real kit environment.
 // But we are using vitest with jsdom.
+vi.mock('convex-svelte', () => ({
+    useConvexClient: vi.fn(() => ({
+        mutation: vi.fn()
+    })),
+    useQuery: vi.fn(() => ({
+        isLoading: false,
+        data: null
+    })),
+    useMutation: vi.fn(() => ({
+        mutate: vi.fn(),
+        isLoading: false
+    }))
+}));
 
 describe('CIDH Form', () => {
     const mockOnSave = vi.fn();
@@ -39,7 +52,7 @@ describe('CIDH Form', () => {
     });
 
     it('renders correctly', () => {
-        render(CIDH, { initialData: defaultData, onSave: mockOnSave });
+        render(CIDH, { initialData: defaultData, patientId: '123', onSave: mockOnSave });
         expect(screen.getByText(/CIDH/)).toBeInTheDocument();
         expect(screen.getByText('Tipo de Acceso')).toBeInTheDocument();
     });
