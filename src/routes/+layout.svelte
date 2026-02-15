@@ -10,7 +10,7 @@
   let { children } = $props();
 
   try {
-    setupConvex(env.PUBLIC_CONVEX_URL);
+    setupConvex(env.PUBLIC_CONVEX_URL ?? "");
   } catch (error) {}
 </script>
 
