@@ -6,9 +6,15 @@
   import { untrack } from "svelte";
 
   import TextInput from "../ui/TextInput.svelte";
+  import FormSectionCard from "../../ui/FormSectionCard.svelte";
 
-  let { initialData = {}, onSave } = $props<{
+  let {
+    initialData = {},
+    patientId,
+    onSave,
+  } = $props<{
     initialData?: Partial<z.infer<typeof medicationSchema>>;
+    patientId: string;
     onSave: (data: z.infer<typeof medicationSchema>) => void;
   }>();
 
@@ -123,15 +129,21 @@
   </header>
 
   <form method="POST" use:enhance>
-    <div class="form-section-card mb-6">
-      <div class="form-section-title"><h3>Datos del Paciente</h3></div>
+    <FormSectionCard
+      title="Datos del Paciente"
+      data={$form}
+      patientId={patientId || ""}
+    >
       <div class="w-full">
         <TextInput label="Nombre del Paciente" bind:value={$form.patientName} />
       </div>
-    </div>
+    </FormSectionCard>
 
-    <div class="form-section-card">
-      <div class="form-section-title"><h3>Aplicación de Medicamentos</h3></div>
+    <FormSectionCard
+      title="Aplicación de Medicamentos"
+      data={$form}
+      patientId={patientId || ""}
+    >
       <div class="border-2 border-black overflow-x-auto">
         <table class="w-full border-collapse min-w-225">
           <thead>
@@ -222,7 +234,7 @@
           </tbody>
         </table>
       </div>
-    </div>
+    </FormSectionCard>
 
     <div class="mt-4 print:hidden text-center">
       <button

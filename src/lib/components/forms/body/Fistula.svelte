@@ -9,9 +9,15 @@
   import TextInput from "../ui/TextInput.svelte";
   import Checkbox from "../ui/Checkbox.svelte";
   import TableInput from "../ui/TableInput.svelte";
+  import FormSectionCard from "../../ui/FormSectionCard.svelte";
 
-  let { initialData = {}, onSave } = $props<{
+  let {
+    initialData = {},
+    patientId,
+    onSave,
+  } = $props<{
     initialData?: Partial<z.infer<typeof fistulaSchema>>;
+    patientId: string;
     onSave: (data: z.infer<typeof fistulaSchema>) => void;
   }>();
 
@@ -103,8 +109,11 @@
   </header>
 
   <form method="POST" use:enhance class="space-y-6">
-    <div class="form-section-card mb-6">
-      <div class="form-section-title"><h3>Datos del Paciente</h3></div>
+    <FormSectionCard
+      title="Datos del Paciente"
+      data={$form}
+      patientId={patientId || ""}
+    >
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div class="md:col-span-2">
           <TextInput
@@ -116,10 +125,13 @@
           <TextInput label="Edad" bind:value={$form.age} />
         </div>
       </div>
-    </div>
+    </FormSectionCard>
 
-    <div class="form-section-card mb-6">
-      <div class="form-section-title"><h3>Tipo de Fístula</h3></div>
+    <FormSectionCard
+      title="Tipo de Fístula"
+      data={$form}
+      patientId={patientId || ""}
+    >
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
         <div class="md:col-span-2 flex gap-8">
           <Checkbox
@@ -139,12 +151,13 @@
           {@render colorCheck("green", "bg-green-600")}
         </div>
       </div>
-    </div>
+    </FormSectionCard>
 
-    <div class="form-section-card">
-      <div class="form-section-title">
-        <h3>Madurez de la Fístula arteriovenosa y Exploracion Física</h3>
-      </div>
+    <FormSectionCard
+      title="Madurez de la Fístula arteriovenosa y Exploracion Física"
+      data={$form}
+      patientId={patientId || ""}
+    >
       <table class="min-w-full divide-y divide-gray-200">
         <tbody class="bg-white divide-y divide-gray-200">
           {#each checkRows as row}
@@ -195,7 +208,7 @@
           placeholder="Observaciones..."
         />
       </div>
-    </div>
+    </FormSectionCard>
 
     <div class="form-save-btn">
       <button type="submit" class="form-button"> Guardar </button>

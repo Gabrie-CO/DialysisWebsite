@@ -7,6 +7,7 @@
 
   // UI Components
   import TextInput from "../ui/TextInput.svelte";
+  import FormSectionCard from "../../ui/FormSectionCard.svelte";
 
   // --- TYPES ---
   type SerologyStatus = "pos" | "neg" | null;
@@ -26,8 +27,13 @@
     "DICIEMBRE",
   ];
 
-  let { initialData = {}, onSave } = $props<{
+  let {
+    initialData = {},
+    patientId,
+    onSave,
+  } = $props<{
     initialData?: Partial<z.infer<typeof examControlsSchema>>;
+    patientId: string;
     onSave: (data: z.infer<typeof examControlsSchema>) => void;
   }>();
 
@@ -154,8 +160,11 @@
   </header>
 
   <form method="POST" use:enhance>
-    <div class="form-section-card mb-4">
-      <div class="form-section-title"><h3>Datos del Paciente</h3></div>
+    <FormSectionCard
+      title="Datos del Paciente"
+      data={$form}
+      patientId={patientId || ""}
+    >
       <div class="grid grid-cols-12 gap-4 items-end p-3">
         <div class="col-span-12 md:col-span-5">
           <TextInput
@@ -176,10 +185,13 @@
           <TextInput label="Año" bind:value={$form.patient.year} />
         </div>
       </div>
-    </div>
+    </FormSectionCard>
 
-    <div class="form-section-card">
-      <div class="form-section-title"><h3>Control de Examenes</h3></div>
+    <FormSectionCard
+      title="Control de Examenes"
+      data={$form}
+      patientId={patientId || ""}
+    >
       <div class="overflow-x-auto border-2 border-black">
         <table class="w-full border-collapse min-w-250">
           <thead>
@@ -252,7 +264,7 @@
           </tbody>
         </table>
       </div>
-    </div>
+    </FormSectionCard>
 
     <div class="form-save-btn mt-4">
       <button type="submit" class="form-button"> Guardar </button>

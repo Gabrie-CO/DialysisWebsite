@@ -6,6 +6,7 @@
   import RadioGroup from "../ui/RadioGroup.svelte";
   import Checkbox from "../ui/Checkbox.svelte";
   import TableInput from "../ui/TableInput.svelte";
+  import FormSectionCard from "../../ui/FormSectionCard.svelte";
   // --- TYPES ---
   interface MonitoringRow {
     id: number;
@@ -147,8 +148,13 @@
     drafters: { name1: string; name2: string };
   }
 
-  let { initialData = {}, onSave } = $props<{
+  let {
+    initialData = {},
+    patientId,
+    onSave,
+  } = $props<{
     initialData?: Partial<FormState>;
+    patientId: string;
     onSave: (data: FormState) => void;
   }>();
 
@@ -460,8 +466,11 @@
     {/if}
   </header>
 
-  <div class="form-section-card">
-    <div class="form-section-title"><h3>Datos de la Sesión</h3></div>
+  <FormSectionCard
+    title="Datos de la Sesión"
+    data={form}
+    patientId={patientId || ""}
+  >
     <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
       <div class="col-span-1 md:col-span-2">
         <TextInput label="Código Paciente" bind:value={form.patientCode} />
@@ -500,12 +509,11 @@
         />
       </div>
     </div>
-  </div>
+  </FormSectionCard>
 
   <div class="grid grid-cols-1 md:grid-cols-12 gap-6 mb-6">
     <div class="col-span-12 md:col-span-5">
-      <div class="form-section-card">
-        <div class="form-section-title"><h3>Vitales</h3></div>
+      <FormSectionCard title="Vitales" data={form} patientId={patientId || ""}>
         <div class="border border-gray-300 mb-4">
           <table class="w-full text-center text-xs">
             <thead class="bg-gray-200 text-gray-800 font-bold uppercase">
@@ -586,12 +594,15 @@
             />
           </div>
         </div>
-      </div>
+      </FormSectionCard>
     </div>
 
     <div class="col-span-12 md:col-span-7">
-      <div class="form-section-card">
-        <div class="form-section-title"><h3>Información de Sesión</h3></div>
+      <FormSectionCard
+        title="Información de Sesión"
+        data={form}
+        patientId={patientId || ""}
+      >
         <div class="grid grid-cols-2 gap-4 mb-4">
           <TextInput label="Cubiculo" bind:value={form.cubicle} />
           <TextInput label="Clinica" bind:value={form.clinic} />
@@ -623,14 +634,17 @@
             bind:value={form.dataCollection}
           />
         </div>
-      </div>
+      </FormSectionCard>
     </div>
   </div>
 
   <div class="grid grid-cols-1 md:grid-cols-12 gap-6 mb-6">
     <div class="col-span-12 md:col-span-6">
-      <div class="form-section-card">
-        <div class="form-section-title"><h3>Pre-Evaluo</h3></div>
+      <FormSectionCard
+        title="Pre-Evaluo"
+        data={form}
+        patientId={patientId || ""}
+      >
         <div class="border border-gray-300">
           <table class="w-full text-center text-xs">
             <thead class="bg-gray-200 text-gray-800 font-bold uppercase">
@@ -677,12 +691,15 @@
             </tbody>
           </table>
         </div>
-      </div>
+      </FormSectionCard>
     </div>
 
     <div class="col-span-12 md:col-span-6">
-      <div class="form-section-card">
-        <div class="form-section-title"><h3>Maquinaria</h3></div>
+      <FormSectionCard
+        title="Maquinaria"
+        data={form}
+        patientId={patientId || ""}
+      >
         <div
           class="border border-gray-200 rounded-lg p-4 bg-gray-50/50 space-y-3"
         >
@@ -735,8 +752,6 @@
             <TextInput label="NOTAS" bind:value={form.notes} />
 
             <div class="grid grid-cols-2 gap-2">
-              <!-- Titular 1 needs split inputs for name/init, TextInput doesn't support dual easily. 
-                    I'll use custom div but with standard classes or simple flex. -->
               <div>
                 <span class="form-label text-xs mb-1">Titular 1</span>
                 <div class="flex gap-1">
@@ -771,14 +786,17 @@
             <TextInput label="Nefrologo" bind:value={form.staff.nephrologist} />
           </div>
         </div>
-      </div>
+      </FormSectionCard>
     </div>
   </div>
 
   <div class="grid grid-cols-1 md:grid-cols-12 gap-6 mb-6">
     <div class="col-span-12 md:col-span-4">
-      <div class="form-section-card">
-        <div class="form-section-title"><h3>Ordenes de Heparina</h3></div>
+      <FormSectionCard
+        title="Ordenes de Heparina"
+        data={form}
+        patientId={patientId || ""}
+      >
         <div
           class="border border-gray-200 rounded-lg p-4 bg-gray-50/50 space-y-3"
         >
@@ -794,12 +812,15 @@
           />
           <TextInput label="Hora Finalizo" bind:value={form.heparin.endTime} />
         </div>
-      </div>
+      </FormSectionCard>
     </div>
 
     <div class="col-span-12 md:col-span-8">
-      <div class="form-section-card">
-        <div class="form-section-title"><h3>Ordenes de Diálisis</h3></div>
+      <FormSectionCard
+        title="Ordenes de Diálisis"
+        data={form}
+        patientId={patientId || ""}
+      >
         <div class="border border-gray-200 rounded-lg p-4 bg-gray-50/50">
           <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
             <TextInput label="Dializador" bind:value={form.dialysis.dialyzer} />
@@ -836,13 +857,12 @@
             />
           </div>
         </div>
-      </div>
+      </FormSectionCard>
     </div>
   </div>
 
   <div class="col-span-12 mb-6">
-    <div class="form-section-card">
-      <div class="form-section-title"><h3>Accesos</h3></div>
+    <FormSectionCard title="Accesos" data={form} patientId={patientId || ""}>
       <div class="border border-gray-300 bg-gray-50/50">
         <div
           class="grid grid-cols-6 gap-2 text-xs font-bold uppercase p-2 bg-gray-200 text-gray-800 border-b border-gray-300 text-center"
@@ -914,12 +934,11 @@
           </div>
         </div>
       </div>
-    </div>
+    </FormSectionCard>
   </div>
 
   <div class="col-span-12 mb-6">
-    <div class="form-section-card">
-      <h3 class="form-section-title mb-2">Monitoreo</h3>
+    <FormSectionCard title="Monitoreo" data={form} patientId={patientId || ""}>
       <div class="border border-gray-300">
         <div class="overflow-x-auto">
           <table class="w-full text-center text-[10px] min-w-[1000px]">
@@ -1018,12 +1037,15 @@
           </table>
         </div>
       </div>
-    </div> 
+    </FormSectionCard>
   </div>
 
   <div class="col-span-12">
-    <div class="form-section-card">
-      <div class="form-section-title"><h3>Notas y Firmas</h3></div>
+    <FormSectionCard
+      title="Notas y Firmas"
+      data={form}
+      patientId={patientId || ""}
+    >
       <div
         class="grid grid-cols-12 gap-6 bg-gray-50 p-4 rounded-lg border border-gray-200"
       >
@@ -1087,7 +1109,7 @@
           </div>
         </div>
       </div>
-    </div>
+    </FormSectionCard>
   </div>
 
   <div class="form-save-btn pt-4 flex justify-end">

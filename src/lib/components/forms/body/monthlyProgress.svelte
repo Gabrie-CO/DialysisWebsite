@@ -10,9 +10,15 @@
   import Checkbox from "../ui/Checkbox.svelte";
   import RadioGroup from "../ui/RadioGroup.svelte";
   import DateInput from "../ui/DateInput.svelte";
+  import FormSectionCard from "../../ui/FormSectionCard.svelte";
 
-  let { initialData = {}, onSave } = $props<{
+  let {
+    initialData = {},
+    patientId,
+    onSave,
+  } = $props<{
     initialData?: Partial<z.infer<typeof monthlyProgressSchema>>;
+    patientId: string;
     onSave: (data: z.infer<typeof monthlyProgressSchema>) => void;
   }>();
 
@@ -72,10 +78,12 @@
 
   <form method="POST" use:enhance class="space-y-8">
     <!-- Header Fields -->
-    <div class="form-section-card">
-      <div
-        class="grid grid-cols-1 md:grid-cols-12 gap-6 pb-6 border-b border-gray-100"
-      >
+    <FormSectionCard
+      title="Datos del Paciente"
+      data={$form}
+      patientId={patientId || ""}
+    >
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
         <div class="md:col-span-6">
           <TextInput label="Nombre" bind:value={$form.patient.name} />
         </div>
@@ -114,11 +122,14 @@
           />
         </div>
       </div>
-    </div>
+    </FormSectionCard>
 
     <!-- General Status -->
-    <div class="form-section-card">
-      <div class="form-section-title"><h3>Estado General</h3></div>
+    <FormSectionCard
+      title="Estado General"
+      data={$form}
+      patientId={patientId || ""}
+    >
       <div
         class="grid grid-cols-1 md:grid-cols-12 gap-6 pb-6 border-b border-gray-100"
       >
@@ -171,11 +182,14 @@
           </div>
         </div>
       </div>
-    </div>
+    </FormSectionCard>
 
     <!-- Comorbilidad -->
-    <div class="form-section-card">
-      <div class="form-section-title"><h3>Comorbilidad Interdialftica</h3></div>
+    <FormSectionCard
+      title="Comorbilidad y Acceso"
+      data={$form}
+      patientId={patientId || ""}
+    >
       <div
         class="grid grid-cols-1 md:grid-cols-12 gap-6 pb-6 border-b border-gray-100"
       >
@@ -334,10 +348,14 @@
           </div>
         </div>
       </div>
-    </div>
+    </FormSectionCard>
 
     <!-- Dialysis Params & Treatment -->
-    <div class="form-section-card">
+    <FormSectionCard
+      title="Parámetros y Tratamiento"
+      data={$form}
+      patientId={patientId || ""}
+    >
       <div
         class="grid grid-cols-1 md:grid-cols-12 gap-6 pb-6 border-b border-gray-100"
       >
@@ -436,13 +454,14 @@
           </div>
         </div>
       </div>
-    </div>
+    </FormSectionCard>
 
     <!-- Prescription -->
-    <div class="form-section-card">
-      <div class="form-section-title">
-        <h3>Prescripción de Hemodiálisis</h3>
-      </div>
+    <FormSectionCard
+      title="Prescripción de Hemodiálisis"
+      data={$form}
+      patientId={patientId || ""}
+    >
       <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
         <div class="space-y-4">
           <TextInput label="TIEMPO" bind:value={$form.prescription.time} />
@@ -486,7 +505,7 @@
           />
         </div>
       </div>
-    </div>
+    </FormSectionCard>
   </form>
 
   <div class="mt-12 text-center border-t border-gray-100 pt-8">

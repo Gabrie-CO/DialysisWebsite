@@ -10,9 +10,15 @@
   import DateInput from "../ui/DateInput.svelte";
   import Checkbox from "../ui/Checkbox.svelte";
   import RadioGroup from "../ui/RadioGroup.svelte";
+  import FormSectionCard from "../../ui/FormSectionCard.svelte";
 
-  let { initialData = {}, onSave } = $props<{
+  let {
+    initialData = {},
+    patientId,
+    onSave,
+  } = $props<{
     initialData?: Partial<z.infer<typeof infectionsSchema>>;
+    patientId: string;
     onSave: (data: z.infer<typeof infectionsSchema>) => void;
   }>();
 
@@ -55,8 +61,11 @@
   </header>
 
   <form method="POST" use:enhance class="space-y-4">
-    <div class="form-section-card">
-      <div class="form-section-title"><h3>Datos del Tratamiento</h3></div>
+    <FormSectionCard
+      title="Datos del Tratamiento"
+      data={$form}
+      patientId={patientId || ""}
+    >
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4 p-4">
         <TextInput label="Nombre" bind:value={$form.name} />
         <TextInput label="Antibiótico" bind:value={$form.antibiotic} />
@@ -76,10 +85,13 @@
           />
         </div>
       </div>
-    </div>
+    </FormSectionCard>
 
-    <div class="form-section-card">
-      <div class="form-section-title"><h3>Detalles y Fechas</h3></div>
+    <FormSectionCard
+      title="Detalles y Fechas"
+      data={$form}
+      patientId={patientId || ""}
+    >
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4 p-4">
         <DateInput label="Fecha de Inicio" bind:value={$form.startDate} />
         <DateInput label="Fecha de Finalización" bind:value={$form.endDate} />
@@ -93,7 +105,7 @@
           ></textarea>
         </div>
       </div>
-    </div>
+    </FormSectionCard>
 
     <div class="form-save-btn">
       <button type="submit" class="form-button"> Guardar </button>

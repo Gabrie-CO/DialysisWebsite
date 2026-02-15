@@ -8,10 +8,16 @@
   // UI Components
   import TextInput from "../ui/TextInput.svelte";
   import Checkbox from "../ui/Checkbox.svelte";
+  import FormSectionCard from "../../ui/FormSectionCard.svelte";
   import DateInput from "../ui/DateInput.svelte";
 
-  let { initialData = {}, onSave } = $props<{
+  let {
+    initialData = {},
+    patientId,
+    onSave,
+  } = $props<{
     initialData?: Partial<z.infer<typeof clinicalHistory2Schema>>;
+    patientId: string;
     onSave: (data: z.infer<typeof clinicalHistory2Schema>) => void;
   }>();
 
@@ -87,8 +93,11 @@
 
   <form method="POST" use:enhance class="mt-6 space-y-6">
     <!-- General Data -->
-    <div class="form-section-card">
-      <div class="form-section-title"><h3>Datos Generales</h3></div>
+    <FormSectionCard
+      title="Datos Generales"
+      data={$form}
+      patientId={patientId || ""}
+    >
       <div class="grid grid-cols-12 gap-x-4 gap-y-4">
         <div class="col-span-8">
           <TextInput label="NOMBRE" bind:value={$form.name} />
@@ -124,13 +133,14 @@
           <TextInput label="TELEFONO" bind:value={$form.phone} />
         </div>
       </div>
-    </div>
+    </FormSectionCard>
 
     <!-- ERC-5 -->
-    <div class="form-section-card">
-      <div class="form-section-title">
-        <h3>ERC-5 (Etiologia Asociada)</h3>
-      </div>
+    <FormSectionCard
+      title="ERC-5 (Etiologia Asociada)"
+      data={$form}
+      patientId={patientId || ""}
+    >
       <div class="grid grid-cols-3 gap-x-4 gap-y-2 text-sm">
         <Checkbox
           label="Enfermedad Glomerular Diabética"
@@ -201,11 +211,14 @@
           />
         </div>
       </div>
-    </div>
+    </FormSectionCard>
 
     <!-- Hemodialysis Dose -->
-    <div class="form-section-card">
-      <div class="form-section-title"><h3>Dosis de Hemodiálisis</h3></div>
+    <FormSectionCard
+      title="Dosis de Hemodiálisis"
+      data={$form}
+      patientId={patientId || ""}
+    >
       <div class="grid grid-cols-12 gap-x-4 gap-y-2">
         <div class="col-span-5">
           <TextInput label="Frecuencia Semanal" bind:value={$form.frequency} />
@@ -249,11 +262,14 @@
           />
         </div>
       </div>
-    </div>
+    </FormSectionCard>
 
     <!-- Vascular Access -->
-    <div class="form-section-card">
-      <div class="form-section-title"><h3>Acceso Vascular</h3></div>
+    <FormSectionCard
+      title="Acceso Vascular"
+      data={$form}
+      patientId={patientId || ""}
+    >
       <div class="flex items-center gap-4 mb-2 p-2 rounded">
         <Checkbox
           label="Cat. Temporal"
@@ -272,11 +288,14 @@
           />
         </div>
       </div>
-    </div>
+    </FormSectionCard>
 
     <!-- Viral Panel -->
-    <div class="form-section-card">
-      <div class="form-section-title"><h3>Panel Viral</h3></div>
+    <FormSectionCard
+      title="Panel Viral"
+      data={$form}
+      patientId={patientId || ""}
+    >
       <div class="flex items-center gap-2 mb-4 text-sm font-bold p-2 rounded">
         <span>HBsAg (</span>
         <input
@@ -315,23 +334,27 @@
           /> NO
         </label>
       </div>
-    </div>
+    </FormSectionCard>
 
     <!-- Current Illness History -->
-    <div class="form-section-card">
-      <div class="form-section-title">
-        <h3>Historia de la Enfermedad Actual</h3>
-      </div>
+    <FormSectionCard
+      title="Historia de la Enfermedad Actual"
+      data={$form}
+      patientId={patientId || ""}
+    >
       <textarea
         class="form-input w-full min-h-[100px]"
         bind:value={$form.currentIllness}
         placeholder="Escriba aquí..."
       ></textarea>
-    </div>
+    </FormSectionCard>
 
     <!-- Background -->
-    <div class="form-section-card">
-      <div class="form-section-title"><h3>Antecedentes</h3></div>
+    <FormSectionCard
+      title="Antecedentes"
+      data={$form}
+      patientId={patientId || ""}
+    >
       <div class="space-y-4">
         <div>
           <h4 class="font-bold text-xs uppercase mb-1 text-gray-700">
@@ -364,11 +387,14 @@
           ></textarea>
         </div>
       </div>
-    </div>
+    </FormSectionCard>
 
     <!-- Physical Exam -->
-    <div class="form-section-card">
-      <div class="form-section-title"><h3>Examen Fisico</h3></div>
+    <FormSectionCard
+      title="Examen Fisico"
+      data={$form}
+      patientId={patientId || ""}
+    >
       <div class="grid grid-cols-12 gap-x-4 gap-y-2 items-end mt-2">
         <div class="col-span-8">
           <TextInput label="MUCOSAS" bind:value={$form.exam.mucosas} />
@@ -437,11 +463,14 @@
           />
         </div>
       </div>
-    </div>
+    </FormSectionCard>
 
     <!-- Pharmacology -->
-    <div class="form-section-card">
-      <div class="form-section-title"><h3>Farmacología</h3></div>
+    <FormSectionCard
+      title="Farmacología"
+      data={$form}
+      patientId={patientId || ""}
+    >
       <div class="grid grid-cols-2 gap-4">
         <TextInput
           label="Eritropoyetina"
@@ -457,21 +486,27 @@
           <TextInput label="Otros" bind:value={$form.meds.other} />
         </div>
       </div>
-    </div>
+    </FormSectionCard>
 
     <!-- Observations -->
-    <div class="form-section-card">
-      <div class="form-section-title"><h3>Observaciones</h3></div>
+    <FormSectionCard
+      title="Observaciones"
+      data={$form}
+      patientId={patientId || ""}
+    >
       <textarea
         class="form-input w-full min-h-[100px]"
         bind:value={$form.observations}
         placeholder="Observaciones adicionales..."
       ></textarea>
-    </div>
+    </FormSectionCard>
 
     <!-- Labs Table -->
-    <div class="form-section-card">
-      <div class="form-section-title"><h3>Laboratorio</h3></div>
+    <FormSectionCard
+      title="Laboratorio"
+      data={$form}
+      patientId={patientId || ""}
+    >
       <div class="overflow-x-auto border border-black p-2 rounded">
         <table class="w-full text-center text-xs">
           <thead>
@@ -504,6 +539,6 @@
           </tbody>
         </table>
       </div>
-    </div>
+    </FormSectionCard>
   </form>
 </div>

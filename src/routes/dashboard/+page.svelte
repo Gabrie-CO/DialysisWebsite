@@ -334,6 +334,7 @@
             >
             <ErrorBoundary>
               <Component
+                patientId={selectedPatientId || ""}
                 initialData={(patient as any)?.[activeDocConfig.dataKey!] ||
                   activeDocConfig.defaultData ||
                   {}}

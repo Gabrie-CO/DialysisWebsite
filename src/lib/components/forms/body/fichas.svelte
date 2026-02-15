@@ -5,9 +5,15 @@
   import type { z } from "zod";
   import { untrack } from "svelte";
   import Checkbox from "../ui/Checkbox.svelte";
+  import FormSectionCard from "../../ui/FormSectionCard.svelte";
 
-  let { initialData = {}, onSave } = $props<{
+  let {
+    initialData = {},
+    patientId,
+    onSave,
+  } = $props<{
     initialData?: Partial<z.infer<typeof fichasSchema>>;
+    patientId: string;
     onSave: (data: z.infer<typeof fichasSchema>) => void;
   }>();
 
@@ -102,68 +108,69 @@
   </td>
 {/snippet}
 
+<header class="form-header mb-6">
+  <h2 class="h2-text">Control de Fichas (Checklists)</h2>
+  {#if $form.updatedAt}
+    <p class="small-text">
+      Actualizado: {new Date($form.updatedAt).toLocaleString()}
+    </p>
+  {/if}
+</header>
 
-  <header class="form-header mb-6">
-    <h2 class="h2-text">Control de Fichas (Checklists)</h2>
-    {#if $form.updatedAt}
-      <p class="small-text">
-        Actualizado: {new Date($form.updatedAt).toLocaleString()}
-      </p>
-    {/if}
-  </header>
+<form method="POST" use:enhance>
+  <FormSectionCard
+    title="Control de Fichas"
+    data={$form}
+    patientId={patientId || ""}
+  >
+    <div class="overflow-x-auto border-2 border-black rounded shadow-sm">
+      <table class="w-full border-collapse">
+        <thead class="bg-blue-900 text-white">
+          <tr>
+            <th
+              class="p-3 text-sm font-bold border-r border-blue-800 w-12 text-center"
+              >N°</th
+            >
+            <th class="p-3 text-sm font-bold border-r border-blue-800 text-left"
+              >FICHAS</th
+            >
+            {#each years as year}
+              <th
+                class="p-3 text-sm font-bold border-r border-blue-800 last:border-0 w-24 text-center"
+              >
+                {year}
+              </th>
+            {/each}
+          </tr>
+        </thead>
+        <tbody class="bg-gray-50">
+          {#each LABELS as row}
+            <tr
+              class="hover:bg-blue-50 transition-colors border-b border-gray-300 last:border-0"
+            >
+              <td
+                class="p-3 text-center font-bold text-gray-600 border-r border-gray-300"
+              >
+                {row.id}
+              </td>
 
-  <form method="POST" use:enhance>
-    <div class="form-section-card">
-      <div class="form-section-title"><h3>Control de Fichas</h3></div>
-      <div class="overflow-x-auto border-2 border-black rounded shadow-sm">
-        <table class="w-full border-collapse">
-          <thead class="bg-blue-900 text-white">
-            <tr>
-              <th
-                class="p-3 text-sm font-bold border-r border-blue-800 w-12 text-center"
-                >N°</th
+              <td
+                class="p-3 text-sm font-medium text-gray-800 border-r border-gray-300"
               >
-              <th
-                class="p-3 text-sm font-bold border-r border-blue-800 text-left"
-                >FICHAS</th
-              >
+                {row.label}
+              </td>
+
               {#each years as year}
-                <th
-                  class="p-3 text-sm font-bold border-r border-blue-800 last:border-0 w-24 text-center"
-                >
-                  {year}
-                </th>
+                {@render checkboxCell(year, row.id)}
               {/each}
             </tr>
-          </thead>
-          <tbody class="bg-gray-50">
-            {#each LABELS as row}
-              <tr
-                class="hover:bg-blue-50 transition-colors border-b border-gray-300 last:border-0"
-              >
-                <td
-                  class="p-3 text-center font-bold text-gray-600 border-r border-gray-300"
-                >
-                  {row.id}
-                </td>
-
-                <td
-                  class="p-3 text-sm font-medium text-gray-800 border-r border-gray-300"
-                >
-                  {row.label}
-                </td>
-
-                {#each years as year}
-                  {@render checkboxCell(year, row.id)}
-                {/each}
-              </tr>
-            {/each}
-          </tbody>
-        </table>
-      </div>
+          {/each}
+        </tbody>
+      </table>
     </div>
+  </FormSectionCard>
 
-    <div class="mt-8 flex justify-end">
-      <button type="submit" class="form-button px-8"> Guardar Cambios </button>
-    </div>
-  </form>
+  <div class="mt-8 flex justify-end">
+    <button type="submit" class="form-button px-8"> Guardar Cambios </button>
+  </div>
+</form>

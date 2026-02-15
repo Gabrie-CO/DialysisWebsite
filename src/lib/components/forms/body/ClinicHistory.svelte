@@ -10,9 +10,15 @@
   import Checkbox from "../ui/Checkbox.svelte";
   import RadioGroup from "../ui/RadioGroup.svelte";
   import DateInput from "../ui/DateInput.svelte";
+  import FormSectionCard from "../../ui/FormSectionCard.svelte";
 
-  let { initialData = {}, onSave } = $props<{
+  let {
+    initialData = {},
+    patientId,
+    onSave,
+  } = $props<{
     initialData?: Partial<z.infer<typeof clinicHistorySchema>>;
+    patientId: string;
     onSave: (data: z.infer<typeof clinicHistorySchema>) => void;
   }>();
 
@@ -141,14 +147,17 @@
     {/if}
   </header>
 
-  <div class="form-section-card mb-8">
-    <div class="form-section-title"><h3>I. Datos Generales</h3></div>
+  <FormSectionCard
+    title="I. Datos Generales"
+    data={$form}
+    patientId={patientId || ""}
+  >
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
       <TextInput label="Nombre del paciente" bind:value={$form.general.name} />
       <TextInput label="Ocupación" bind:value={$form.general.occupation} />
       <DateInput label="Fecha" bind:value={$form.general.date} />
     </div>
-  </div>
+  </FormSectionCard>
 
   <form method="POST" use:enhance>
     <div class="mb-8">
@@ -156,19 +165,23 @@
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
         <div class="space-y-6">
-          <div class="form-section-card">
-            <div class="form-section-title">
-              <h3>1. Edad: Seleccionar la que corresponda</h3>
-            </div>
+          <FormSectionCard
+            title="1. Edad: Seleccionar la que corresponda"
+            data={$form}
+            patientId={patientId || ""}
+          >
             <RadioGroup
               name="age"
               options={ageOptions}
               bind:value={$form.history.ageRange}
             />
-          </div>
+          </FormSectionCard>
 
-          <div class="form-section-card">
-            <div class="form-section-title"><h3>3. Comorbilidades</h3></div>
+          <FormSectionCard
+            title="3. Comorbilidades"
+            data={$form}
+            patientId={patientId || ""}
+          >
             <div class="space-y-2">
               <Checkbox
                 label="HTA"
@@ -191,12 +204,13 @@
                 />
               </div>
             </div>
-          </div>
+          </FormSectionCard>
 
-          <div class="form-section-card">
-            <div class="form-section-title">
-              <h3>5. Tipo de acceso vascular</h3>
-            </div>
+          <FormSectionCard
+            title="5. Tipo de acceso vascular"
+            data={$form}
+            patientId={patientId || ""}
+          >
             <div class="space-y-2">
               <Checkbox
                 label="FAV autóloga"
@@ -223,12 +237,13 @@
                 />
               </div>
             </div>
-          </div>
+          </FormSectionCard>
 
-          <div class="form-section-card">
-            <div class="form-section-title">
-              <h3>7. Ubicación del acceso vascular</h3>
-            </div>
+          <FormSectionCard
+            title="7. Ubicación del acceso vascular"
+            data={$form}
+            patientId={patientId || ""}
+          >
             <div class="grid grid-cols-1 gap-1">
               <Checkbox
                 label="FAV radio cefálica izquierda"
@@ -271,10 +286,13 @@
                 bind:checked={$form.history.location.jugularL}
               />
             </div>
-          </div>
+          </FormSectionCard>
 
-          <div class="form-section-card">
-            <div class="form-section-title"><h3>10. Sellos de CVC</h3></div>
+          <FormSectionCard
+            title="10. Sellos de CVC"
+            data={$form}
+            patientId={patientId || ""}
+          >
             <div class="flex gap-6">
               <Checkbox
                 label="Heparina"
@@ -285,12 +303,13 @@
                 bind:checked={$form.history.seals.duralock}
               />
             </div>
-          </div>
+          </FormSectionCard>
 
-          <div class="form-section-card">
-            <div class="form-section-title">
-              <h3>11. Trombólisis intraluminal con estreptoquinasa</h3>
-            </div>
+          <FormSectionCard
+            title="11. Trombólisis intraluminal con estreptoquinasa"
+            data={$form}
+            patientId={patientId || ""}
+          >
             <div class="space-y-4">
               <div class="flex items-center gap-4">
                 <label class="flex items-center gap-1 cursor-pointer">
@@ -323,34 +342,39 @@
                 />
               </div>
             </div>
-          </div>
+          </FormSectionCard>
         </div>
 
         <div class="space-y-6">
-          <div class="form-section-card">
-            <div class="form-section-title"><h3>2. Sexo</h3></div>
+          <FormSectionCard
+            title="2. Sexo"
+            data={$form}
+            patientId={patientId || ""}
+          >
             <RadioGroup
               name="sex"
               options={sexOptions}
               bind:value={$form.history.sex}
             />
-          </div>
+          </FormSectionCard>
 
-          <div class="form-section-card">
-            <div class="form-section-title">
-              <h3>4. Tiempo de recibir HD</h3>
-            </div>
+          <FormSectionCard
+            title="4. Tiempo de recibir HD"
+            data={$form}
+            patientId={patientId || ""}
+          >
             <RadioGroup
               name="timehd"
               options={timeHdOptions}
               bind:value={$form.history.timeInHd}
             />
-          </div>
+          </FormSectionCard>
 
-          <div class="form-section-card">
-            <div class="form-section-title">
-              <h3>6. Fecha de colocación del acceso vascular</h3>
-            </div>
+          <FormSectionCard
+            title="6. Fecha de colocación del acceso vascular"
+            data={$form}
+            patientId={patientId || ""}
+          >
             <div class="space-y-4">
               <DateInput
                 label="Fecha exacta"
@@ -365,12 +389,13 @@
                 bind:checked={$form.history.placementDate.dontRemember}
               />
             </div>
-          </div>
+          </FormSectionCard>
 
-          <div class="form-section-card">
-            <div class="form-section-title">
-              <h3>8. Funcionalidad del AV-CVC</h3>
-            </div>
+          <FormSectionCard
+            title="8. Funcionalidad del AV-CVC"
+            data={$form}
+            patientId={patientId || ""}
+          >
             <div class="space-y-2">
               <Checkbox
                 label="Ramal arterial"
@@ -385,12 +410,13 @@
                 bind:checked={$form.history.functionality.both}
               />
             </div>
-          </div>
+          </FormSectionCard>
 
-          <div class="form-section-card">
-            <div class="form-section-title">
-              <h3>9. Disfuncionalidad de AV-CVC</h3>
-            </div>
+          <FormSectionCard
+            title="9. Disfuncionalidad de AV-CVC"
+            data={$form}
+            patientId={patientId || ""}
+          >
             <div class="space-y-3">
               <div class="flex flex-col gap-2">
                 <Checkbox
@@ -447,23 +473,25 @@
                 />
               </div>
             </div>
-          </div>
+          </FormSectionCard>
 
-          <div class="form-section-card">
-            <div class="form-section-title">
-              <h3>12. Historias previos de AV</h3>
-            </div>
+          <FormSectionCard
+            title="12. Historias previos de AV"
+            data={$form}
+            patientId={patientId || ""}
+          >
             <TextInput
               label="Número de accesos previos"
               bind:value={$form.history.previousAV}
               placeholder="Ej. 1AV, 2AV"
             />
-          </div>
+          </FormSectionCard>
 
-          <div class="form-section-card">
-            <div class="form-section-title">
-              <h3>13. Ubicación anterior</h3>
-            </div>
+          <FormSectionCard
+            title="13. Ubicación anterior"
+            data={$form}
+            patientId={patientId || ""}
+          >
             <div class="grid grid-cols-2 gap-2">
               <Checkbox
                 label="Femoral"
@@ -482,7 +510,7 @@
                 bind:checked={$form.history.previousLocation.fav}
               />
             </div>
-          </div>
+          </FormSectionCard>
         </div>
       </div>
     </div>
@@ -493,8 +521,11 @@
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         <!-- Inspection -->
         <!-- Inspection -->
-        <div class="form-section-card">
-          <div class="form-section-title"><h3>Inspección</h3></div>
+        <FormSectionCard
+          title="Inspección"
+          data={$form}
+          patientId={patientId || ""}
+        >
           <div class="space-y-1">
             {@render yesNo(
               "Piel Intacta",
@@ -547,12 +578,15 @@
               (v) => ($form.physicalExam.inspection.aneurysms = v),
             )}
           </div>
-        </div>
+        </FormSectionCard>
 
         <!-- Palpation & Auscultation -->
         <div class="space-y-6">
-          <div class="form-section-card">
-            <div class="form-section-title"><h3>Palpación</h3></div>
+          <FormSectionCard
+            title="Palpación"
+            data={$form}
+            patientId={patientId || ""}
+          >
             <div class="space-y-1">
               {@render yesNo(
                 "Cambios de temperatura",
@@ -570,10 +604,13 @@
                 (v) => ($form.physicalExam.palpation.thrillPulsatile = v),
               )}
             </div>
-          </div>
+          </FormSectionCard>
 
-          <div class="form-section-card">
-            <div class="form-section-title"><h3>Auscultación</h3></div>
+          <FormSectionCard
+            title="Auscultación"
+            data={$form}
+            patientId={patientId || ""}
+          >
             <div class="space-y-1">
               {@render yesNo(
                 "Soplo Blando",
@@ -586,14 +623,15 @@
                 (v) => ($form.physicalExam.auscultation.murmurPathological = v),
               )}
             </div>
-          </div>
+          </FormSectionCard>
         </div>
 
         <!-- Mature Characteristics -->
-        <div class="form-section-card">
-          <div class="form-section-title">
-            <h3>Características de Madurez</h3>
-          </div>
+        <FormSectionCard
+          title="Características de Madurez"
+          data={$form}
+          patientId={patientId || ""}
+        >
           <div class="space-y-4">
             <div>
               <span class="text-sm font-medium">Tiempo de hemostasia:</span>
@@ -679,7 +717,7 @@
               </div>
             </div>
           </div>
-        </div>
+        </FormSectionCard>
       </div>
 
       <div class="mt-6">
@@ -690,10 +728,11 @@
       </div>
     </div>
 
-    <div class="form-section-card mb-8">
-      <div class="form-section-title">
-        <h3>IV. Seguimiento (Solo si ocurre un evento)</h3>
-      </div>
+    <FormSectionCard
+      title="IV. Seguimiento (Solo si ocurre un evento)"
+      data={$form}
+      patientId={patientId || ""}
+    >
       <div class="relative overflow-x-auto border border-gray-300 rounded">
         <table class="w-full text-sm text-left">
           <thead
@@ -735,6 +774,6 @@
           >
         </div>
       </div>
-    </div>
+    </FormSectionCard>
   </form>
 </div>

@@ -11,9 +11,11 @@
   import RadioGroup from "../ui/RadioGroup.svelte";
   import Checkbox from "../ui/Checkbox.svelte";
   import TableInput from "../ui/TableInput.svelte";
+  import FormSectionCard from "../../ui/FormSectionCard.svelte";
 
-  let { initialData, onSave } = $props<{
+  let { initialData, patientId, onSave } = $props<{
     initialData?: Partial<z.infer<typeof cidhZodSchema>>;
+    patientId: string;
     onSave: (data: z.infer<typeof cidhZodSchema>) => void;
   }>();
 
@@ -76,9 +78,11 @@
 
   <form method="POST" use:enhance class="space-y-8">
     <!-- SECTION 2: TIPO DE ACCESO (Table) -->
-    <div class="form-section-card">
-      <div class="form-section-title"><h3>Tipo de Acceso</h3></div>
-
+    <FormSectionCard
+      title="Tipo de Acceso"
+      data={$form}
+      patientId={patientId || ""}
+    >
       <TableInput
         columns={[
           { header: "Tipo" },
@@ -115,11 +119,14 @@
           </tr>
         {/each}
       </TableInput>
-    </div>
+    </FormSectionCard>
 
     <!-- SECTION 3: DATOS DE ENFERMERÍA -->
-    <div class="form-section-card">
-      <div class="form-section-title"><h3>Datos de Enfermería</h3></div>
+    <FormSectionCard
+      title="Datos de Enfermería"
+      data={$form}
+      patientId={patientId || ""}
+    >
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Checkbox
           label="Fiebre ≥ 38 axilar"
@@ -145,14 +152,14 @@
         />
         <TextInput label="Otros" bind:value={$form.nursing.other} />
       </div>
-    </div>
+    </FormSectionCard>
 
     <!-- SECTION 4: DATOS DEL MEDICO -->
-    <div class="form-section-card">
-      <div class="form-section-title">
-        <h3>Datos del Medico (Semiología)</h3>
-      </div>
-
+    <FormSectionCard
+      title="Datos del Medico (Semiología)"
+      data={$form}
+      patientId={patientId || ""}
+    >
       <TableInput
         columns={[
           { header: "Síntoma" },
@@ -266,12 +273,14 @@
           {/if}
         </div>
       </div>
-    </div>
+    </FormSectionCard>
 
     <!-- SECTION 5: HOJA DE SEGUIMIENTO -->
-    <div class="form-section-card">
-      <div class="form-section-title"><h3>HOJA DE SEGUIMIENTO</h3></div>
-
+    <FormSectionCard
+      title="HOJA DE SEGUIMIENTO"
+      data={$form}
+      patientId={patientId || ""}
+    >
       <div class="form-divider-grid">
         <!-- LEFT COL -->
         <div class="form-col-divider-left">
@@ -374,7 +383,7 @@
           />
         </div>
       </div>
-    </div>
+    </FormSectionCard>
 
     <div class="form-save-btn">
       <button type="submit" class="form-button"> Guardar </button>
