@@ -6,9 +6,9 @@
 
     let { patientId } = $props<{ patientId: string }>();
 
-    const meetings = useQuery(api.meetings.getRecent, () => ({
-        patientId: patientId as Id<"users">,
-    }));
+    const meetings = useQuery(api.meetings.getRecent, () =>
+        patientId ? { patientId: patientId as Id<"users"> } : "skip",
+    );
 </script>
 
 <div class="space-y-4">

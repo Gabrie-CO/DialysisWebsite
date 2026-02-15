@@ -12,8 +12,8 @@
   import ClinicStats from "$lib/components/dashboard/ClinicStats.svelte";
   import InfoSection from "$lib/components/dashboard/InfoSection.svelte";
   import PatientQueue from "$lib/components/dashboard/PatientQueue.svelte";
+  import PatientTimeline from "$lib/components/dashboard/PatientTimeline.svelte";
 
-  // Forms
   // Forms
   import PatientCard from "$lib/components/forms/body/patientCard.svelte";
   import Fichas from "$lib/components/forms/body/fichas.svelte";
@@ -303,6 +303,8 @@
               </div>
             </div>
           {/if}
+
+          <PatientTimeline patientId={selectedPatientId || ""} />
         </div>
       {:else if activeTab === "forms"}
         {#if !activeDocument}
