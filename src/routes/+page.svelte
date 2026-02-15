@@ -213,9 +213,9 @@
       chairs[chairIndex] = {
         id: p._id,
         name:
-          (p.firstName && p.lastName
+          p.firstName && p.lastName
             ? `${p.firstName} ${p.lastName}`
-            : "Unknown Patient"),
+            : "Unknown Patient",
         priority: p.priority || "stable",
         alert: p.alert,
         chairNumber: String(chairIndex + 1).padStart(2, "0"),

@@ -6,7 +6,7 @@
     }>();
 </script>
 
-<div class="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm h-full">
+<div class="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm w-full">
     <h3 class="text-sm font-bold text-gray-400 uppercase tracking-widest mb-4">
         Patient Queue
     </h3>

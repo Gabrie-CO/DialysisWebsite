@@ -132,36 +132,39 @@ export const togglePin = mutation({
 export const getQueue = query({
     args: {},
     handler: async (ctx) => {
-        const now = new Date();
-        const startOfDay = new Date(now.setUTCHours(0, 0, 0, 0)).toISOString();
-        const endOfDay = new Date(now.setUTCHours(23, 59, 59, 999)).toISOString();
-
-        // 1. Get all meetings for today
-        const meetings = await ctx.db
-            .query("meetings")
-            .withIndex("by_date", (q) => q.gte("date", startOfDay).lte("date", endOfDay))
+        // 1. Get all patients who are marked as present
+        // Note: In a large production app, we should add an index on 'present'
+        const presentPatients = await ctx.db
+            .query("patients")
+            .filter((q) => q.eq(q.field("present"), true))
             .collect();
 
-        const patientIds = new Set(meetings.map((m) => m.patientId).filter(Boolean));
-
-        // 2. Fetch patient details and check presence
+        // 2. Fetch user details and latest meeting for each present patient
         const queue = await Promise.all(
-            Array.from(patientIds).map(async (patientId) => {
-                if (!patientId) return null;
+            presentPatients.map(async (patientData) => {
+                const userId = patientData.userId;
+                if (!userId) return null;
 
-                const patientData = await ctx.db
-                    .query("patients")
-                    .withIndex("by_user", (q) => q.eq("userId", patientId))
-                    .unique();
+                const user = await ctx.db.get(userId);
+                if (!user) return null;
 
-                if (!patientData || !patientData.present) return null;
+                // Find the latest meeting for this patient (today or most recent)
+                // We'll simplisticly take the most recent one created
+                const lastMeeting = await ctx.db
+                    .query("meetings")
+                    .withIndex("by_patient_date", (q) => q.eq("patientId", userId))
+                    .order("desc")
+                    .first();
 
-                const user = await ctx.db.get(patientId);
+                // Start of today for filtering if strictly needed, but if they are present, 
+                // we probably want to show their relevant meeting regardless or create one.
+                // For now, let's attach the last meeting if it looks relevant (e.g. status scheduled)
+
                 return {
                     ...user,
                     ...patientData,
-                    _id: patientId, // Use user ID as main ID for frontend consistency
-                    meetingToday: meetings.find(m => m.patientId === patientId)
+                    _id: userId, // Use user ID as main ID for frontend consistency
+                    meetingToday: lastMeeting
                 };
             })
         );
