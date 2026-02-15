@@ -76,12 +76,6 @@
 {/snippet}
 
 <div class="form-container-wide">
-  <div class="form-save-btn">
-    <button onclick={() => onSave($form)} class="w-full h-full">
-      Guardar
-    </button>
-  </div>
-
   <header class="form-header mb-6">
     <h2 class="h2-text">Historia Clínica</h2>
     {#if $form.updatedAt}
@@ -540,5 +534,13 @@
         </table>
       </div>
     </FormSectionCard>
+    <div class="form-save-btn pt-4 flex justify-end">
+      <button
+        type="submit"
+        class="bg-blue-800 text-white px-4 py-2 rounded shadow hover:bg-blue-700 transition"
+      >
+        Guardar
+      </button>
+    </div>
   </form>
 </div>
