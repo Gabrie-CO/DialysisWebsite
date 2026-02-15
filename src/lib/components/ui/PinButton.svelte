@@ -1,9 +1,16 @@
 <script lang="ts">
   import { api } from "../../../../convex/_generated/api";
-  import { useConvexClient } from "convex-svelte";
+  import { useConvexClient, useQuery } from "convex-svelte";
   import { toast } from "svelte-sonner";
+  // @ts-ignore
+  import type { Id } from "../../../../convex/_generated/dataModel";
 
-  let { patientId, title, data, class: className = "" } = $props<{
+  let {
+    patientId,
+    title,
+    data,
+    class: className = "",
+  } = $props<{
     patientId: string;
     title: string;
     data: any;
@@ -11,21 +18,32 @@
   }>();
 
   const convex = useConvexClient();
+  const pinnedItem = useQuery(api.meetings.getPinned, () => ({
+    patientId: patientId as Id<"users">,
+    title: title,
+  }));
+
   let isPinning = $state(false);
+  const isPinned = $derived(!!pinnedItem.data);
 
   async function handlePin() {
     if (isPinning) return;
     isPinning = true;
     try {
-      await convex.mutation(api.meetings.pinItem, {
+      const result = await convex.mutation(api.meetings.togglePin, {
         patientId: patientId as any,
         title: title,
         data: data,
       });
-      toast.success("Pinned to timeline successfully");
-    } catch (error) {
-      console.error("Failed to pin item:", error);
-      toast.error("Failed to pin item");
+
+      if (result.status === "pinned") {
+        toast.success(`Pinned ${title} to timeline`);
+      } else {
+        toast.success(`Removed ${title} from timeline`);
+      }
+    } catch (error: any) {
+      console.error("Failed to toggle pin:", error);
+      toast.error(`Error: ${error.message || "Failed to update pin"}`);
     } finally {
       isPinning = false;
     }
@@ -33,12 +51,14 @@
 </script>
 
 <button
-  class="p-2 rounded-full hover:bg-gray-100 text-gray-400 hover:text-blue-600 transition-colors {className}"
+  class="p-2 rounded-full transition-colors {isPinned
+    ? 'bg-blue-50 text-blue-600'
+    : 'hover:bg-gray-100 text-gray-400 hover:text-blue-600'} {className}"
   onclick={handlePin}
-  title="Pin to Timeline"
-  disabled={isPinning}
+  title={isPinned ? "Remove from Timeline" : "Pin to Timeline"}
+  disabled={isPinning || pinnedItem.isLoading}
 >
-  {#if isPinning}
+  {#if isPinning || pinnedItem.isLoading}
     <div
       class="h-5 w-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"
     ></div>
@@ -49,7 +69,7 @@
       width="20"
       height="20"
       viewBox="0 0 24 24"
-      fill="none"
+      fill={isPinned ? "currentColor" : "none"}
       stroke="currentColor"
       stroke-width="2"
       stroke-linecap="round"

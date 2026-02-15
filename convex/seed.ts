@@ -110,13 +110,14 @@ export const seedTodayMeetings = mutation({
         const patients = await ctx.db.query("patients").collect();
         const now = new Date();
         const isoDate = now.toISOString();
-        const startOfDay = new Date(now.setUTCHours(0, 0, 0, 0)).toISOString();
-        const endOfDay = new Date(now.setUTCHours(23, 59, 59, 999)).toISOString();
+        const startOfDay = new Date(new Date(now).setUTCHours(0, 0, 0, 0)).toISOString();
+        const endOfDay = new Date(new Date(now).setUTCHours(23, 59, 59, 999)).toISOString();
 
         let count = 0;
+        let historyCount = 0;
 
         for (const patient of patients) {
-            // Check if meeting exists for today
+            // 1. Check if meeting exists for today
             const existingMeeting = await ctx.db
                 .query("meetings")
                 .withIndex("by_patient_date", (q) => q.eq("patientId", patient.userId))
@@ -130,8 +131,61 @@ export const seedTodayMeetings = mutation({
                     status: "scheduled",
                     title: "Scheduled Dialysis",
                     condition: "Stable",
+                    chairId: (Math.floor(Math.random() * 10) + 1).toString(),
+                    weight: { pre: "75.2", post: "73.5" }
                 });
                 count++;
+            }
+
+            // 2. Seed some historical meetings if they don't have many
+            const recentCount = await ctx.db
+                .query("meetings")
+                .withIndex("by_patient_date", (q) => q.eq("patientId", patient.userId))
+                .filter(q => q.neq(q.field("type"), "pinned_item"))
+                .collect();
+
+            if (recentCount.length < 5) {
+                for (let i = 1; i <= 4; i++) {
+                    const pastDate = new Date();
+                    pastDate.setDate(now.getDate() - (i * 2)); // Every 2nd day
+
+                    await ctx.db.insert("meetings", {
+                        patientId: patient.userId,
+                        date: pastDate.toISOString(),
+                        status: "completed",
+                        title: "Completed Dialysis",
+                        condition: "Stable",
+                        chairId: (Math.floor(Math.random() * 10) + 1).toString(),
+                        weight: { pre: "76.0", post: "74.2" },
+                        patientCardData: {
+                            elderly80_90: false,
+                            malnutrition: false,
+                            preservedDiuresis: true,
+                            time: "4:00",
+                            qd: "500",
+                            qb: "300",
+                            ktvt: "1.4",
+                            filter: "FX80",
+                            observations: "Patient responded well to treatment.",
+                            signature: "Dr. Smith",
+                        }
+                    });
+                    historyCount++;
+                }
+
+                // Add a pinned item for each patient
+                await ctx.db.insert("meetings", {
+                    patientId: patient.userId,
+                    date: new Date().toISOString(),
+                    status: "pinned",
+                    title: "Medical Note",
+                    type: "pinned_item",
+                    pinnedData: {
+                        allergies: "Penicillin",
+                        background: "Chronic hypertension",
+                        observation: "Monitor BP closely during first hour."
+                    }
+                });
             }
 
             // Ensure patient is marked as present
@@ -140,6 +194,6 @@ export const seedTodayMeetings = mutation({
             }
         }
 
-        return `Seeded ${count} meetings for today and updated presence.`;
+        return `Seeded ${count} meetings for today, ${historyCount} historical meetings, and pinned items for patients.`;
     },
 });

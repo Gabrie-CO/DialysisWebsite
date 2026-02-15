@@ -50,36 +50,82 @@ export const createOrUpdate = mutation({
 export const getRecent = query({
     args: {
         patientId: v.id("users"),
-        limit: v.optional(v.number()),
     },
     handler: async (ctx, args) => {
-        const limit = args.limit || 3;
-        const meetings = await ctx.db
+        // 1. Get the 3 most recent dialysis sessions (not pinned items)
+        const recentSessions = await ctx.db
             .query("meetings")
             .withIndex("by_patient_date", (q) => q.eq("patientId", args.patientId))
-            .order("desc") // Most recent first
-            .take(limit);
+            .filter((q) => q.neq(q.field("type"), "pinned_item"))
+            .order("desc")
+            .take(3);
 
-        return meetings;
+        // 2. Get all pinned items for this patient
+        const pinnedItems = await ctx.db
+            .query("meetings")
+            .withIndex("by_patient_date", (q) => q.eq("patientId", args.patientId))
+            .filter((q) => q.eq(q.field("type"), "pinned_item"))
+            .order("desc")
+            .collect();
+
+        // 3. Merge and sort by date descending
+        const allMeetings = [...recentSessions, ...pinnedItems].sort(
+            (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+        );
+
+        return allMeetings;
     },
 });
 
-export const pinItem = mutation({
+export const getPinned = query({
+    args: {
+        patientId: v.id("users"),
+        title: v.string(),
+    },
+    handler: async (ctx, args) => {
+        const pinned = await ctx.db
+            .query("meetings")
+            .withIndex("by_patient_date", (q) => q.eq("patientId", args.patientId))
+            .filter((q) => q.and(
+                q.eq(q.field("type"), "pinned_item"),
+                q.eq(q.field("title"), args.title)
+            ))
+            .unique();
+
+        return pinned;
+    },
+});
+
+export const togglePin = mutation({
     args: {
         patientId: v.id("users"),
         title: v.string(),
         data: v.any(),
     },
     handler: async (ctx, args) => {
-        const id = await ctx.db.insert("meetings", {
-            patientId: args.patientId,
-            date: new Date().toISOString(),
-            status: "pinned",
-            title: args.title,
-            type: "pinned_item",
-            pinnedData: args.data,
-        });
-        return id;
+        const existing = await ctx.db
+            .query("meetings")
+            .withIndex("by_patient_date", (q) => q.eq("patientId", args.patientId))
+            .filter((q) => q.and(
+                q.eq(q.field("type"), "pinned_item"),
+                q.eq(q.field("title"), args.title)
+            ))
+            .unique();
+
+        if (existing) {
+            await ctx.db.delete(existing._id);
+            return { status: "unpinned" };
+        } else {
+            await ctx.db.insert("meetings", {
+                patientId: args.patientId,
+                date: new Date().toISOString(),
+                status: "pinned",
+                title: args.title,
+                type: "pinned_item",
+                pinnedData: args.data,
+            });
+            return { status: "pinned" };
+        }
     },
 });
 

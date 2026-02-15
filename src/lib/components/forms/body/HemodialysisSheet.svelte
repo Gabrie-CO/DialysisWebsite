@@ -511,132 +511,118 @@
     </div>
   </FormSectionCard>
 
-  <div class="grid grid-cols-1 md:grid-cols-12 gap-6 mb-6">
-    <div class="col-span-12 md:col-span-5">
-      <FormSectionCard title="Vitales" data={form} patientId={patientId || ""}>
-        <div class="border border-gray-300 mb-4">
-          <table class="w-full text-center text-xs">
-            <thead class="bg-gray-200 text-gray-800 font-bold uppercase">
-              <tr>
-                <th class="p-2 text-left">Vitales</th>
-                <th colspan="2" class="p-2 border-l border-gray-200">Previo</th>
-                <th colspan="2" class="p-2 border-l border-gray-200">Antes</th>
-                <th colspan="2" class="p-2 border-l border-gray-200">Después</th
-                >
-              </tr>
-              <tr class="text-[10px] bg-gray-100 border-t border-gray-300">
-                <th class="p-1"></th>
-                <th class="p-1 border-l border-gray-200">Sentado</th>
-                <th class="p-1">Parado</th>
-                <th class="p-1 border-l border-gray-200">Sentado</th>
-                <th class="p-1">Parado</th>
-                <th class="p-1 border-l border-gray-200">Sentado</th>
-                <th class="p-1">Parado</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr class="border-t border-gray-100">
-                <td class="p-2 text-left font-bold text-gray-700">Presión</td>
-                <td class="p-1 border-l border-gray-100">
-                  <input
-                    class="form-input h-8 text-xs text-center p-1"
-                    bind:value={form.vitals.bp.prevSit}
-                  />
-                </td>
-                <td class="p-1">
-                  <input
-                    class="form-input h-8 text-xs text-center p-1"
-                    bind:value={form.vitals.bp.prevStand}
-                  />
-                </td>
-                <td class="p-1 border-l border-gray-100">
-                  <input
-                    class="form-input h-8 text-xs text-center p-1"
-                    bind:value={form.vitals.bp.preSit}
-                  />
-                </td>
-                <td class="p-1">
-                  <input
-                    class="form-input h-8 text-xs text-center p-1"
-                    bind:value={form.vitals.bp.preStand}
-                  />
-                </td>
-                <td class="p-1 border-l border-gray-100">
-                  <input
-                    class="form-input h-8 text-xs text-center p-1"
-                    bind:value={form.vitals.bp.postSit}
-                  />
-                </td>
-                <td class="p-1">
-                  <input
-                    class="form-input h-8 text-xs text-center p-1"
-                    bind:value={form.vitals.bp.postStand}
-                  />
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+  <FormSectionCard title="Vitales" data={form} patientId={patientId || ""}>
+    <div class="border border-gray-300 mb-4">
+      <table class="w-full text-center text-xs">
+        <thead class="bg-gray-200 text-gray-800 font-bold uppercase">
+          <tr>
+            <th class="p-2 text-left">Vitales</th>
+            <th colspan="2" class="p-2 border-l border-gray-200">Previo</th>
+            <th colspan="2" class="p-2 border-l border-gray-200">Antes</th>
+            <th colspan="2" class="p-2 border-l border-gray-200">Después</th>
+          </tr>
+          <tr class="text-[10px] bg-gray-100 border-t border-gray-300">
+            <th class="p-1"></th>
+            <th class="p-1 border-l border-gray-200">Sentado</th>
+            <th class="p-1">Parado</th>
+            <th class="p-1 border-l border-gray-200">Sentado</th>
+            <th class="p-1">Parado</th>
+            <th class="p-1 border-l border-gray-200">Sentado</th>
+            <th class="p-1">Parado</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="border-t border-gray-100">
+            <td class="p-2 text-left font-bold text-gray-700">Presión</td>
+            <td class="p-1 border-l border-gray-100">
+              <input
+                class="form-input h-8 text-xs text-center p-1"
+                bind:value={form.vitals.bp.prevSit}
+              />
+            </td>
+            <td class="p-1">
+              <input
+                class="form-input h-8 text-xs text-center p-1"
+                bind:value={form.vitals.bp.prevStand}
+              />
+            </td>
+            <td class="p-1 border-l border-gray-100">
+              <input
+                class="form-input h-8 text-xs text-center p-1"
+                bind:value={form.vitals.bp.preSit}
+              />
+            </td>
+            <td class="p-1">
+              <input
+                class="form-input h-8 text-xs text-center p-1"
+                bind:value={form.vitals.bp.preStand}
+              />
+            </td>
+            <td class="p-1 border-l border-gray-100">
+              <input
+                class="form-input h-8 text-xs text-center p-1"
+                bind:value={form.vitals.bp.postSit}
+              />
+            </td>
+            <td class="p-1">
+              <input
+                class="form-input h-8 text-xs text-center p-1"
+                bind:value={form.vitals.bp.postStand}
+              />
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div
+      class="grid grid-cols-2 gap-4 bg-gray-50 p-3 rounded-lg border border-gray-200"
+    >
+      <div>
+        <TextInput label="PESO: Algunos" bind:value={form.vitals.weight.pre} />
+      </div>
+      <div>
+        <TextInput label="PESO: Despues" bind:value={form.vitals.weight.post} />
+      </div>
+    </div>
+  </FormSectionCard>
 
-        <div
-          class="grid grid-cols-2 gap-4 bg-gray-50 p-3 rounded-lg border border-gray-200"
-        >
-          <div>
-            <TextInput
-              label="PESO: Algunos"
-              bind:value={form.vitals.weight.pre}
-            />
-          </div>
-          <div>
-            <TextInput
-              label="PESO: Despues"
-              bind:value={form.vitals.weight.post}
-            />
-          </div>
-        </div>
-      </FormSectionCard>
+  <FormSectionCard
+    title="Información de Sesión"
+    data={form}
+    patientId={patientId || ""}
+  >
+    <div class="grid grid-cols-2 lg:grid-cols-6 gap-4 mb-4">
+      <TextInput label="Cubiculo" bind:value={form.cubicle} />
+      <TextInput label="Clinica" bind:value={form.clinic} />
+      <TextInput label="Hora Tratamiento" bind:value={form.txTime} />
+      <TextInput label="Maquina #" bind:value={form.machineNo} />
+      <TextInput label="Hora Inicio" bind:value={form.startTime} />
+      <TextInput label="Hora Finalizado" bind:value={form.endTime} />
     </div>
 
-    <div class="col-span-12 md:col-span-7">
-      <FormSectionCard
-        title="Información de Sesión"
-        data={form}
-        patientId={patientId || ""}
-      >
-        <div class="grid grid-cols-2 gap-4 mb-4">
-          <TextInput label="Cubiculo" bind:value={form.cubicle} />
-          <TextInput label="Clinica" bind:value={form.clinic} />
-          <TextInput label="Hora Tratamiento" bind:value={form.txTime} />
-          <TextInput label="Maquina #" bind:value={form.machineNo} />
-          <TextInput label="Hora Inicio" bind:value={form.startTime} />
-          <TextInput label="Hora Finalizado" bind:value={form.endTime} />
-        </div>
-
-        <div class="bg-gray-50 p-4 rounded-lg border border-gray-200 space-y-3">
-          <RadioGroup
-            label="Visitó usted un hospital antes del último tratamiento:"
-            row
-            name="hospitalVisit"
-            options={[
-              { value: true, label: "SI" },
-              { value: false, label: "NO" },
-            ]}
-            bind:value={form.hospitalVisit}
-          />
-          <RadioGroup
-            label="Colección de datos del paciente:"
-            row
-            name="dataCollection"
-            options={[
-              { value: true, label: "SI" },
-              { value: false, label: "NO" },
-            ]}
-            bind:value={form.dataCollection}
-          />
-        </div>
-      </FormSectionCard>
+    <div class="bg-gray-50 p-4 rounded-lg border border-gray-200 space-y-3">
+      <RadioGroup
+        label="Visitó usted un hospital antes del último tratamiento:"
+        row
+        name="hospitalVisit"
+        options={[
+          { value: true, label: "SI" },
+          { value: false, label: "NO" },
+        ]}
+        bind:value={form.hospitalVisit}
+      />
+      <RadioGroup
+        label="Colección de datos del paciente:"
+        row
+        name="dataCollection"
+        options={[
+          { value: true, label: "SI" },
+          { value: false, label: "NO" },
+        ]}
+        bind:value={form.dataCollection}
+      />
     </div>
-  </div>
+  </FormSectionCard>
 
   <div class="grid grid-cols-1 md:grid-cols-12 gap-6 mb-6">
     <div class="col-span-12 md:col-span-6">
