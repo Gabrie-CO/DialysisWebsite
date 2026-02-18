@@ -400,9 +400,7 @@
             <!-- Left: Chairs -->
             <div class="flex-1">
               <h3 class="treatment-area-title">Treatment Area</h3>
-              <div
-                class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
-              >
+              <div class="treatment-grid">
                 {#each chairs as chair, i}
                   <div
                     role="region"
@@ -422,18 +420,12 @@
                         onSignOut={() => signOutPatient(i)}
                       />
                     {:else}
-                      <div
-                        class="flex flex-col items-center justify-center p-4 border-2 border-dashed border-gray-300 rounded-xl h-full min-h-[140px] opacity-70 hover:opacity-100 hover:border-blue-400 hover:bg-blue-50 transition-all cursor-default"
-                      >
-                        <div
-                          class="text-[10px] uppercase font-bold text-gray-400 mb-1"
-                        >
+                      <div class="chair-slot-empty">
+                        <div class="chair-slot-empty-number">
                           Chair {String(i + 1).padStart(2, "0")}
                         </div>
-                        <div class="text-sm font-bold text-gray-400">
-                          Available
-                        </div>
-                        <div class="text-[10px] text-gray-300 mt-2">
+                        <div class="chair-slot-empty-label">Available</div>
+                        <div class="chair-slot-empty-hint">
                           Drop Patient Here
                         </div>
                       </div>
@@ -557,24 +549,18 @@
 
   <!-- ACTION MODAL -->
   {#if activeChairForAction}
-    <div
-      class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
-      role="dialog"
-      aria-modal="true"
-    >
-      <div
-        class="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 space-y-6"
-      >
+    <div class="action-modal-overlay" role="dialog" aria-modal="true">
+      <div class="action-modal-card">
         <div class="text-center">
-          <h3 class="text-xl font-black text-gray-900">
+          <h3 class="action-modal-title">
             {activeChairForAction.patient.name}
           </h3>
-          <p class="text-gray-500 text-sm">Select an action</p>
+          <p class="action-modal-subtitle">Select an action</p>
         </div>
 
         <div class="grid grid-cols-1 gap-3">
           <button
-            class="w-full py-4 px-6 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-colors flex items-center justify-center gap-2"
+            class="action-modal-btn-primary"
             onclick={() => {
               handleSelectPatient(activeChairForAction!.patient.id);
               activeChairForAction = null;
@@ -584,16 +570,13 @@
             <span>→</span>
           </button>
 
-          <button
-            class="w-full py-4 px-6 bg-red-100 hover:bg-red-200 text-red-700 font-bold rounded-xl transition-colors"
-            onclick={dismissPatient}
-          >
+          <button class="action-modal-btn-danger" onclick={dismissPatient}>
             Finish Treatment & Clean
           </button>
         </div>
 
         <button
-          class="w-full py-2 text-sm text-gray-400 font-bold hover:text-gray-600"
+          class="action-modal-btn-cancel"
           onclick={() => (activeChairForAction = null)}
         >
           Cancel

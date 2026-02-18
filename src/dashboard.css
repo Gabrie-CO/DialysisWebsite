@@ -116,7 +116,7 @@
   @apply text-xs font-bold text-gray-400;
 }
 
-/* Patient Timeline */
+/*====================== Patient Timeline ====================== */
 .timeline-title {
   @apply text-xl font-bold text-gray-800 flex items-center gap-2;
 }
@@ -130,7 +130,7 @@
 }
 
 .timeline-card {
-  @apply bg-white p-5 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-all;
+  @apply bg-linear-to-br from-white to-gray-200 p-5 rounded-xl border border-gray-300 shadow-lg hover:shadow-md transition-all;
 }
 
 .timeline-date {
@@ -155,7 +155,7 @@
 }
 
 .doc-card {
-  @apply bg-white p-6 rounded-xl shadow-sm border hover:border-blue-500 hover:bg-blue-50 transition-all flex flex-col items-center gap-3 text-center;
+  @apply bg-linear-to-br from-white to-gray-300 p-6 rounded-xl shadow-lg border-none hover:shadow-lg hover:from-blue-50 hover:to-blue-100 transition-all flex flex-col items-center gap-3 text-center;
 }
 
 .doc-icon {
@@ -204,4 +204,91 @@
   @apply bg-white rounded-xl shadow-lg border-l-4 border-l-green-500 overflow-hidden;
 }
 
+/* Treatment Area */
+.treatment-grid {
+  @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6;
+}
+
+.chair-slot-empty {
+  @apply flex flex-col items-center justify-center p-4 border-2 border-dashed border-gray-300 rounded-xl h-full min-h-[140px] opacity-70 hover:opacity-100 hover:border-blue-400 hover:bg-blue-50 transition-all cursor-default;
+}
+
+.chair-slot-empty-number {
+  @apply text-[10px] uppercase font-bold text-gray-400 mb-1;
+}
+
+.chair-slot-empty-label {
+  @apply text-sm font-bold text-gray-400;
+}
+
+.chair-slot-empty-hint {
+  @apply text-[10px] text-gray-300 mt-2;
+}
+
+/* Chair Card */
+.chair-card {
+  @apply relative flex flex-col items-center justify-center p-4 border-2 rounded-xl transition-all duration-200 shadow-md cursor-pointer;
+}
+
+.chair-card-options-btn {
+  @apply absolute top-2 left-2 opacity-0 group-hover:opacity-100 hover:scale-110 transition-all p-1 bg-white/20 hover:bg-white/40 rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold z-20;
+}
+
+.chair-card-number {
+  @apply text-[10px] uppercase font-bold opacity-80 mb-1;
+}
+
+.chair-card-name {
+  @apply text-lg font-bold text-center leading-tight;
+}
+
+.chair-card-priority {
+  @apply mt-2 text-[9px] font-mono tracking-widest opacity-60 uppercase;
+}
+
+/* Chair Priority Colors */
+.chair-critical {
+  @apply bg-red-500 hover:bg-red-600 border-red-700 text-white;
+}
+
+.chair-warning {
+  @apply bg-yellow-400 hover:bg-yellow-500 border-yellow-600 text-gray-900;
+}
+
+.chair-stable {
+  @apply bg-green-500 hover:bg-green-600 border-green-700 text-white;
+}
+
+.chair-cleaning {
+  @apply bg-purple-500 hover:bg-purple-600 border-purple-700 text-white;
+}
+
+/* Action Modal */
+.action-modal-overlay {
+  @apply fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4;
+}
+
+.action-modal-card {
+  @apply bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 space-y-6;
+}
+
+.action-modal-title {
+  @apply text-xl font-black text-gray-900;
+}
+
+.action-modal-subtitle {
+  @apply text-gray-500 text-sm;
+}
+
+.action-modal-btn-primary {
+  @apply w-full py-4 px-6 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-colors flex items-center justify-center gap-2;
+}
+
+.action-modal-btn-danger {
+  @apply w-full py-4 px-6 bg-red-100 hover:bg-red-200 text-red-700 font-bold rounded-xl transition-colors;
+}
+
+.action-modal-btn-cancel {
+  @apply w-full py-2 text-sm text-gray-400 font-bold hover:text-gray-600;
+}
 

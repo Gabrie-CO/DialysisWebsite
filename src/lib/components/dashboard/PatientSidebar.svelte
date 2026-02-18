@@ -14,8 +14,20 @@
     onClose?: () => void;
   }>();
 
-  // Renaming to patientsQuery since it seems to be fetching a list
   const patientsQuery: any = useQuery(api.patients.get);
+
+  let searchQuery = $state("");
+
+  const filteredPatients = $derived(() => {
+    const all = patientsQuery.data || [];
+    if (!searchQuery.trim()) return all;
+    const q = searchQuery.trim().toLowerCase();
+    return all.filter((p: any) => {
+      const fullName = `${p.firstName} ${p.lastName}`.toLowerCase();
+      const code = (p.code ?? "").toLowerCase();
+      return fullName.includes(q) || code.includes(q);
+    });
+  });
 </script>
 
 <!-- Mobile Overlay Backdrops are handled in parent, this is just the drawer -->
@@ -39,6 +51,7 @@
       type="text"
       placeholder="Search name or code..."
       class="sidebar-search"
+      bind:value={searchQuery}
     />
   </div>
 
@@ -54,7 +67,7 @@
             : JSON.stringify(patientsQuery.error, null, 2)}</pre>
       </div>
     {:else}
-      {#each patientsQuery.data || [] as p}
+      {#each filteredPatients() as p}
         <button
           class="patient-btn group {selectedPatientId === p._id
             ? 'patient-btn-selected'
