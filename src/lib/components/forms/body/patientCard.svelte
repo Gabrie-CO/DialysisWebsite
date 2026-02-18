@@ -21,7 +21,7 @@
     onSave: (data: z.infer<typeof patientCardSchema>) => void;
   }>();
 
-  const FORM_ID = `patientCard_${patientId}`;
+  let FORM_ID = $derived(`patientCard_${patientId}`);
 
   // Initialize Superform in SPA mode
   const { form, enhance } = superForm(

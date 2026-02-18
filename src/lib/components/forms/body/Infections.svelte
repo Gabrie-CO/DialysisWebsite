@@ -97,8 +97,10 @@
         <DateInput label="Fecha de Finalización" bind:value={$form.endDate} />
 
         <div class="md:col-span-2">
-          <label class="form-label mb-1">Observaciones</label>
+          <label class="form-label mb-1" for="observations">Observaciones</label
+          >
           <textarea
+            id="observations"
             class="form-input w-full min-h-[100px]"
             bind:value={$form.observations}
             placeholder="Observaciones..."
