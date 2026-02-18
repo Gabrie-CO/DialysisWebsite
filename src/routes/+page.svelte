@@ -37,10 +37,22 @@
   // Fetch Data for Sidebar
   const patientsQuery = useQuery(api.patients.get, {});
 
+  // Fetch chair count from clinic settings (defaults to 100)
+  const clinicsQuery = useQuery(api.clinics.getDefault, {});
+  let totalChairs = $derived(clinicsQuery.data ?? 100);
+
   // Dashboard State
   let existingPatients = $derived(patientsQuery.data || []);
-  // Chairs: Array of 12
-  let chairs = $state(Array(12).fill(null));
+  // Chairs: Array sized by clinic chair count
+  let chairs = $state<any[]>(Array(100).fill(null));
+
+  // Resize chairs array when totalChairs changes
+  $effect(() => {
+    const count = totalChairs;
+    if (chairs.length !== count) {
+      chairs = Array(count).fill(null);
+    }
+  });
 
   // Queue: Fetched from backend, filtered by those not in chairs
   const queueQuery = useQuery(api.meetings.getQueue, {});
@@ -64,7 +76,7 @@
   let totalPatients = $derived(
     chairs.filter((p) => p !== null && p.priority !== "cleaning").length,
   );
-  const totalChairs = 12;
+  // totalChairs is now derived from clinicsQuery above
   // Infection count derived from 'critical' patients for now, or 0 if none.
   let infectionCount = $derived(
     chairs.filter((p) => p !== null && p.priority === "critical").length,

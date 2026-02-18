@@ -206,11 +206,11 @@
 
 /* Treatment Area */
 .treatment-grid {
-  @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6;
+  @apply grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4;
 }
 
 .chair-slot-empty {
-  @apply flex flex-col items-center justify-center p-4 border-2 border-dashed border-gray-300 rounded-xl h-full min-h-[140px] opacity-70 hover:opacity-100 hover:border-blue-400 hover:bg-blue-50 transition-all cursor-default;
+  @apply flex flex-col items-center justify-center p-3 border-2 border-dashed border-gray-300 rounded-xl h-full min-h-[105px] opacity-70 hover:opacity-100 hover:border-blue-400 hover:bg-blue-50 transition-all cursor-default;
 }
 
 .chair-slot-empty-number {
@@ -227,7 +227,7 @@
 
 /* Chair Card */
 .chair-card {
-  @apply relative flex flex-col items-center justify-center p-4 border-2 rounded-xl transition-all duration-200 shadow-md cursor-pointer;
+  @apply relative flex flex-col items-center justify-center p-3 border-2 rounded-xl transition-all duration-200 shadow-md cursor-pointer;
 }
 
 .chair-card-options-btn {
@@ -239,7 +239,7 @@
 }
 
 .chair-card-name {
-  @apply text-lg font-bold text-center leading-tight;
+  @apply text-sm font-bold text-center leading-tight;
 }
 
 .chair-card-priority {

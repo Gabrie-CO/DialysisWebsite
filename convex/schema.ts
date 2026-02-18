@@ -110,4 +110,9 @@ export default defineSchema({
         })),
     }).index("by_patient_date", ["patientId", "date"])
         .index("by_date", ["date"]),
+
+    clinics: defineTable({
+        name: v.string(),
+        chairCount: v.optional(v.number()), // defaults to 100 if absent
+    }),
 });
