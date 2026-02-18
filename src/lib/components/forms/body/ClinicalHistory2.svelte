@@ -87,47 +87,7 @@
 
   <form method="POST" use:enhance class="mt-6 space-y-6">
     <!-- General Data -->
-    <FormSectionCard
-      title="Datos Generales"
-      data={$form}
-      patientId={patientId || ""}
-    >
-      <div class="grid grid-cols-12 gap-x-4 gap-y-4">
-        <div class="col-span-8">
-          <TextInput label="NOMBRE" bind:value={$form.name} />
-        </div>
-        <div class="col-span-4">
-          <TextInput label="SEXO" bind:value={$form.sex} />
-        </div>
 
-        <div class="col-span-2">
-          <TextInput label="EDAD" bind:value={$form.age} />
-        </div>
-        <div class="col-span-5">
-          <TextInput label="ESTADO CIVIL" bind:value={$form.civilStatus} />
-        </div>
-        <div class="col-span-5">
-          <TextInput label="OCUPACION" bind:value={$form.occupation} />
-        </div>
-
-        <div class="col-span-6">
-          <TextInput
-            label="LUGAR DE NACIMIENTO"
-            bind:value={$form.birthPlace}
-          />
-        </div>
-        <div class="col-span-6">
-          <TextInput label="FECHA DE NACIMIENTO" bind:value={$form.birthDate} />
-        </div>
-
-        <div class="col-span-8">
-          <TextInput label="LUGAR DE RESIDENCIA" bind:value={$form.residence} />
-        </div>
-        <div class="col-span-4">
-          <TextInput label="TELEFONO" bind:value={$form.phone} />
-        </div>
-      </div>
-    </FormSectionCard>
 
     <!-- ERC-5 -->
     <FormSectionCard

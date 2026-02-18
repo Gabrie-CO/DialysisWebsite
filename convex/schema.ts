@@ -25,6 +25,16 @@ export default defineSchema({
         // Patient specific fields
         present: v.optional(v.boolean()), // checked in / in building
         priority: v.optional(v.string()), // critical, warning, stable
+        condition: v.optional(v.string()), // critical, warning, stable (sync with priority if needed, but keeping separate for form)
+
+        // Critical Info Form Fields
+        bodyWeight: v.optional(v.number()),
+        preWeight: v.optional(v.number()),
+        infected: v.optional(v.boolean()),
+        preExistingConditions: v.optional(v.string()),
+        treatmentType: v.optional(v.string()),
+        observations: v.optional(v.string()),
+
         alert: v.optional(v.string()), // Single alert message from dashboard
         dryWeight: v.optional(v.number()),
         code: v.optional(v.string()), // e.g. "PT-123"
@@ -35,6 +45,21 @@ export default defineSchema({
                 location: v.string(),
             })
         ),
+        criticalInfo: v.optional(v.object({
+            elderly80_90: v.boolean(),
+            malnutrition: v.boolean(),
+            preservedDiuresis: v.boolean(),
+            time: v.string(),
+            qd: v.string(),
+            bodyWeight: v.number(),
+            preWeight: v.optional(v.number()),
+            condition: v.string(),
+            infected: v.boolean(),
+            preExistingConditions: v.string(),
+            treatmentType: v.string(),
+            observations: v.optional(v.string()),
+            updatedAt: v.optional(v.string()),
+        })),
         patientCard: v.optional(v.object({
             elderly80_90: v.boolean(),
             malnutrition: v.boolean(),
@@ -73,6 +98,7 @@ export default defineSchema({
         medicationSheet: v.optional(v.any()),
         examControls: v.optional(v.any()),
         monthlyProgress: v.optional(v.any()),
+        pinnedSections: v.optional(v.array(v.string())), // List of pinned section IDs
     }).index("by_user", ["userId"]),
 
     monthlyAssessments: defineTable({
@@ -90,9 +116,6 @@ export default defineSchema({
         status: v.string(),
         title: v.string(),
         patientId: v.optional(v.id("users")), // Made optional to support legacy/empty meetings
-        type: v.optional(v.string()), // "session" | "pinned_item"
-        sourcePath: v.optional(v.string()), // Path to live data (e.g. "hemodialysis.vitals")
-        pinnedData: v.optional(v.any()), // Snapshot of data
         chairId: v.optional(v.string()), // Store chair number/ID
         weight: v.optional(v.object({ pre: v.string(), post: v.string() })),
         condition: v.optional(v.string()), // e.g. "Stable", "Critical"

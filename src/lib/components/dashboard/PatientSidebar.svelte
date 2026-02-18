@@ -76,7 +76,13 @@
           </div>
           <div class="flex flex-col items-end gap-1">
             <span
-              class={`w-2 h-2 rounded-full ${(p as any).status === "Active" ? "bg-green-500" : "bg-red-500"}`}
+              class={`w-2 h-2 rounded-full ${
+                (p as any).priority === "critical"
+                  ? "bg-red-500"
+                  : (p as any).priority === "warning"
+                    ? "bg-orange-500"
+                    : "bg-green-500"
+              }`}
             ></span>
             {#if p.alerts && p.alerts.length > 0}
               <span

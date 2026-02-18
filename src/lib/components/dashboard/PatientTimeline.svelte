@@ -1,17 +1,71 @@
 <script lang="ts">
-    import { useQuery } from "convex-svelte";
+    import { useQuery, useConvexClient } from "convex-svelte";
     import { api } from "../../../../convex/_generated/api";
     // @ts-ignore
     import type { Id } from "../../../../convex/_generated/dataModel";
+    import CriticalInfoForm from "./CriticalInfoForm.svelte";
 
     let { patientId } = $props<{ patientId: string }>();
+
+    const convex = useConvexClient();
 
     const meetings = useQuery(api.meetings.getRecent, () =>
         patientId ? { patientId: patientId as Id<"users"> } : "skip",
     );
+
+    const patient = useQuery(api.patients.getById, () =>
+        patientId ? { id: patientId as Id<"users"> } : "skip",
+    );
+
+    const criticalInfoData = $derived(
+        patient.data
+            ? {
+                  bodyWeight: patient.data.bodyWeight ?? 0,
+                  preWeight: patient.data.preWeight ?? 0,
+                  condition: patient.data.condition ?? "stable",
+                  infected: patient.data.infected ?? false,
+                  preExistingConditions:
+                      patient.data.preExistingConditions ?? "",
+                  treatmentType: patient.data.treatmentType ?? "",
+                  observations: patient.data.observations ?? "",
+              }
+            : undefined,
+    );
+
+    const pinnedItems = $derived.by(() => {
+        const patientData = patient.data;
+        if (!patientData || !patientData.pinnedSections) return [];
+
+        return patientData.pinnedSections.map((section) => {
+            // Map section ID (e.g. "hemodialysis") to data
+            const data = patientData[section as keyof typeof patientData];
+            // Format title (e.g. "hemodialysis" -> "Hemodialysis")
+            const title = section.charAt(0).toUpperCase() + section.slice(1);
+
+            return {
+                title,
+                date: new Date().toISOString(),
+                pinnedData: data,
+            };
+        });
+    });
 </script>
 
 <div class="space-y-4">
+    <!-- Critical Info Header Form -->
+    {#if patient.data && criticalInfoData}
+        <CriticalInfoForm
+            initialData={criticalInfoData}
+            onSave={async (data) => {
+                await convex.mutation(api.patients.updateCriticalInfo, {
+                    // Using 'any' as workaround due to tooling stripping generic args in template
+                    patientId: patientId as any,
+                    criticalInfo: data,
+                });
+            }}
+        />
+    {/if}
+
     <h3 class="text-xl font-bold text-gray-800 flex items-center gap-2">
         <span>📅</span> Patient Timeline
         <span class="text-xs font-normal text-gray-500 ml-auto"
@@ -19,13 +73,13 @@
         >
     </h3>
 
-    {#if meetings.isLoading}
+    {#if meetings.isLoading || patient.isLoading}
         <div class="flex justify-center p-8">
             <div
                 class="animate-spin h-8 w-8 border-4 border-blue-500 border-t-transparent rounded-full"
             ></div>
         </div>
-    {:else if !meetings.data || (!meetings.data.recentSessions.length && !meetings.data.pinnedItems.length)}
+    {:else if !meetings.data?.recentSessions?.length && !pinnedItems.length}
         <div
             class="p-8 text-center bg-gray-50 border-2 border-dashed border-gray-200 rounded-xl"
         >
@@ -36,14 +90,14 @@
     {:else}
         <div class="space-y-8">
             <!-- Pinned Items Section -->
-            {#if meetings.data.pinnedItems.length > 0}
+            {#if pinnedItems.length > 0}
                 <div class="space-y-3">
                     <h4
                         class="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2"
                     >
                         <span>📌</span> Pinned Reminders
                     </h4>
-                    {#each meetings.data.pinnedItems as item}
+                    {#each pinnedItems as item}
                         <div
                             class="bg-yellow-50 border border-yellow-200 rounded-xl p-4 shadow-sm relative group"
                         >
@@ -93,7 +147,7 @@
             {/if}
 
             <!-- Recent Sessions Timeline -->
-            {#if meetings.data.recentSessions.length > 0}
+            {#if meetings.data?.recentSessions?.length}
                 <div>
                     <h4
                         class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4 flex items-center gap-2"
@@ -103,7 +157,7 @@
                     <div
                         class="relative pl-4 border-l-2 border-gray-200 space-y-8"
                     >
-                        {#each meetings.data.recentSessions as meeting}
+                        {#each meetings.data?.recentSessions ?? [] as meeting}
                             <div class="relative group">
                                 <!-- Timeline Dot -->
                                 <div

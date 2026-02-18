@@ -3,19 +3,6 @@
     let error = $state<Error | null>(null);
 
     import { logger } from "$lib/services/logger";
-
-    // New Svelte 5 error boundary mechanism: <svelte:boundary>
-    // However, to catch errors and show UI, we use the boundary snippet.
-    // Wait, <svelte:boundary> is for catching errors. usage:
-    // <svelte:boundary onerror={(e) => { error = e; }}>
-    //    {@render children()}
-    //    {#snippet failed(e, reset)}
-    //       ... error ui ...
-    //    {/snippet}
-    // </svelte:boundary>
-    // But since the API might be in flux, let's check if we can use a simple class-based component if needed, or if <svelte:boundary> is stable.
-    // Actually, the prompt context mentions Svelte 5.
-    // Official Svelte 5 docs use <svelte:boundary>
 </script>
 
 <svelte:boundary

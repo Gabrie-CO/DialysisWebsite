@@ -86,122 +86,17 @@ export const getRecent = query({
         patientId: v.id("users"),
     },
     handler: async (ctx, args) => {
-        // 1. Get the 3 most recent dialysis sessions (not pinned items)
+        // Get the 3 most recent dialysis sessions
         const recentSessions = await ctx.db
             .query("meetings")
             .withIndex("by_patient_date", (q) => q.eq("patientId", args.patientId))
-            .filter((q) => q.neq(q.field("type"), "pinned_item"))
             .order("desc")
             .take(3);
 
-        // 2. Get all pinned items for this patient
-        const pinnedItemsRaw = await ctx.db
-            .query("meetings")
-            .withIndex("by_patient_date", (q) => q.eq("patientId", args.patientId))
-            .filter((q) => q.eq(q.field("type"), "pinned_item"))
-            .order("desc")
-            .collect();
-
-        // Hydrate pinned items with live data if sourcePath exists
-        const patient = await ctx.db.get(args.patientId);
-
-        const pinnedItems = pinnedItemsRaw.map((item: any) => {
-            if (item.sourcePath && patient) {
-                // Resolve path like "hemodialysis.vitals"
-                const parts = item.sourcePath.split(".");
-                let current = patient;
-                for (const part of parts) {
-                    if (current === undefined || current === null) break;
-                    current = current[part];
-                }
-
-                // If we found data, use it. Otherwise fall back to snapshot.
-                if (current !== undefined) {
-                    return { ...item, pinnedData: current };
-                }
-            }
-            return item;
-        });
-
-        // 3. Return separated
         return {
             recentSessions,
-            pinnedItems
         };
     },
-});
-
-export const getPinned = query({
-    args: {
-        patientId: v.id("users"),
-        title: v.string(),
-    },
-    handler: async (ctx, args) => {
-        const pinned = await ctx.db
-            .query("meetings")
-            .withIndex("by_patient_date", (q) => q.eq("patientId", args.patientId))
-            .filter((q) => q.and(
-                q.eq(q.field("type"), "pinned_item"),
-                q.eq(q.field("title"), args.title)
-            ))
-            .unique();
-
-        return pinned;
-    },
-});
-
-export const togglePin = mutation({
-    args: {
-        patientId: v.id("users"),
-        title: v.string(),
-        data: v.any(),
-        sourcePath: v.optional(v.string())
-    },
-    handler: async (ctx, args) => {
-        const existing = await ctx.db
-            .query("meetings")
-            .withIndex("by_patient_date", (q) => q.eq("patientId", args.patientId))
-            .filter((q) => q.and(
-                q.eq(q.field("type"), "pinned_item"),
-                q.eq(q.field("title"), args.title)
-            ))
-            .unique();
-
-        if (existing) {
-            await ctx.db.delete(existing._id);
-            return { status: "unpinned" };
-        } else {
-            await ctx.db.insert("meetings", {
-                patientId: args.patientId,
-                date: new Date().toISOString(),
-                status: "pinned",
-                title: args.title,
-                type: "pinned_item",
-                pinnedData: args.data,
-                sourcePath: args.sourcePath
-            });
-            return { status: "pinned" };
-        }
-    },
-});
-
-export const cleanupMedicalNotes = mutation({
-    args: {},
-    handler: async (ctx) => {
-        const medicalNotes = await ctx.db
-            .query("meetings")
-            .filter((q) => q.and(
-                q.eq(q.field("type"), "pinned_item"),
-                q.eq(q.field("title"), "Medical Note")
-            ))
-            .collect();
-
-        for (const note of medicalNotes) {
-            await ctx.db.delete(note._id);
-        }
-
-        return `Removed ${medicalNotes.length} Medical Note items.`;
-    }
 });
 
 export const getQueue = query({

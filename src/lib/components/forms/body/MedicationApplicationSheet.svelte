@@ -4,7 +4,7 @@
   import { medicationSchema } from "$lib/schemas/medicationSchema";
   import type { z } from "zod";
   import { untrack } from "svelte";
-
+  import { toast } from "svelte-sonner";
   import TextInput from "../ui/TextInput.svelte";
   import FormSectionCard from "../../ui/FormSectionCard.svelte";
 
@@ -18,53 +18,49 @@
     onSave: (data: z.infer<typeof medicationSchema>) => void;
   }>();
 
+  function ensureDefaultRows(data: any) {
+    const defaults = { ...data };
+    if (!defaults.rows || defaults.rows.length === 0) {
+      defaults.rows = Array.from({ length: 10 }, (_, i) => ({
+        id: i + 1,
+        medication: "",
+        date: "",
+        route: "" as const,
+        indications: "",
+        dose: "",
+        time: "",
+        doctorSign: "",
+        nurseSign: "",
+      }));
+    }
+    return defaults;
+  }
+
   // Initialize Superform in SPA mode
   const { form, enhance } = superForm(
     defaults(
       // @ts-ignore
-      untrack(() => initialData || {}),
+      untrack(() => ensureDefaultRows(initialData || {})),
       zod(medicationSchema as any),
     ),
     {
       SPA: true,
       dataType: "json",
       validators: zod(medicationSchema as any),
-      onUpdate: async ({ form }) => {
+      resetForm: false,
+       onUpdate: async ({ form }) => {
         if (form.valid) {
-          onSave(form.data);
+          try {
+            await onSave(form.data);
+            toast.success("Saved successfully");
+          } catch (error) {
+            console.error("Save failed", error);
+            toast.error("Error saving.");
+          }
         }
       },
     },
   );
-
-  // Sync initialData
-  // Sync initialData
-  $effect(() => {
-    if (initialData) {
-      const currentForm = untrack(() => $form);
-      // Create a new object to modify before setting form
-      // @ts-ignore
-      const newData = { ...currentForm, ...initialData };
-
-      // Ensure rows exist
-      if (!newData.rows || newData.rows.length === 0) {
-        newData.rows = Array.from({ length: 10 }, (_, i) => ({
-          id: i + 1,
-          medication: "",
-          date: "",
-          route: "" as const,
-          indications: "",
-          dose: "",
-          time: "",
-          doctorSign: "",
-          nurseSign: "",
-        }));
-      }
-
-      // @ts-ignore
-      form.set(newData);
-    }
-  });
 
   function addRow() {
     const nextId = ($form.rows?.length || 0) + 1;
@@ -114,24 +110,7 @@
 
 <div class="form-container-wide">
   <form method="POST" use:enhance>
-    <div class="form-save-btn pt-4 flex justify-end">
-      <button
-        type="submit"
-        class="bg-blue-800 text-white px-4 py-2 rounded shadow hover:bg-blue-700 transition"
-      >
-        Guardar
-      </button>
-    </div>
-    <FormSectionCard
-      title="Datos del Paciente"
-      data={$form}
-      patientId={patientId || ""}
-    >
-      <div class="w-full">
-        <TextInput label="Nombre del Paciente" bind:value={$form.patientName} />
-      </div>
-    </FormSectionCard>
-
+    
     <FormSectionCard
       title="Aplicación de Medicamentos"
       data={$form}
@@ -238,6 +217,12 @@
         + Agregar Fila
       </button>
     </div>
+      <button
+        type="submit"
+        class="bg-blue-800 text-white px-4 py-2 rounded shadow hover:bg-blue-700 transition"
+      >
+        Guardar
+      </button>
   </form>
 </div>
 

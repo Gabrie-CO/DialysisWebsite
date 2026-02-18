@@ -5,7 +5,6 @@
   import "../app.css";
   import ErrorBoundary from "$lib/components/ui/ErrorBoundary.svelte";
   import { Toaster } from "svelte-sonner";
-  import NetworkStatus from "$lib/components/ui/NetworkStatus.svelte";
   import { onMount } from "svelte";
   import { page } from "$app/state";
   import { goto } from "$app/navigation";
@@ -58,7 +57,6 @@
 </svelte:head>
 
 <Toaster position="top-center" richColors />
-<NetworkStatus />
 
 {#if isLoading}
   <div class="flex h-screen items-center justify-center bg-gray-50">

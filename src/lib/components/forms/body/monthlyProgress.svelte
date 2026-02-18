@@ -78,51 +78,6 @@
 
   <form method="POST" use:enhance class="space-y-8">
     <!-- Header Fields -->
-    <FormSectionCard
-      title="Datos del Paciente"
-      data={$form}
-      patientId={patientId || ""}
-    >
-      <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
-        <div class="md:col-span-6">
-          <TextInput label="Nombre" bind:value={$form.patient.name} />
-        </div>
-        <div class="md:col-span-3">
-          <TextInput label="Mes" bind:value={$form.meta.month} />
-        </div>
-        <div class="md:col-span-3">
-          <TextInput label="Expediente" bind:value={$form.meta.fileNumber} />
-        </div>
-
-        <div class="md:col-span-5 flex flex-col gap-2">
-          <span class="form-label mb-0">Ingresos</span>
-          <RadioGroup
-            row
-            name="admissionActive"
-            options={yesNoOptions}
-            bind:value={$form.patient.admission.active}
-          />
-          <DateInput
-            label="Fecha de Ingreso"
-            bind:value={$form.patient.admission.dateIn}
-          />
-        </div>
-
-        <div class="md:col-span-7">
-          <DateInput
-            label="Fecha de Egreso"
-            bind:value={$form.patient.admission.dateOut}
-          />
-        </div>
-
-        <div class="md:col-span-12">
-          <TextInput
-            label="Diagnósticos"
-            bind:value={$form.patient.diagnosis}
-          />
-        </div>
-      </div>
-    </FormSectionCard>
 
     <!-- General Status -->
     <FormSectionCard
@@ -506,21 +461,13 @@
         </div>
       </div>
     </FormSectionCard>
-    <div class="form-save-btn pt-4 flex justify-end">
+    
       <button
         type="submit"
         class="bg-blue-800 text-white px-4 py-2 rounded shadow hover:bg-blue-700 transition"
       >
         Guardar
       </button>
-    </div>
   </form>
 
-  <div class="mt-12 text-center border-t border-gray-100 pt-8">
-    <div class="inline-block border-t border-black px-12 pt-2">
-      <p class="text-sm font-bold uppercase text-gray-700">
-        Firma y Sello Médico
-      </p>
-    </div>
-  </div>
 </div>

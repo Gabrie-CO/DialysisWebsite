@@ -15,26 +15,25 @@
     }>();
 
     const convex = useConvexClient();
-    const pinnedItem = useQuery(api.meetings.getPinned, () => ({
-        patientId: patientId as Id<"users">,
-        title: title,
+    const patient = useQuery(api.patients.getById, () => ({
+        id: patientId as Id<"users">,
     }));
 
     let isPinning = $state(false);
-    const isPinned = $derived(!!pinnedItem.data);
+    const isPinned = $derived(
+        patient.data?.pinnedSections?.includes(title) ?? false,
+    );
 
     async function handlePin() {
         if (isPinning) return;
         isPinning = true;
         try {
-            const result = await convex.mutation(api.meetings.togglePin, {
-                patientId: patientId as any,
-                title: title,
-                data: data,
-                sourcePath: sourcePath,
+            await convex.mutation(api.patients.togglePin, {
+                patientId: patientId as Id<"users">,
+                section: title,
             });
 
-            if (result.status === "pinned") {
+            if (!isPinned) {
                 toast.success(`Pinned ${title} to timeline`);
             } else {
                 toast.success(`Removed ${title} from timeline`);
@@ -59,9 +58,9 @@
                 : 'hover:bg-gray-100 text-gray-400 hover:text-blue-600'}"
             onclick={handlePin}
             title={isPinned ? "Remove from Timeline" : "Pin to Timeline"}
-            disabled={isPinning || pinnedItem.isLoading}
+            disabled={isPinning || patient.isLoading}
         >
-            {#if isPinning || pinnedItem.isLoading}
+            {#if isPinning || patient.isLoading}
                 <div
                     class="h-5 w-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"
                 ></div>

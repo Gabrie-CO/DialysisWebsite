@@ -230,3 +230,119 @@ export const setPresence = mutation({
         });
     },
 });
+
+export const togglePin = mutation({
+    args: {
+        patientId: v.id("users"),
+        section: v.string(),
+    },
+    handler: async (ctx, args) => {
+        const patientData = await ctx.db
+            .query("patients")
+            .withIndex("by_user", (q) => q.eq("userId", args.patientId))
+            .unique();
+
+        let pinnedSections = patientData?.pinnedSections || [];
+
+        if (pinnedSections.includes(args.section)) {
+            pinnedSections = pinnedSections.filter((s) => s !== args.section);
+        } else {
+            pinnedSections.push(args.section);
+        }
+
+        await upsertPatientData(ctx, args.patientId, {
+            pinnedSections,
+        });
+    },
+});
+
+export const updateCriticalInfo = mutation({
+    args: {
+        patientId: v.id("users"),
+        criticalInfo: v.object({
+            bodyWeight: v.number(),
+            preWeight: v.optional(v.number()),
+            condition: v.string(),
+            infected: v.boolean(),
+            preExistingConditions: v.string(),
+            treatmentType: v.string(),
+            observations: v.optional(v.string()),
+            updatedAt: v.optional(v.string())
+        })
+    },
+    handler: async (ctx, args) => {
+        // 1. Sync condition to priority for Dashboard/Clinic Overview
+        // Map condition to priority (assuming 1:1 mapping for stable/warning/critical)
+        const priority = args.criticalInfo.condition;
+
+        await upsertPatientData(ctx, args.patientId, {
+            ...args.criticalInfo,
+            priority: priority,
+            condition: priority
+        });
+
+        // 2. Update or Create Meeting Record for Timeline History ("when they exited")
+        const today = new Date().toISOString().split('T')[0];
+
+        // Find existing meeting for today
+        const recentMeetings = await ctx.db
+            .query("meetings")
+            .withIndex("by_patient_date", (q) => q.eq("patientId", args.patientId))
+            .order("desc")
+            .take(5);
+
+        const meetingToday = recentMeetings.find(m => m.date.startsWith(today));
+
+        const newWeight = {
+            pre: args.criticalInfo.preWeight ? String(args.criticalInfo.preWeight) : "",
+            post: String(args.criticalInfo.bodyWeight) // Map bodyWeight to post-weight (Dry Weight)
+        };
+
+        const newObservations = args.criticalInfo.observations || "";
+
+        if (meetingToday) {
+            await ctx.db.patch(meetingToday._id, {
+                weight: {
+                    pre: newWeight.pre || meetingToday.weight?.pre || "",
+                    post: newWeight.post
+                },
+                condition: priority,
+                patientCardData: {
+                    ...meetingToday.patientCardData,
+                    elderly80_90: meetingToday.patientCardData?.elderly80_90 ?? false,
+                    malnutrition: meetingToday.patientCardData?.malnutrition ?? false,
+                    preservedDiuresis: meetingToday.patientCardData?.preservedDiuresis ?? false,
+                    time: meetingToday.patientCardData?.time ?? "",
+                    qd: meetingToday.patientCardData?.qd ?? "",
+                    qb: meetingToday.patientCardData?.qb ?? "",
+                    ktvt: meetingToday.patientCardData?.ktvt ?? "",
+                    filter: meetingToday.patientCardData?.filter ?? "",
+                    signature: meetingToday.patientCardData?.signature ?? "",
+                    observations: newObservations || meetingToday.patientCardData?.observations || ""
+                }
+            });
+        } else {
+            // Create new meeting if none exists for today
+            await ctx.db.insert("meetings", {
+                patientId: args.patientId,
+                date: new Date().toISOString(),
+                status: "completed",
+                title: "Dialysis Session",
+                weight: newWeight,
+                condition: priority,
+                patientCardData: {
+                    elderly80_90: false,
+                    malnutrition: false,
+                    preservedDiuresis: false,
+                    time: "",
+                    qd: "",
+                    qb: "",
+                    ktvt: "",
+                    filter: "",
+                    signature: "",
+                    observations: newObservations
+                }
+            });
+        }
+    }
+});
