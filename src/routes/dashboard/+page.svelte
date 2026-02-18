@@ -247,7 +247,7 @@
   );
 </script>
 
-<div class="flex h-screen w-full bg-gray-100 font-sans overflow-hidden">
+<div class="dashboard-container">
   <!-- Mobile Overlay -->
   {#if isSidebarOpen}
     <div
@@ -282,10 +282,7 @@
     />
 
     <main class="flex-1 overflow-y-auto p-6 bg-gray-50">
-      <button
-        onclick={resetToDashboard}
-        class="mb-6 text-sm font-bold text-blue-600 hover:text-blue-800 flex items-center gap-2 transition-colors"
-      >
+      <button onclick={resetToDashboard} class="btn-back">
         ← Back to Clinic Overview
       </button>
 
@@ -293,9 +290,7 @@
         <!-- Timeline content -->
         <div class="max-w-3xl mx-auto space-y-8">
           {#if activeSession}
-            <div
-              class="bg-white rounded-xl shadow-lg border-l-4 border-l-green-500 overflow-hidden"
-            >
+            <div class="card-active-session">
               <div class="p-6">
                 <h3 class="font-bold text-green-900">
                   Active Session: {activeSession.machine}
@@ -313,15 +308,15 @@
             <h3 class="text-center font-bold text-gray-700 text-xl mb-6">
               Select Document
             </h3>
-            <div class="grid grid-cols-2 lg:grid-cols-4 gap-6">
+            <div class="doc-grid">
               {#each AVAILABLE_DOCUMENTS as doc}
                 <button
-                  class="bg-white p-6 rounded-xl shadow-sm border hover:border-blue-500 hover:bg-blue-50 transition-all flex flex-col items-center gap-3 text-center"
+                  class="doc-card"
                   onclick={() => (activeDocument = doc.id)}
                 >
-                  <div class="text-4xl">{doc.icon}</div>
-                  <div class="font-bold">{doc.title}</div>
-                  <div class="text-xs text-gray-500">{doc.desc}</div>
+                  <div class="doc-icon">{doc.icon}</div>
+                  <div class="doc-title">{doc.title}</div>
+                  <div class="doc-desc">{doc.desc}</div>
                 </button>
               {/each}
             </div>

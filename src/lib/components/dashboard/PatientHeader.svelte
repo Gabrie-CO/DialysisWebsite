@@ -25,7 +25,7 @@
   }>();
 </script>
 
-<header class="bg-white border-b border-gray-200 p-4 shadow-sm z-10">
+<header class="header-container">
   <div class="flex justify-between items-start">
     <div class="flex gap-4 items-center">
       <!-- Hamburger Menu (Mobile Only) -->
@@ -71,13 +71,11 @@
         </svg>
       </button>
 
-      <div
-        class="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold text-lg"
-      >
+      <div class="header-avatar">
         {patient?.firstName?.[0] ?? "?"}{patient?.lastName?.[0] ?? "?"}
       </div>
       <div>
-        <h1 class="text-xl font-bold text-gray-900 leading-none">
+        <h1 class="header-name">
           {patient?.firstName ?? "Unknown"}
           {patient?.lastName ?? "Patient"}
         </h1>
@@ -102,16 +100,11 @@
       <div class="flex gap-2">
         {#if patient?.alerts}
           {#each patient.alerts as alert}
-            <span
-              class="bg-red-100 text-red-700 text-xs px-2 py-0.5 rounded-full font-bold border border-red-200"
-              >{alert}</span
-            >
+            <span class="badge-red">{alert}</span>
           {/each}
         {/if}
         {#if patient?.currentAccess}
-          <span
-            class="bg-blue-50 text-blue-700 text-xs px-2 py-0.5 rounded-full font-bold border border-blue-100"
-          >
+          <span class="badge-blue">
             {patient.currentAccess.type} - {patient.currentAccess.location}
           </span>
         {/if}
@@ -121,21 +114,19 @@
   </div>
 
   <!-- NAVIGATION TABS -->
-  <div class="flex gap-6 mt-6 border-b border-gray-200">
+  <div class="header-tabs">
     <button
-      class="pb-2 text-sm font-medium border-b-2 transition-colors capitalize
-            {activeTab === 'timeline'
-        ? 'border-blue-600 text-blue-600'
-        : 'border-transparent text-gray-500 hover:text-gray-700'}"
+      class="header-tab-btn {activeTab === 'timeline'
+        ? 'header-tab-active'
+        : 'header-tab-inactive'}"
       onclick={() => onTabChange("timeline")}
     >
       Patient Timeline (History)
     </button>
     <button
-      class="pb-2 text-sm font-medium border-b-2 transition-colors capitalize
-            {activeTab === 'forms'
-        ? 'border-blue-600 text-blue-600'
-        : 'border-transparent text-gray-500 hover:text-gray-700'}"
+      class="header-tab-btn {activeTab === 'forms'
+        ? 'header-tab-active'
+        : 'header-tab-inactive'}"
       onclick={() => onTabChange("forms")}
     >
       + New Entry

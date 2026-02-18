@@ -349,7 +349,7 @@
   );
 </script>
 
-<div class="flex h-screen w-full bg-gray-100 font-sans overflow-hidden">
+<div class="dashboard-container">
   <!-- Mobile Overlay -->
   {#if isSidebarOpen}
     <div
@@ -376,14 +376,10 @@
       <!-- DASHBOARD VIEW -->
       <main class="flex-1 overflow-y-auto p-4 md:p-8 bg-gray-50">
         <div class="max-w-7xl mx-auto">
-          <header
-            class="mb-10 flex flex-col md:flex-row justify-between items-end gap-4"
-          >
+          <header class="clinic-overview-header">
             <div>
-              <h1 class="text-3xl font-black text-gray-900 tracking-tight">
-                Clinic Overview
-              </h1>
-              <p class="text-gray-500 font-medium mb-4">
+              <h1 class="clinic-overview-title">Clinic Overview</h1>
+              <p class="clinic-overview-subtitle">
                 Real-time status of all active treatment chairs
               </p>
               <div class="flex items-center gap-4">
@@ -403,11 +399,7 @@
           <div class="flex flex-col lg:flex-row gap-8 mt-8">
             <!-- Left: Chairs -->
             <div class="flex-1">
-              <h3
-                class="text-sm font-bold text-gray-400 uppercase tracking-widest mb-4"
-              >
-                Treatment Area
-              </h3>
+              <h3 class="treatment-area-title">Treatment Area</h3>
               <div
                 class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
               >

@@ -20,14 +20,13 @@
 
 <!-- Mobile Overlay Backdrops are handled in parent, this is just the drawer -->
 <aside
-  class="fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200 flex flex-col shrink-0 h-full transform transition-transform duration-300 ease-in-out md:translate-x-0 md:static md:inset-auto md:flex
-  {mobileOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full'}"
+  class="sidebar-container {mobileOpen
+    ? 'translate-x-0 shadow-2xl'
+    : '-translate-x-full'}"
 >
-  <div class="p-4 border-b border-gray-100">
+  <div class="sidebar-header">
     <div class="flex justify-between items-center mb-2">
-      <h2 class="text-xs font-bold text-gray-500 uppercase tracking-wider">
-        Patients
-      </h2>
+      <h2 class="sidebar-title">Patients</h2>
       <button
         class="md:hidden p-1 rounded hover:bg-gray-100 text-gray-500"
         onclick={onClose}
@@ -39,11 +38,11 @@
     <input
       type="text"
       placeholder="Search name or code..."
-      class="w-full bg-gray-50 border border-gray-200 rounded px-2 py-1 text-sm outline-none focus:border-blue-500"
+      class="sidebar-search"
     />
   </div>
 
-  <div class="flex-1 overflow-y-auto">
+  <div class="sidebar-patient-list">
     {#if patientsQuery.isLoading}
       <div class="p-4 text-sm text-gray-500">Loading patients...</div>
     {:else if patientsQuery.error}
@@ -57,20 +56,17 @@
     {:else}
       {#each patientsQuery.data || [] as p}
         <button
-          class="w-full text-left p-3 border-b border-gray-50 hover:bg-gray-50 transition-colors flex justify-between items-center group
-                    {selectedPatientId === p._id
-            ? 'bg-blue-50 border-l-4 border-l-blue-600'
-            : 'border-l-4 border-l-transparent'}"
+          class="patient-btn group {selectedPatientId === p._id
+            ? 'patient-btn-selected'
+            : 'patient-btn-unselected'}"
           onclick={() => onSelect(p._id)}
         >
           <div>
-            <div
-              class="font-bold text-gray-800 text-sm group-hover:text-blue-900"
-            >
+            <div class="patient-name">
               {p.firstName}
               {p.lastName}
             </div>
-            <div class="text-[10px] text-gray-500 font-mono">
+            <div class="patient-code">
               {p.code}
             </div>
           </div>

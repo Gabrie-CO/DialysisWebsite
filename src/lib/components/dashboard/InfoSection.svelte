@@ -12,9 +12,7 @@
     let strokeDasharray = $derived(`${percentage} ${100 - percentage}`);
 </script>
 
-<div
-    class="bg-white px-4 py-3 rounded-2xl border border-gray-100 shadow-sm mt-8 inline-flex items-center gap-6 transform scale-125 origin-left"
->
+<div class="infection-rate-container">
     <div class="flex items-center gap-4">
         <!-- Medium compact Pie Chart -->
         <div class="relative w-16 h-16 shrink-0">
@@ -47,20 +45,17 @@
         </div>
 
         <div class="flex flex-col">
-            <span
-                class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2"
-                >Clinic Infection Rate</span
-            >
+            <span class="infection-rate-label">Clinic Infection Rate</span>
             <div class="flex flex-col gap-1.5">
-                <div class="flex items-center gap-2">
+                <div class="stat-row">
                     <div class="w-2 h-2 rounded-full bg-red-500"></div>
-                    <span class="text-xs font-bold text-gray-700"
+                    <span class="stat-value-active"
                         >{infectionCount} active cases</span
                     >
                 </div>
-                <div class="flex items-center gap-2">
+                <div class="stat-row">
                     <div class="w-2 h-2 rounded-full bg-gray-200"></div>
-                    <span class="text-xs font-bold text-gray-400"
+                    <span class="stat-value-stable"
                         >{totalPatients - infectionCount} stable</span
                     >
                 </div>

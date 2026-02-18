@@ -1,0 +1,207 @@
+@import "tailwindcss";
+
+/* Dashboard Layout & Sidebar */
+.dashboard-container {
+  @apply flex h-screen w-full bg-gray-100 font-sans overflow-hidden;
+}
+
+.sidebar-container {
+  @apply fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200 flex flex-col shrink-0 h-full transform transition-transform duration-300 ease-in-out md:translate-x-0 md:static md:inset-auto md:flex;
+}
+
+.sidebar-header {
+  @apply p-4 border-b border-gray-100;
+}
+
+.sidebar-title {
+  @apply text-xs font-bold text-gray-500 uppercase tracking-wider;
+}
+
+.sidebar-search {
+  @apply w-full bg-gray-50 border border-gray-200 rounded px-2 py-1 text-sm outline-none focus:border-blue-500;
+}
+
+.sidebar-patient-list {
+  @apply flex-1 overflow-y-auto;
+}
+
+.patient-btn {
+  @apply w-full text-left p-3 border-b border-gray-50 hover:bg-gray-50 transition-colors flex justify-between items-center;
+  
+  &:hover .patient-name {
+    @apply text-blue-900;
+  }
+}
+
+.patient-btn-selected {
+  @apply bg-blue-50 border-l-4 border-l-blue-600;
+}
+
+.patient-btn-unselected {
+  @apply border-l-4 border-l-transparent;
+}
+
+.patient-name {
+  @apply font-bold text-gray-800 text-sm;
+}
+
+.patient-code {
+  @apply text-[10px] text-gray-500 font-mono;
+}
+
+/* Patient Header & Navigation */
+.header-container {
+  @apply bg-white border-b border-gray-200 p-4 shadow-sm z-10;
+}
+
+.header-avatar {
+  @apply h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold text-lg;
+}
+
+.header-name {
+  @apply text-xl font-bold text-gray-900 leading-none;
+}
+
+.header-tabs {
+  @apply flex gap-6 mt-6 border-b border-gray-200;
+}
+
+.header-tab-btn {
+  @apply pb-2 text-sm font-medium border-b-2 transition-colors capitalize;
+}
+
+.header-tab-active {
+  @apply border-blue-600 text-blue-600;
+}
+
+.header-tab-inactive {
+  @apply border-transparent text-gray-500 hover:text-gray-700;
+}
+
+/* Clinic Stats (Load) */
+.clinic-stats-container {
+  @apply inline-flex items-center gap-2 bg-white px-3 py-1.5 rounded-md border border-gray-100 shadow-sm;
+}
+
+.clinic-stats-label {
+  @apply text-[10px] font-bold text-gray-400 uppercase tracking-widest;
+}
+
+.clinic-stats-value {
+  @apply text-sm font-black text-blue-600;
+}
+
+.clinic-stats-sep {
+  @apply text-gray-300 font-medium;
+}
+
+/* Infection Rate Section */
+.infection-rate-container {
+  @apply bg-white px-4 py-3 rounded-2xl border border-gray-100 shadow-sm mt-8 inline-flex items-center gap-6 transform scale-125 origin-left;
+}
+
+.infection-rate-label {
+  @apply text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2;
+}
+
+.stat-row {
+  @apply flex items-center gap-2;
+}
+
+.stat-value-active {
+  @apply text-xs font-bold text-gray-700;
+}
+
+.stat-value-stable {
+  @apply text-xs font-bold text-gray-400;
+}
+
+/* Patient Timeline */
+.timeline-title {
+  @apply text-xl font-bold text-gray-800 flex items-center gap-2;
+}
+
+.timeline-container {
+  @apply relative pl-4 border-l-2 border-gray-200 space-y-8;
+}
+
+.timeline-dot {
+  @apply absolute -left-[25px] top-1 h-5 w-5 rounded-full border-4 border-white shadow-sm transition-colors;
+}
+
+.timeline-card {
+  @apply bg-white p-5 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-all;
+}
+
+.timeline-date {
+  @apply text-xs font-bold text-gray-400 uppercase tracking-wider mb-1;
+}
+
+.timeline-item-title {
+  @apply font-bold text-gray-900 text-lg;
+}
+
+.timeline-stat-label {
+  @apply text-[10px] uppercase text-gray-400 font-bold block mb-1;
+}
+
+.timeline-stat-value {
+  @apply font-medium text-gray-700;
+}
+
+/* Document Selection Grid */
+.doc-grid {
+  @apply grid grid-cols-2 lg:grid-cols-4 gap-6;
+}
+
+.doc-card {
+  @apply bg-white p-6 rounded-xl shadow-sm border hover:border-blue-500 hover:bg-blue-50 transition-all flex flex-col items-center gap-3 text-center;
+}
+
+.doc-icon {
+  @apply text-4xl;
+}
+
+.doc-title {
+  @apply font-bold;
+}
+
+.doc-desc {
+  @apply text-xs text-gray-500;
+}
+
+/* Clinic Overview (Main Dashboard) */
+.clinic-overview-header {
+  @apply mb-10 flex flex-col md:flex-row justify-between items-end gap-4;
+}
+
+.clinic-overview-title {
+  @apply text-3xl font-black text-gray-900 tracking-tight;
+}
+
+.clinic-overview-subtitle {
+  @apply text-gray-500 font-medium mb-4;
+}
+
+.treatment-area-title {
+  @apply text-sm font-bold text-gray-400 uppercase tracking-widest mb-4;
+}
+
+/* Common UI Elements */
+.badge-blue {
+  @apply inline-flex items-center gap-1 px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-xs font-bold;
+}
+
+.badge-red {
+  @apply bg-red-100 text-red-700 text-xs px-2 py-0.5 rounded-full font-bold border border-red-200;
+}
+
+.btn-back {
+  @apply mb-6 text-sm font-bold text-blue-600 hover:text-blue-800 flex items-center gap-2 transition-colors;
+}
+
+.card-active-session {
+  @apply bg-white rounded-xl shadow-lg border-l-4 border-l-green-500 overflow-hidden;
+}
+
+

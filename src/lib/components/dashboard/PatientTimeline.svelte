@@ -12,7 +12,7 @@
 </script>
 
 <div class="space-y-4">
-    <h3 class="text-xl font-bold text-gray-800 flex items-center gap-2">
+    <h3 class="timeline-title">
         <span>📅</span> Patient Timeline
         <span class="text-xs font-normal text-gray-500 ml-auto"
             >(Last 3 Sessions)</span
@@ -34,12 +34,12 @@
             </p>
         </div>
     {:else}
-        <div class="relative pl-4 border-l-2 border-gray-200 space-y-8">
+        <div class="timeline-container">
             {#each meetings.data as meeting}
                 <div class="relative group">
                     <!-- Timeline Dot -->
                     <div
-                        class="absolute -left-[25px] top-1 h-5 w-5 rounded-full border-4 border-white shadow-sm transition-colors"
+                        class="timeline-dot"
                         class:bg-blue-500={meeting.status === "completed"}
                         class:bg-green-500={meeting.status === "active"}
                         class:bg-purple-500={meeting.type === "pinned_item"}
@@ -55,16 +55,12 @@
                         {/if}
                     </div>
 
-                    <div
-                        class="bg-white p-5 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-all"
-                    >
+                    <div class="timeline-card">
                         <div
                             class="flex flex-col sm:flex-row justify-between gap-4 mb-3"
                         >
                             <div>
-                                <p
-                                    class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1"
-                                >
+                                <p class="timeline-date">
                                     {new Date(
                                         meeting.date,
                                     ).toLocaleDateString()} at {new Date(
@@ -74,16 +70,14 @@
                                         minute: "2-digit",
                                     })}
                                 </p>
-                                <h4 class="font-bold text-gray-900 text-lg">
+                                <h4 class="timeline-item-title">
                                     {meeting.title || "Dialysis Session"}
                                 </h4>
                             </div>
 
                             {#if meeting.chairId}
                                 <div class="flex items-start">
-                                    <span
-                                        class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-xs font-bold"
-                                    >
+                                    <span class="badge-blue">
                                         💺 Chair {meeting.chairId}
                                     </span>
                                 </div>
@@ -126,12 +120,11 @@
                             >
                                 <!-- Condition -->
                                 <div>
-                                    <span
-                                        class="text-[10px] uppercase text-gray-400 font-bold block mb-1"
+                                    <span class="timeline-stat-label"
                                         >Condition</span
                                     >
                                     {#if meeting.condition}
-                                        <span class="font-medium text-gray-700"
+                                        <span class="timeline-stat-value"
                                             >{meeting.condition}</span
                                         >
                                     {:else}
@@ -143,12 +136,11 @@
 
                                 <!-- Weight Pre -->
                                 <div>
-                                    <span
-                                        class="text-[10px] uppercase text-gray-400 font-bold block mb-1"
+                                    <span class="timeline-stat-label"
                                         >Pre-Weight</span
                                     >
                                     {#if meeting.weight?.pre}
-                                        <span class="font-medium text-gray-700"
+                                        <span class="timeline-stat-value"
                                             >{meeting.weight.pre} kg</span
                                         >
                                     {:else}
@@ -160,12 +152,11 @@
 
                                 <!-- Weight Post -->
                                 <div>
-                                    <span
-                                        class="text-[10px] uppercase text-gray-400 font-bold block mb-1"
+                                    <span class="timeline-stat-label"
                                         >Post-Weight</span
                                     >
                                     {#if meeting.weight?.post}
-                                        <span class="font-medium text-gray-700"
+                                        <span class="timeline-stat-value"
                                             >{meeting.weight.post} kg</span
                                         >
                                     {:else}
@@ -177,8 +168,7 @@
 
                                 <!-- Patient Card / Obs -->
                                 <div>
-                                    <span
-                                        class="text-[10px] uppercase text-gray-400 font-bold block mb-1"
+                                    <span class="timeline-stat-label"
                                         >Observations</span
                                     >
                                     {#if meeting.patientCardData?.observations}
