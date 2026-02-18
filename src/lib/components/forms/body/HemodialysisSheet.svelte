@@ -470,6 +470,7 @@
     title="Datos de la Sesión"
     data={form}
     patientId={patientId || ""}
+    sourcePath="hemodialysis"
   >
     <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
       <div class="col-span-1 md:col-span-2">
@@ -511,7 +512,12 @@
     </div>
   </FormSectionCard>
 
-  <FormSectionCard title="Vitales" data={form} patientId={patientId || ""}>
+  <FormSectionCard
+    title="Vitales"
+    data={form}
+    patientId={patientId || ""}
+    sourcePath="hemodialysis"
+  >
     <div class="border border-gray-300 mb-4">
       <table class="w-full text-center text-xs">
         <thead class="bg-gray-200 text-gray-800 font-bold uppercase">
@@ -590,6 +596,7 @@
     title="Información de Sesión"
     data={form}
     patientId={patientId || ""}
+    sourcePath="hemodialysis"
   >
     <div class="grid grid-cols-2 lg:grid-cols-6 gap-4 mb-4">
       <TextInput label="Cubiculo" bind:value={form.cubicle} />
@@ -630,6 +637,7 @@
         title="Pre-Evaluo"
         data={form}
         patientId={patientId || ""}
+        sourcePath="hemodialysis.preEval"
       >
         <div class="border border-gray-300">
           <table class="w-full text-center text-xs">
@@ -685,6 +693,7 @@
         title="Maquinaria"
         data={form}
         patientId={patientId || ""}
+        sourcePath="hemodialysis.machine"
       >
         <div
           class="border border-gray-200 rounded-lg p-4 bg-gray-50/50 space-y-3"
@@ -779,9 +788,10 @@
   <div class="grid grid-cols-1 md:grid-cols-12 gap-6 mb-6">
     <div class="col-span-12 md:col-span-4">
       <FormSectionCard
-        title="Ordenes de Heparina"
+        title="Sellos"
         data={form}
         patientId={patientId || ""}
+        sourcePath="hemodialysis.seals"
       >
         <div
           class="border border-gray-200 rounded-lg p-4 bg-gray-50/50 space-y-3"
@@ -806,6 +816,7 @@
         title="Ordenes de Diálisis"
         data={form}
         patientId={patientId || ""}
+        sourcePath="hemodialysis.dialysis"
       >
         <div class="border border-gray-200 rounded-lg p-4 bg-gray-50/50">
           <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
@@ -848,7 +859,12 @@
   </div>
 
   <div class="col-span-12 mb-6">
-    <FormSectionCard title="Accesos" data={form} patientId={patientId || ""}>
+    <FormSectionCard
+      title="Accesos"
+      data={form}
+      patientId={patientId || ""}
+      sourcePath="hemodialysis.access"
+    >
       <div class="border border-gray-300 bg-gray-50/50">
         <div
           class="grid grid-cols-6 gap-2 text-xs font-bold uppercase p-2 bg-gray-200 text-gray-800 border-b border-gray-300 text-center"
@@ -924,7 +940,12 @@
   </div>
 
   <div class="col-span-12 mb-6">
-    <FormSectionCard title="Monitoreo" data={form} patientId={patientId || ""}>
+    <FormSectionCard
+      title="Monitoreo"
+      data={form}
+      patientId={patientId || ""}
+      sourcePath="hemodialysis.monitoring"
+    >
       <div class="border border-gray-300">
         <div class="overflow-x-auto">
           <table class="w-full text-center text-[10px] min-w-[1000px]">
@@ -1031,6 +1052,7 @@
       title="Notas y Firmas"
       data={form}
       patientId={patientId || ""}
+      sourcePath="hemodialysis"
     >
       <div
         class="grid grid-cols-12 gap-6 bg-gray-50 p-4 rounded-lg border border-gray-200"

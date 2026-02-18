@@ -34,6 +34,7 @@
 	"dependencies": {
 		"@sentry/sveltekit": "^10.38.0",
 		"@tailwindcss/vite": "^4.1.18",
+		"@workos-inc/node": "^8.5.0",
 		"convex": "^1.31.7",
 		"convex-svelte": "^0.0.12",
 		"svelte-sonner": "^1.0.7",

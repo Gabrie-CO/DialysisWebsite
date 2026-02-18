@@ -46,6 +46,40 @@ export const createOrUpdate = mutation({
     },
 });
 
+export const assignChair = mutation({
+    args: {
+        patientId: v.id("users"),
+        chairId: v.optional(v.string()) // null to unassign
+    },
+    handler: async (ctx, args) => {
+        // Find today's meeting for this patient
+        const today = new Date().toISOString().split('T')[0];
+
+        // We look for a meeting created today
+        // Ideally we'd have a better date query but for now let's scan recent
+        const meetings = await ctx.db
+            .query("meetings")
+            .withIndex("by_patient_date", (q) => q.eq("patientId", args.patientId))
+            .order("desc")
+            .take(5);
+
+        const meetingToday = meetings.find(m => m.date.startsWith(today));
+
+        if (meetingToday) {
+            await ctx.db.patch(meetingToday._id, { chairId: args.chairId });
+        } else if (args.chairId) {
+            // Create new meeting if assigning to chair and none exists
+            await ctx.db.insert("meetings", {
+                patientId: args.patientId,
+                date: new Date().toISOString(),
+                status: "in-progress",
+                title: "Hemodialysis Session",
+                chairId: args.chairId
+            });
+        }
+    }
+});
+
 // Get recent meetings for a patient
 export const getRecent = query({
     args: {
@@ -61,19 +95,39 @@ export const getRecent = query({
             .take(3);
 
         // 2. Get all pinned items for this patient
-        const pinnedItems = await ctx.db
+        const pinnedItemsRaw = await ctx.db
             .query("meetings")
             .withIndex("by_patient_date", (q) => q.eq("patientId", args.patientId))
             .filter((q) => q.eq(q.field("type"), "pinned_item"))
             .order("desc")
             .collect();
 
-        // 3. Merge and sort by date descending
-        const allMeetings = [...recentSessions, ...pinnedItems].sort(
-            (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
-        );
+        // Hydrate pinned items with live data if sourcePath exists
+        const patient = await ctx.db.get(args.patientId);
 
-        return allMeetings;
+        const pinnedItems = pinnedItemsRaw.map((item: any) => {
+            if (item.sourcePath && patient) {
+                // Resolve path like "hemodialysis.vitals"
+                const parts = item.sourcePath.split(".");
+                let current = patient;
+                for (const part of parts) {
+                    if (current === undefined || current === null) break;
+                    current = current[part];
+                }
+
+                // If we found data, use it. Otherwise fall back to snapshot.
+                if (current !== undefined) {
+                    return { ...item, pinnedData: current };
+                }
+            }
+            return item;
+        });
+
+        // 3. Return separated
+        return {
+            recentSessions,
+            pinnedItems
+        };
     },
 });
 
@@ -101,6 +155,7 @@ export const togglePin = mutation({
         patientId: v.id("users"),
         title: v.string(),
         data: v.any(),
+        sourcePath: v.optional(v.string())
     },
     handler: async (ctx, args) => {
         const existing = await ctx.db
@@ -123,10 +178,30 @@ export const togglePin = mutation({
                 title: args.title,
                 type: "pinned_item",
                 pinnedData: args.data,
+                sourcePath: args.sourcePath
             });
             return { status: "pinned" };
         }
     },
+});
+
+export const cleanupMedicalNotes = mutation({
+    args: {},
+    handler: async (ctx) => {
+        const medicalNotes = await ctx.db
+            .query("meetings")
+            .filter((q) => q.and(
+                q.eq(q.field("type"), "pinned_item"),
+                q.eq(q.field("title"), "Medical Note")
+            ))
+            .collect();
+
+        for (const note of medicalNotes) {
+            await ctx.db.delete(note._id);
+        }
+
+        return `Removed ${medicalNotes.length} Medical Note items.`;
+    }
 });
 
 export const getQueue = query({
@@ -171,4 +246,54 @@ export const getQueue = query({
 
         return queue.filter((p) => p !== null);
     },
+});
+
+export const getDailyChairs = query({
+    args: {},
+    handler: async (ctx) => {
+        // Get all meetings from today (or very recent) that have a chair Assigned
+        // In a real app, filtering by date would be more precise with an index
+        const meetings = await ctx.db
+            .query("meetings")
+            .order("desc")
+            .take(100); // Reasonable limit for now
+
+        const today = new Date().toISOString().split('T')[0];
+
+        const activeMeetings = meetings.filter(m =>
+            m.date.startsWith(today) &&
+            m.chairId !== undefined &&
+            m.chairId !== null
+        );
+
+        // Fetch user details for these meetings
+        const chairsWithPatients = await Promise.all(
+            activeMeetings.map(async (m) => {
+                if (!m.patientId) return null;
+                const user = await ctx.db.get(m.patientId);
+                const patientData = await ctx.db
+                    .query("patients")
+                    .withIndex("by_user", (q) => q.eq("userId", m.patientId!))
+                    .unique();
+
+                if (!user) return null;
+
+                return {
+                    chairId: m.chairId, // "0", "1", etc. (index as string)
+                    patient: {
+                        _id: user._id,
+                        id: user._id,
+                        name: user.firstName && user.lastName
+                            ? `${user.firstName} ${user.lastName}`
+                            : "Unknown",
+                        priority: patientData?.priority || "stable",
+                        alert: patientData?.alert,
+                        chairNumber: String(Number(m.chairId) + 1).padStart(2, "0")
+                    }
+                };
+            })
+        );
+
+        return chairsWithPatients.filter(Boolean);
+    }
 });

@@ -173,19 +173,7 @@ export const seedTodayMeetings = mutation({
                     historyCount++;
                 }
 
-                // Add a pinned item for each patient
-                await ctx.db.insert("meetings", {
-                    patientId: patient.userId,
-                    date: new Date().toISOString(),
-                    status: "pinned",
-                    title: "Medical Note",
-                    type: "pinned_item",
-                    pinnedData: {
-                        allergies: "Penicillin",
-                        background: "Chronic hypertension",
-                        observation: "Monitor BP closely during first hour."
-                    }
-                });
+
             }
 
             // Ensure patient is marked as present

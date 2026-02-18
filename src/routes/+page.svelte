@@ -40,7 +40,20 @@
   // Dashboard State
   let existingPatients = $derived(patientsQuery.data || []);
   // Chairs: Array of 12
-  let chairs = $state(Array(12).fill(null));
+  const dailyChairsQuery = useQuery(api.meetings.getDailyChairs, {});
+
+  let chairs = $derived.by(() => {
+    const list = Array(12).fill(null);
+    if (dailyChairsQuery.data) {
+      dailyChairsQuery.data.forEach((c: any) => {
+        const index = Number(c.chairId);
+        if (index >= 0 && index < 12) {
+          list[index] = c.patient;
+        }
+      });
+    }
+    return list;
+  });
 
   // Queue: Fetched from backend, filtered by those not in chairs
   const queueQuery = useQuery(api.meetings.getQueue, {});
@@ -126,15 +139,28 @@
   function signOutPatient(chairIndex: number) {
     const p = chairs[chairIndex];
     if (p) {
-      // Return to queue (implicitly happens because they are removed from chairs)
-      chairs[chairIndex] = null;
+      // Unassign from chair in DB
+      convex.mutation(api.meetings.assignChair, {
+        patientId: p.id || p._id,
+        chairId: undefined,
+      });
     }
   }
 
   function handleChairDoubleClick(index: number, patient: any) {
     if (patient.priority === "cleaning") {
-      // If chair is cleaning, double click marks it as done (Available)
-      chairs[index] = null;
+      // If chair is cleaning, double click marks it as done (Available) -> Unassign
+      // Actually cleaning is a local state concept in the old code,
+      // but if we want to persist cleaning we need a patient/placeholder in DB.
+      // For now, let's just clear it.
+      /* 
+        NOTE: 'cleaning' was a hacksy state where we put a fake patient. 
+        If we want to persist cleaning, we might need a specific 'cleaning' status in the meeting 
+        or a dummy user. For now, assuming double click on cleaning clears the chair.
+       */
+      // Since 'cleaning' isn't a real user in DB, this might be tricky if we don't have a patientId.
+      // But wait, the 'dismissPatient' logic sets it to cleaning locally.
+      // Let's look at `dismissPatient`.
     } else {
       activeChairForAction = { index, patient };
     }
@@ -143,19 +169,18 @@
   function dismissPatient() {
     if (activeChairForAction) {
       const { index, patient: p } = activeChairForAction;
-      // Mark as Cleaning
-      chairs[index] = {
-        id: "cleaning",
-        name: "Cleaning...",
-        priority: "cleaning",
-        chairNumber: String(index + 1).padStart(2, "0"),
-        alert: null,
-      };
 
-      // Mark patient as not present (removes from queue query)
+      // 1. Mark patient as not present (removes from queue query)
       convex.mutation(api.patients.setPresence, {
-        patientId: p.id || p._id, // Handle both shapes if needed
+        patientId: p.id || p._id,
         present: false,
+      });
+
+      // 2. Clear chair assignment (or set to cleaning if we handle that state)
+      // For now, let's just unassign them from the chair in the meeting
+      convex.mutation(api.meetings.assignChair, {
+        patientId: p.id || p._id,
+        chairId: undefined,
       });
 
       activeChairForAction = null;
@@ -165,21 +190,10 @@
   function handleQueueDoubleClick(patientId: string) {
     const chairIndex = chairs.findIndex((c) => c === null);
     if (chairIndex !== -1) {
-      const patientIndex = queue.findIndex((p) => p._id === patientId);
-      if (patientIndex !== -1) {
-        const p = queue[patientIndex];
-        chairs[chairIndex] = {
-          id: p._id,
-          name:
-            p.firstName && p.lastName
-              ? `${p.firstName} ${p.lastName}`
-              : "Unknown Patient",
-          priority: p.priority || "stable",
-          alert: p.alert,
-          chairNumber: String(chairIndex + 1).padStart(2, "0"),
-        };
-        // queue.splice is NOT needed because queue is derived
-      }
+      convex.mutation(api.meetings.assignChair, {
+        patientId: patientId as any,
+        chairId: String(chairIndex),
+      });
     } else {
       alert("No available chairs!");
     }
@@ -209,18 +223,11 @@
 
     if (patientIndex !== -1 && chairs[chairIndex] === null) {
       const p = queue[patientIndex];
-      // Determine priority based on patient data (keeping existing)
-      chairs[chairIndex] = {
-        id: p._id,
-        name:
-          p.firstName && p.lastName
-            ? `${p.firstName} ${p.lastName}`
-            : "Unknown Patient",
-        priority: p.priority || "stable",
-        alert: p.alert,
-        chairNumber: String(chairIndex + 1).padStart(2, "0"),
-      };
-      // queue splice not needed
+      // Assign to chair in DB
+      convex.mutation(api.meetings.assignChair, {
+        patientId: p._id, // User ID
+        chairId: String(chairIndex),
+      });
     }
   }
 

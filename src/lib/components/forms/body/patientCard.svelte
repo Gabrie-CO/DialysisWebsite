@@ -111,7 +111,12 @@
   </div>
 {/snippet}
 
-<FormSectionCard title="Patient Card" data={$form} patientId={patientId ?? ""}>
+<FormSectionCard
+  title="Patient Card"
+  data={$form}
+  patientId={patientId ?? ""}
+  sourcePath="patientCard"
+>
   <div class="form-header">
     {#if $form.updatedAt}
       <p class="small-text">

@@ -6,10 +6,11 @@
     // @ts-ignore
     import type { Id } from "../../../../convex/_generated/dataModel";
 
-    let { title, data, patientId, children } = $props<{
+    let { title, data, patientId, sourcePath, children } = $props<{
         title: string;
         data: any;
         patientId: string;
+        sourcePath?: string;
         children: Snippet;
     }>();
 
@@ -30,6 +31,7 @@
                 patientId: patientId as any,
                 title: title,
                 data: data,
+                sourcePath: sourcePath,
             });
 
             if (result.status === "pinned") {

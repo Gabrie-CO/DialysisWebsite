@@ -91,6 +91,7 @@ export default defineSchema({
         title: v.string(),
         patientId: v.optional(v.id("users")), // Made optional to support legacy/empty meetings
         type: v.optional(v.string()), // "session" | "pinned_item"
+        sourcePath: v.optional(v.string()), // Path to live data (e.g. "hemodialysis.vitals")
         pinnedData: v.optional(v.any()), // Snapshot of data
         chairId: v.optional(v.string()), // Store chair number/ID
         weight: v.optional(v.object({ pre: v.string(), post: v.string() })),
