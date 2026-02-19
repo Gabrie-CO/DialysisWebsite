@@ -185,3 +185,51 @@ export const seedTodayMeetings = mutation({
         return `Seeded ${count} meetings for today, ${historyCount} historical meetings, and pinned items for patients.`;
     },
 });
+
+export const seedQueuePatients = mutation({
+    args: {},
+    handler: async (ctx) => {
+        const patients = await ctx.db.query("patients").collect();
+        const now = new Date();
+        const startOfDay = new Date(new Date(now).setUTCHours(0, 0, 0, 0)).toISOString();
+        const endOfDay = new Date(new Date(now).setUTCHours(23, 59, 59, 999)).toISOString();
+
+        let count = 0;
+
+        for (const patient of patients) {
+            // 1. Ensure patient is marked as present
+            if (!patient.present) {
+                await ctx.db.patch(patient._id, { present: true });
+            }
+
+            // 2. Ensure they are NOT in a chair for today's meeting
+            const existingMeeting = await ctx.db
+                .query("meetings")
+                .withIndex("by_patient_date", (q) => q.eq("patientId", patient.userId))
+                .filter((q) => q.gte(q.field("date"), startOfDay) && q.lte(q.field("date"), endOfDay))
+                .first();
+
+            if (existingMeeting) {
+                // If they have a meeting, unassign chair
+                if (existingMeeting.chairId) {
+                    await ctx.db.patch(existingMeeting._id, { chairId: undefined });
+                    count++;
+                }
+            } else {
+                // Create a scheduled meeting without a chair
+                await ctx.db.insert("meetings", {
+                    patientId: patient.userId,
+                    date: now.toISOString(),
+                    status: "scheduled",
+                    title: "Scheduled Dialysis",
+                    condition: "Stable",
+                    chairId: undefined, // Explicitly no chair
+                    weight: { pre: "0", post: "0" }
+                });
+                count++;
+            }
+        }
+
+        return `Seeded/Updated ${count} patients to be in the Queue (Present + No Chair).`;
+    },
+});

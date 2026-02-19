@@ -346,3 +346,37 @@ export const updateCriticalInfo = mutation({
         }
     }
 });
+
+export const updateGeneralInfo = mutation({
+    args: {
+        patientId: v.id("users"),
+        generalInfoData: v.object({
+            name: v.string(),
+            age: v.string(),
+            sex: v.string(),
+            civilStatus: v.string(),
+            occupation: v.string(),
+            birthPlace: v.string(),
+            birthDate: v.string(),
+            residence: v.string(),
+            phone: v.string(),
+            updatedAt: v.optional(v.string()),
+        }),
+    },
+    handler: async (ctx, args) => {
+        // 1. Update patients table
+        await upsertPatientData(ctx, args.patientId, {
+            generalInfo: { ...args.generalInfoData, updatedAt: new Date().toISOString() },
+        });
+
+        // 2. Sync core fields to users table
+        const updates: any = {};
+        if (args.generalInfoData.sex) updates.gender = args.generalInfoData.sex;
+        if (args.generalInfoData.birthDate) updates.dateOfBirth = args.generalInfoData.birthDate;
+        // Optionally sync name -> firstName/lastName, but avoiding for now to prevent overwrite issues
+
+        if (Object.keys(updates).length > 0) {
+            await ctx.db.patch(args.patientId, updates);
+        }
+    },
+});

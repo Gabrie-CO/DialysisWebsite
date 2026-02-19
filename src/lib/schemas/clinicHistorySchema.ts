@@ -103,6 +103,7 @@ export const clinicHistorySchema = z.object({
             thrombosis: z.object({
                 active: z.boolean().default(false),
                 type: z.enum(["partial", "total"]).nullable().default(null),
+                observation: z.string().default(""),
             }),
             siteRotation: z.boolean().nullable().default(null),
         }),

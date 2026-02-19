@@ -98,6 +98,18 @@ export default defineSchema({
         medicationSheet: v.optional(v.any()),
         examControls: v.optional(v.any()),
         monthlyProgress: v.optional(v.any()),
+        generalInfo: v.optional(v.object({
+            name: v.string(),
+            age: v.string(),
+            sex: v.string(),
+            civilStatus: v.string(),
+            occupation: v.string(),
+            birthPlace: v.string(),
+            birthDate: v.string(),
+            residence: v.string(),
+            phone: v.string(),
+            updatedAt: v.optional(v.string()),
+        })),
         pinnedSections: v.optional(v.array(v.string())), // List of pinned section IDs
     }).index("by_user", ["userId"]),
 

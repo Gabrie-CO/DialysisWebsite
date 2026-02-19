@@ -50,15 +50,6 @@
     }
   });
 
-  const ageOptions = [
-    { value: "18-20 años", label: "18-20 años" },
-    { value: "21-30 años", label: "21-30 años" },
-    { value: "31-40 años", label: "31-40 años" },
-    { value: "41-50 años", label: "41-50 años" },
-    { value: "51-60 años", label: "51-60 años" },
-    { value: ">61 años", label: ">61 años" },
-  ];
-
   const timeHdOptions = [
     { value: "< 1 año", label: "< 1 año" },
     { value: "1 - 5 años", label: "1 - 5 años" },
@@ -66,11 +57,6 @@
     { value: "11 - 15 años", label: "11 - 15 años" },
     { value: "16 - 20 años", label: "16 - 20 años" },
     { value: "> 21 años", label: "> 21 años" },
-  ];
-
-  const sexOptions = [
-    { value: "Masculino", label: "Masculino" },
-    { value: "Femenino", label: "Femenino" },
   ];
 
   const hemostasisOptions = [
@@ -141,18 +127,6 @@
     {/if}
   </header>
 
-  <FormSectionCard
-    title="I. Datos Generales"
-    data={$form}
-    patientId={patientId || ""}
-  >
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <TextInput label="Nombre del paciente" bind:value={$form.general.name} />
-      <TextInput label="Ocupación" bind:value={$form.general.occupation} />
-      <DateInput label="Fecha" bind:value={$form.general.date} />
-    </div>
-  </FormSectionCard>
-
   <form method="POST" use:enhance>
     <div class="mb-8">
       <h2 class="font-bold text-lg mb-2">II. Historia Clínica:</h2>
@@ -160,19 +134,7 @@
       <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
         <div class="space-y-6">
           <FormSectionCard
-            title="1. Edad: Seleccionar la que corresponda"
-            data={$form}
-            patientId={patientId || ""}
-          >
-            <RadioGroup
-              name="age"
-              options={ageOptions}
-              bind:value={$form.history.ageRange}
-            />
-          </FormSectionCard>
-
-          <FormSectionCard
-            title="3. Comorbilidades"
+            title="Comorbilidades"
             data={$form}
             patientId={patientId || ""}
           >
@@ -201,7 +163,7 @@
           </FormSectionCard>
 
           <FormSectionCard
-            title="5. Tipo de acceso vascular"
+            title="Tipo de acceso vascular"
             data={$form}
             patientId={patientId || ""}
           >
@@ -234,7 +196,7 @@
           </FormSectionCard>
 
           <FormSectionCard
-            title="7. Ubicación del acceso vascular"
+            title=" Ubicación del acceso vascular"
             data={$form}
             patientId={patientId || ""}
           >
@@ -283,7 +245,7 @@
           </FormSectionCard>
 
           <FormSectionCard
-            title="10. Sellos de CVC"
+            title="Sellos de CVC"
             data={$form}
             patientId={patientId || ""}
           >
@@ -300,7 +262,7 @@
           </FormSectionCard>
 
           <FormSectionCard
-            title="11. Trombólisis intraluminal con estreptoquinasa"
+            title="Trombólisis intraluminal con estreptoquinasa"
             data={$form}
             patientId={patientId || ""}
           >
@@ -341,19 +303,7 @@
 
         <div class="space-y-6">
           <FormSectionCard
-            title="2. Sexo"
-            data={$form}
-            patientId={patientId || ""}
-          >
-            <RadioGroup
-              name="sex"
-              options={sexOptions}
-              bind:value={$form.history.sex}
-            />
-          </FormSectionCard>
-
-          <FormSectionCard
-            title="4. Tiempo de recibir HD"
+            title="Tiempo de recibir HD"
             data={$form}
             patientId={patientId || ""}
           >
@@ -365,7 +315,7 @@
           </FormSectionCard>
 
           <FormSectionCard
-            title="6. Fecha de colocación del acceso vascular"
+            title="Fecha de colocación del acceso vascular"
             data={$form}
             patientId={patientId || ""}
           >
@@ -386,7 +336,7 @@
           </FormSectionCard>
 
           <FormSectionCard
-            title="8. Funcionalidad del AV-CVC"
+            title="Funcionalidad del AV-CVC"
             data={$form}
             patientId={patientId || ""}
           >
@@ -407,7 +357,7 @@
           </FormSectionCard>
 
           <FormSectionCard
-            title="9. Disfuncionalidad de AV-CVC"
+            title="Disfuncionalidad de AV-CVC"
             data={$form}
             patientId={patientId || ""}
           >
@@ -470,7 +420,7 @@
           </FormSectionCard>
 
           <FormSectionCard
-            title="12. Historias previos de AV"
+            title="Historias previos de AV"
             data={$form}
             patientId={patientId || ""}
           >
@@ -482,7 +432,7 @@
           </FormSectionCard>
 
           <FormSectionCard
-            title="13. Ubicación anterior"
+            title=" Ubicación anterior"
             data={$form}
             patientId={patientId || ""}
           >
@@ -673,41 +623,83 @@
 
             <div class="mt-2">
               <span class="text-sm font-medium">Trombosis:</span>
-              <div class="flex items-center gap-4 mt-1">
+              <div class="flex flex-wrap items-center gap-4 mt-1">
                 <label class="flex items-center gap-1 cursor-pointer">
                   <input
-                    type="checkbox"
-                    bind:checked={
-                      $form.physicalExam.matureCharacteristics.thrombosis.active
-                    }
+                    type="radio"
+                    checked={$form.physicalExam.matureCharacteristics.thrombosis
+                      .active === false}
+                    onclick={() => {
+                      $form.physicalExam.matureCharacteristics.thrombosis.active = false;
+                      $form.physicalExam.matureCharacteristics.thrombosis.type =
+                        null;
+                      $form.physicalExam.matureCharacteristics.thrombosis.observation =
+                        "";
+                    }}
                     class="form-checkbox"
                   />
-                  <span class="text-xs">Si</span>
+                  <span class="text-xs">No</span>
                 </label>
-                {#if $form.physicalExam.matureCharacteristics.thrombosis.active}
-                  <div class="flex gap-2">
-                    <label class="flex items-center gap-1 text-xs"
-                      ><input
-                        type="radio"
-                        value="partial"
-                        bind:group={
-                          $form.physicalExam.matureCharacteristics.thrombosis
-                            .type
-                        }
-                      /> Parcial</label
-                    >
-                    <label class="flex items-center gap-1 text-xs"
-                      ><input
-                        type="radio"
-                        value="total"
-                        bind:group={
-                          $form.physicalExam.matureCharacteristics.thrombosis
-                            .type
-                        }
-                      /> Total</label
-                    >
-                  </div>
-                {/if}
+
+                <div class="flex items-center gap-2">
+                  <label class="flex items-center gap-1 cursor-pointer">
+                    <input
+                      type="radio"
+                      checked={$form.physicalExam.matureCharacteristics
+                        .thrombosis.active === true &&
+                        $form.physicalExam.matureCharacteristics.thrombosis
+                          .type === "partial"}
+                      onclick={() => {
+                        $form.physicalExam.matureCharacteristics.thrombosis.active = true;
+                        $form.physicalExam.matureCharacteristics.thrombosis.type =
+                          "partial";
+                      }}
+                      class="form-checkbox"
+                    />
+                    <span class="text-xs">Parcial</span>
+                  </label>
+                  {#if $form.physicalExam.matureCharacteristics.thrombosis.active && $form.physicalExam.matureCharacteristics.thrombosis.type === "partial"}
+                    <input
+                      type="text"
+                      bind:value={
+                        $form.physicalExam.matureCharacteristics.thrombosis
+                          .observation
+                      }
+                      class="form-input-line w-32 text-xs"
+                      placeholder="___"
+                    />
+                  {/if}
+                </div>
+
+                <div class="flex items-center gap-2">
+                  <label class="flex items-center gap-1 cursor-pointer">
+                    <input
+                      type="radio"
+                      checked={$form.physicalExam.matureCharacteristics
+                        .thrombosis.active === true &&
+                        $form.physicalExam.matureCharacteristics.thrombosis
+                          .type === "total"}
+                      onclick={() => {
+                        $form.physicalExam.matureCharacteristics.thrombosis.active = true;
+                        $form.physicalExam.matureCharacteristics.thrombosis.type =
+                          "total";
+                      }}
+                      class="form-checkbox"
+                    />
+                    <span class="text-xs">Total</span>
+                  </label>
+                  {#if $form.physicalExam.matureCharacteristics.thrombosis.active && $form.physicalExam.matureCharacteristics.thrombosis.type === "total"}
+                    <input
+                      type="text"
+                      bind:value={
+                        $form.physicalExam.matureCharacteristics.thrombosis
+                          .observation
+                      }
+                      class="form-input-line w-32 text-xs"
+                      placeholder="___"
+                    />
+                  {/if}
+                </div>
               </div>
             </div>
           </div>

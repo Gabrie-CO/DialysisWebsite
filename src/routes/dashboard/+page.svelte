@@ -7,17 +7,13 @@
   // Dashboard Components
   import PatientSidebar from "$lib/components/dashboard/PatientSidebar.svelte";
   import PatientHeader from "$lib/components/dashboard/PatientHeader.svelte";
-  import Chair from "$lib/components/dashboard/Chair.svelte";
-  import ActiveAlerts from "$lib/components/dashboard/ActiveAlerts.svelte";
-  import ClinicStats from "$lib/components/dashboard/ClinicStats.svelte";
-  import InfoSection from "$lib/components/dashboard/InfoSection.svelte";
-  import PatientQueue from "$lib/components/dashboard/PatientQueue.svelte";
   import PatientTimeline from "$lib/components/dashboard/PatientTimeline.svelte";
 
   // Forms
   import PatientCard from "$lib/components/forms/body/patientCard.svelte";
   import Fichas from "$lib/components/forms/body/fichas.svelte";
   import CIDH from "$lib/components/forms/body/CIDH.svelte";
+  import ClinicHistory from "$lib/components/forms/body/ClinicHistory.svelte";
   import ClinicalHistory2 from "$lib/components/forms/body/ClinicalHistory2.svelte";
   import Fistula from "$lib/components/forms/body/Fistula.svelte";
   import HemodialysisSheet from "$lib/components/forms/body/HemodialysisSheet.svelte";
@@ -26,6 +22,7 @@
   import ExamControls from "$lib/components/forms/body/examControls.svelte";
   import MonthlyProgress from "$lib/components/forms/body/monthlyProgress.svelte";
   import ErrorBoundary from "$lib/components/ui/ErrorBoundary.svelte";
+  import GeneralInfoForm from "$lib/components/forms/body/GeneralInfo.svelte";
 
   import type { PageData } from "./$types";
 
@@ -153,6 +150,27 @@
 
   const AVAILABLE_DOCUMENTS = [
     {
+      id: "generalInfo",
+      title: "Información General",
+      icon: "📋",
+      desc: "General patient information",
+      component: GeneralInfoForm,
+      dataKey: "generalInfo",
+      defaultData: {
+        name: "",
+        age: "",
+        sex: "",
+        civilStatus: "",
+        occupation: "",
+        birthPlace: "",
+        birthDate: "",
+        residence: "",
+        phone: "",
+      },
+      mutation: api.patients.updateGeneralInfo,
+      argKey: "generalInfoData",
+    },
+    {
       id: "patientCard",
       title: "Ficha de Paciente",
       icon: "📋",
@@ -162,6 +180,39 @@
       defaultData: DEFAULT_PATIENT_CARD,
       mutation: api.patients.updatePatientCard,
       argKey: "patientCardData",
+    },
+    {
+      id: "clinicHistory",
+      title: "Historia Clinica del Accesso Vascular para Hemodialysis",
+      icon: "📋",
+      desc: "Clinic history",
+      component: ClinicHistory,
+      dataKey: "clinicHistoryOld",
+      defaultData: {},
+      mutation: api.patients.updateClinicHistoryOld,
+      argKey: "data",
+    },
+    {
+      id: "fichas",
+      title: "Fichas",
+      icon: "📋",
+      desc: "Fichas",
+      component: Fichas,
+      dataKey: "fichas",
+      defaultData: {},
+      mutation: api.patients.updateFichas,
+      argKey: "data",
+    },
+    {
+      id: "cidh",
+      title: "CIDH",
+      icon: "📋",
+      desc: "CIDH",
+      component: CIDH,
+      dataKey: "cidh",
+      defaultData: {},
+      mutation: api.patients.updateCIDH,
+      argKey: "data",
     },
 
     {
@@ -206,7 +257,7 @@
     },
     {
       id: "medicationSheet",
-      title: "Medication Sheet",
+      title: "Aplicación de Medicamentos",
       icon: "💊",
       desc: "Medication administration",
       component: MedicationApplicationSheet,
@@ -216,7 +267,7 @@
     },
     {
       id: "examControls",
-      title: "Exam Controls",
+      title: "Control de Examenes",
       icon: "🔬",
       desc: "Laboratory exam controls",
       component: ExamControls,
@@ -226,7 +277,7 @@
     },
     {
       id: "monthlyProgress",
-      title: "Monthly Progress",
+      title: "Evolución Mensual",
       icon: "📅",
       desc: "Monthly patient progress",
       component: MonthlyProgress,

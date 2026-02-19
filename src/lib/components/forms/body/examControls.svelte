@@ -9,9 +9,6 @@
   import TextInput from "../ui/TextInput.svelte";
   import FormSectionCard from "../../ui/FormSectionCard.svelte";
 
-  // --- TYPES ---
-  type SerologyStatus = "pos" | "neg" | null;
-
   const months = [
     "ENERO",
     "FEBRERO",
@@ -26,7 +23,37 @@
     "NOVIEMBRE",
     "DICIEMBRE",
   ];
-
+  const examTypes = [
+    "HB",
+    "HTC",
+    "LEU",
+    "PLAQUETAS",
+    "GLUCOSA",
+    "UREA",
+    "CREATININA",
+    "ACIDO URICO",
+    "ALBUMINA",
+    "COLESTEROL",
+    "TRIGLICERIDOS",
+    "SODIO",
+    "POTASIO",
+    "FOSFATASA / ALCALINA",
+    "CALSIO",
+    "FOSFORO",
+    "NIVELES HIERRO",
+    "PTH",
+    "KTV",
+  ];
+  const serologyMap: Record<string, { id: string; label: string }> = {
+    "HEP B+": { id: "hepb", label: "HEP B" },
+    "HEP B-": { id: "hepb", label: "HEP B" },
+    "HEP C+": { id: "hepc", label: "HEP C" },
+    "HEP C-": { id: "hepc", label: "HEP C" },
+    "VIH+": { id: "vih", label: "VIH" },
+    "VIH-": { id: "vih", label: "VIH" },
+    "TB+": { id: "tb", label: "TB" },
+    "TB-": { id: "tb", label: "TB" },
+  };
   let {
     initialData = {},
     patientId,
@@ -65,14 +92,33 @@
     }
   });
 
-  // --- LOGIC ---
-  function setSerology(
-    key: keyof typeof $form.serology,
-    status: SerologyStatus,
-  ) {
-    // @ts-ignore
-    $form.serology[key] = status;
-  }
+  // Ensure rows match examTypes and serology
+  $effect(() => {
+    const currentRows = untrack(() => $form.rows);
+    const serologyKeys = Object.keys(serologyMap);
+    const allTypes = [...examTypes, ...serologyKeys];
+
+    if (currentRows.length === 0) {
+      // Initialize rows from examTypes and serology
+      $form.rows = allTypes.map((type) => ({
+        id: type,
+        label: type,
+        values: {},
+      }));
+    } else {
+      // Merge/Ensure all types exist
+      const existingIds = new Set(currentRows.map((r:any) => r.id));
+      const missing = allTypes.filter((t) => !existingIds.has(t));
+      if (missing.length > 0) {
+        const newRows = missing.map((type) => ({
+          id: type,
+          label: type,
+          values: {},
+        }));
+        $form.rows = [...currentRows, ...newRows];
+      }
+    }
+  });
 
   function updateCell(rowId: string, month: string, value: string) {
     const row = $form.rows.find((r: any) => r.id === rowId);
@@ -81,61 +127,7 @@
       $form.rows = [...$form.rows]; // Trigger update
     }
   }
-
-  function isSerologyRow(id: string): boolean {
-    return ["hepb", "hepc", "vih", "tb"].includes(id);
-  }
 </script>
-
-{#snippet serologyControl(
-  label: string,
-  value: SerologyStatus,
-  onUpdate: (s: SerologyStatus) => void,
-)}
-  <div class="flex items-center justify-center h-full w-full">
-    <div class="flex rounded overflow-hidden border border-gray-400 h-6">
-      <label
-        class="cursor-pointer flex items-center justify-center px-4 transition-colors border-r border-gray-400"
-        class:bg-red-100={value === "pos"}
-        class:bg-white={value !== "pos"}
-        class:hover:bg-red-50={value !== "pos"}
-      >
-        <input
-          type="radio"
-          name={label}
-          checked={value === "pos"}
-          onclick={() => onUpdate("pos")}
-          class="hidden"
-        />
-        <span
-          class="text-[9px] font-bold"
-          class:text-red-800={value === "pos"}
-          class:text-gray-400={value !== "pos"}>POSITIVO (+)</span
-        >
-      </label>
-
-      <label
-        class="cursor-pointer flex items-center justify-center px-4 transition-colors"
-        class:bg-green-100={value === "neg"}
-        class:bg-white={value !== "neg"}
-        class:hover:bg-green-50={value !== "neg"}
-      >
-        <input
-          type="radio"
-          name={label}
-          checked={value === "neg"}
-          onclick={() => onUpdate("neg")}
-          class="hidden"
-        />
-        <span
-          class="text-[9px] font-bold"
-          class:text-green-800={value === "neg"}
-          class:text-gray-400={value !== "neg"}>NEGATIVO (-)</span
-        >
-      </label>
-    </div>
-  </div>
-{/snippet}
 
 {#snippet inputCell(rowId: string, month: string, val: string)}
   <td class="border border-black p-0 h-8 min-w-15">
@@ -161,33 +153,6 @@
 
   <form method="POST" use:enhance>
     <FormSectionCard
-      title="Datos del Paciente"
-      data={$form}
-      patientId={patientId || ""}
-    >
-      <div class="grid grid-cols-12 gap-4 items-end p-3">
-        <div class="col-span-12 md:col-span-5">
-          <TextInput
-            label="Nombre del Paciente"
-            bind:value={$form.patient.name}
-          />
-        </div>
-        <div class="col-span-6 md:col-span-2">
-          <TextInput label="Edad" bind:value={$form.patient.age} />
-        </div>
-        <div class="col-span-6 md:col-span-3">
-          <TextInput
-            label="No. Expediente"
-            bind:value={$form.patient.fileNumber}
-          />
-        </div>
-        <div class="col-span-6 md:col-span-2">
-          <TextInput label="Año" bind:value={$form.patient.year} />
-        </div>
-      </div>
-    </FormSectionCard>
-
-    <FormSectionCard
       title="Control de Examenes"
       data={$form}
       patientId={patientId || ""}
@@ -199,7 +164,7 @@
               <th
                 class="border border-black p-2 text-[10px] font-bold w-40 sticky left-0 bg-gray-200 z-10 text-left"
               >
-                NOMBRE DEL PACIENTE
+                TIPO DE EXAMEN
               </th>
               {#each months as month}
                 <th
@@ -213,52 +178,29 @@
               <th
                 class="border border-black p-1 text-[10px] font-bold sticky left-0 bg-gray-100 z-10 text-center italic"
               >
-                TIPO DE EXAMEN
               </th>
               <th colspan="12" class="border border-black bg-gray-50"></th>
             </tr>
           </thead>
           <tbody>
-            {#each $form.rows as row}
-              <tr class="hover:bg-gray-50 group h-8">
+            {#each $form.rows as row, i}
+              <tr
+                class="hover:bg-blue-50 group h-8 {i % 2 === 0
+                  ? 'bg-white'
+                  : 'bg-gray-100'}"
+              >
                 <td
-                  class="border border-black px-2 py-1 text-[10px] font-bold sticky left-0 bg-white group-hover:bg-gray-50 z-10"
+                  class="border border-black px-2 py-1 text-[10px] font-bold sticky left-0 group-hover:bg-blue-50 z-10 {i %
+                    2 ===
+                  0
+                    ? 'bg-white'
+                    : 'bg-gray-100'}"
                 >
                   {row.label}
                 </td>
-
-                {#if isSerologyRow(row.id)}
-                  <td
-                    colspan="12"
-                    class="border border-black p-0 bg-gray-50/30"
-                  >
-                    {#if row.id === "hepb"}
-                      {@render serologyControl(
-                        "Hep B",
-                        $form.serology.hepB,
-                        (v) => setSerology("hepB", v),
-                      )}
-                    {:else if row.id === "hepc"}
-                      {@render serologyControl(
-                        "Hep C",
-                        $form.serology.hepC,
-                        (v) => setSerology("hepC", v),
-                      )}
-                    {:else if row.id === "vih"}
-                      {@render serologyControl("VIH", $form.serology.vih, (v) =>
-                        setSerology("vih", v),
-                      )}
-                    {:else if row.id === "tb"}
-                      {@render serologyControl("TB", $form.serology.tb, (v) =>
-                        setSerology("tb", v),
-                      )}
-                    {/if}
-                  </td>
-                {:else}
-                  {#each months as month}
-                    {@render inputCell(row.id, month, row.values[month])}
-                  {/each}
-                {/if}
+                {#each months as month}
+                  {@render inputCell(row.id, month, row.values[month])}
+                {/each}
               </tr>
             {/each}
           </tbody>

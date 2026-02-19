@@ -116,7 +116,8 @@
       sodium: string;
       ufProfile: string;
       maxUfr: string;
-      dialyzerStd: string;
+      dialyzerStd_dialyzer: string;
+      dialyzerStd_std: string;
       comments: string;
     };
 
@@ -395,7 +396,8 @@
         sodium: "",
         ufProfile: "",
         maxUfr: "",
-        dialyzerStd: "",
+        dialyzerStd_dialyzer: "",
+        dialyzerStd_std: "",
         comments: "",
         ...initialData.dialysis,
       },
@@ -472,22 +474,7 @@
     patientId={patientId || ""}
     sourcePath="hemodialysis"
   >
-    <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
-      <div class="col-span-1 md:col-span-2">
-        <TextInput label="Código Paciente" bind:value={form.patientCode} />
-      </div>
-      <div class="col-span-1 md:col-span-4">
-        <TextInput
-          label="Nombre Completo de Paciente"
-          bind:value={form.patientName}
-        />
-      </div>
-      <div class="col-span-1">
-        <TextInput label="Ficha No." bind:value={form.fileNo} />
-      </div>
-      <div class="col-span-1 md:col-span-2">
-        <DateInput label="Fecha" bind:value={form.date} />
-      </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
       <div class="col-span-1">
         <span class="form-label mb-1">Turno / Hora</span>
         <div class="flex gap-1">
@@ -503,7 +490,7 @@
           />
         </div>
       </div>
-      <div class="col-span-1 md:col-span-2">
+      <div class="col-span-1">
         <TextInput
           label="Tipo de Tratamiento"
           bind:value={form.treatmentType}
@@ -584,7 +571,7 @@
       class="grid grid-cols-2 gap-4 bg-gray-50 p-3 rounded-lg border border-gray-200"
     >
       <div>
-        <TextInput label="PESO: Algunos" bind:value={form.vitals.weight.pre} />
+        <TextInput label="PESO: Antes" bind:value={form.vitals.weight.pre} />
       </div>
       <div>
         <TextInput label="PESO: Despues" bind:value={form.vitals.weight.post} />
@@ -836,16 +823,19 @@
             <TextInput label="Sodio Mod" bind:value={form.dialysis.sodium} />
           </div>
 
-          <div class="grid grid-cols-3 gap-4 border-t border-gray-200 pt-3">
+          <div
+            class="grid grid-cols-2 md:grid-cols-4 gap-4 border-t border-gray-200 pt-3"
+          >
             <TextInput
               label="UF Profiling"
               bind:value={form.dialysis.ufProfile}
             />
             <TextInput label="Max UFR" bind:value={form.dialysis.maxUfr} />
             <TextInput
-              label="Dializador std"
-              bind:value={form.dialysis.dialyzerStd}
+              label="Dializador"
+              bind:value={form.dialysis.dialyzerStd_dialyzer}
             />
+            <TextInput label="Std" bind:value={form.dialysis.dialyzerStd_std} />
           </div>
           <div class="mt-4">
             <TextInput
