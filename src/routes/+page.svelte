@@ -133,9 +133,9 @@
     if (activeChairForAction) {
       const { index, patient: p } = activeChairForAction;
 
-      // 1. Mark patient as not present (removes from queue query)
-      convex.mutation(api.patients.setPresence, {
-        patientId: p.id || p._id,
+      // Mark patient as not present (removes from queue query)
+      convex.mutation(api.meetings.markPresent, {
+        patientId: p.id || p._id, // Handle both shapes if needed
         present: false,
       });
 
@@ -185,13 +185,173 @@
 
     if (patientIndex !== -1 && chairs[chairIndex] === null) {
       const p = queue[patientIndex];
-      // Assign to chair in DB
-      convex.mutation(api.meetings.assignChair, {
-        patientId: p._id, // User ID
-        chairId: String(chairIndex),
-      });
+      // Determine priority based on patient data (keeping existing)
+      chairs[chairIndex] = {
+        id: p._id,
+        name:
+          p.firstName && p.lastName
+            ? `${p.firstName} ${p.lastName}`
+            : "Unknown Patient",
+        priority: p.priority || "stable",
+        alert: p.alert,
+        chairNumber: String(chairIndex + 1).padStart(2, "0"),
+      };
+      // queue splice not needed
     }
   }
+
+  const AVAILABLE_DOCUMENTS = [
+    {
+      id: "patientCard",
+      title: "Ficha de Paciente",
+      icon: "📋",
+      desc: "General patient information",
+      component: PatientCard,
+      dataKey: "patientCard",
+      defaultData: DEFAULT_PATIENT_CARD,
+      mutation: api.patients.updatePatientCard,
+      argKey: "patientCardData",
+      type: "patientCard",
+    },
+    {
+      id: "fichas",
+      title: "Fichas (Checklists)",
+      icon: "✅",
+      desc: "Annual checklists validation",
+      component: Fichas,
+      dataKey: "fichas",
+      mutation: api.patients.updateFichas,
+      argKey: "fichasData",
+      type: "fichas",
+    },
+    {
+      id: "cidh",
+      title: "Infection Control (CIDH)",
+      icon: "🦠",
+      desc: "Report infection signs/events",
+      component: CIDH,
+      dataKey: "cidh",
+      mutation: api.forms.saveForm,
+      argKey: "data",
+      type: "cidh",
+    },
+    {
+      id: "clinicalHistory",
+      title: "Clinical History",
+      icon: "🏥",
+      desc: "Complete clinical history",
+      component: ClinicHistory,
+      dataKey: "clinicHistoryOld",
+      mutation: api.forms.saveForm,
+      argKey: "data",
+      type: "clinicHistoryOld",
+    },
+    {
+      id: "clinicalHistory2",
+      title: "Clinical History 2",
+      icon: "🏥",
+      desc: "Alternative clinical history",
+      component: ClinicalHistory2,
+      dataKey: "clinicalHistory",
+      mutation: api.patients.updateClinicalHistory, // keeping original unless it was part of unions
+      argKey: "clinicalHistoryData",
+      type: "clinicalHistory2",
+    },
+    {
+      id: "fistula",
+      title: "Fistula Check",
+      icon: "💉",
+      desc: "Fistula monitoring",
+      component: Fistula,
+      dataKey: "fistula",
+      mutation: api.forms.saveForm,
+      argKey: "data",
+      type: "fistula",
+    },
+    {
+      id: "hemodialysisSheet",
+      title: "Hemodialysis Sheet",
+      icon: "🩸",
+      desc: "Daily hemodialysis record",
+      component: HemodialysisSheet,
+      dataKey: "hemodialysis",
+      mutation: api.forms.saveForm,
+      argKey: "data",
+      type: "hemodialysis",
+    },
+    {
+      id: "infections",
+      title: "Infections",
+      icon: "🤒",
+      desc: "Infection tracking",
+      component: Infections,
+      dataKey: "infections",
+      mutation: api.patients.updateInfections,
+      argKey: "infectionsData",
+      type: "infections",
+    },
+    {
+      id: "medicationSheet",
+      title: "Medication Sheet",
+      icon: "💊",
+      desc: "Medication administration",
+      component: MedicationApplicationSheet,
+      dataKey: "medicationSheet",
+      mutation: api.forms.saveForm,
+      argKey: "data",
+      type: "medicationSheet",
+    },
+    {
+      id: "examControls",
+      title: "Exam Controls",
+      icon: "🔬",
+      desc: "Laboratory exam controls",
+      component: ExamControls,
+      dataKey: "examControls",
+      mutation: api.forms.saveForm,
+      argKey: "data",
+      type: "examControls",
+    },
+    {
+      id: "monthlyProgress",
+      title: "Monthly Progress",
+      icon: "📅",
+      desc: "Monthly patient progress",
+      component: MonthlyProgress,
+      dataKey: "monthlyProgress",
+      mutation: api.forms.saveForm,
+      argKey: "data",
+      type: "monthlyProgress",
+    },
+    {
+      id: "debug",
+      title: "Debug Refresh",
+      icon: "🧪",
+      desc: "Check form re-rendering",
+    },
+  ];
+
+  let activeDocConfig = $derived(
+    AVAILABLE_DOCUMENTS.find((d) => d.id === activeDocument),
+  );
+
+  let activeFormQuery = $derived(
+    activeDocConfig &&
+      activeDocConfig.mutation === api.forms.saveForm &&
+      selectedPatientId
+      ? useQuery(api.forms.getForm, {
+          patientId: selectedPatientId as any,
+          type: activeDocConfig.type as any,
+        })
+      : { data: undefined },
+  );
+
+  let formInitialData = $derived(
+    activeFormQuery.data?.data ||
+      (patient as any)?.[activeDocConfig?.dataKey!] ||
+      activeDocConfig?.defaultData ||
+      {},
+  );
 </script>
 
 <div class="flex h-screen w-full bg-gray-100 font-sans overflow-hidden">
@@ -295,17 +455,118 @@
             </div>
           </div>
 
-          <!-- Right: Queue -->
-          <div class="w-full lg:w-72 shrink-0">
-            <PatientQueue
-              patients={queue}
-              onDragStart={handleDragStart}
-              onPatientDoubleClick={handleQueueDoubleClick}
-            />
+            <!-- Right: Queue -->
+            <div class="w-full lg:w-72 shrink-0">
+              <PatientQueue
+                patients={queue}
+                onDragStart={handleDragStart}
+                onPatientDoubleClick={handleQueueDoubleClick}
+              />
+            </div>
           </div>
         </div>
-      </div>
-    </main>
+      </main>
+    {:else}
+      <!-- INDIVIDUAL PATIENT VIEW -->
+      <PatientHeader
+        {patient}
+        {activeTab}
+        onTabChange={(tab) => {
+          activeTab = tab;
+          activeDocument = null;
+        }}
+        onMenuClick={() => (isSidebarOpen = true)}
+      />
+
+      <main class="flex-1 overflow-y-auto p-6 bg-gray-50">
+        <button
+          onclick={resetToDashboard}
+          class="mb-6 text-sm font-bold text-blue-600 hover:text-blue-800 flex items-center gap-2 transition-colors"
+        >
+          ← Back to Clinic Overview
+        </button>
+
+        {#if activeTab === "timeline"}
+          <!-- Timeline content -->
+          <div class="max-w-3xl mx-auto space-y-8">
+            {#if activeSession}
+              <div
+                class="bg-white rounded-xl shadow-lg border-l-4 border-l-green-500 overflow-hidden"
+              >
+                <div class="p-6">
+                  <h3 class="font-bold text-green-900">
+                    Active Session: {activeSession.machine}
+                  </h3>
+                </div>
+              </div>
+            {/if}
+            {#if selectedPatientId}
+              <PatientTimeline patientId={selectedPatientId} />
+            {/if}
+          </div>
+        {:else if activeTab === "forms"}
+          {#if !activeDocument}
+            <!-- Forms dashboard-->
+            <div class="max-w-4xl mx-auto">
+              <h3 class="text-center font-bold text-gray-700 text-xl mb-6">
+                Select Document
+              </h3>
+              <div class="grid grid-cols-2 lg:grid-cols-4 gap-6">
+                {#each AVAILABLE_DOCUMENTS as doc}
+                  <button
+                    class="bg-white p-6 rounded-xl shadow-sm border hover:border-blue-500 hover:bg-blue-50 transition-all flex flex-col items-center gap-3 text-center"
+                    onclick={() => (activeDocument = doc.id)}
+                  >
+                    <div class="text-4xl">{doc.icon}</div>
+                    <div class="font-bold">{doc.title}</div>
+                    <div class="text-xs text-gray-500">{doc.desc}</div>
+                  </button>
+                {/each}
+              </div>
+            </div>
+          {:else if activeDocConfig?.component}
+            <!-- individual form loop -->
+            {@const Component = activeDocConfig.component}
+            <div class="max-w-4xl mx-auto space-y-6">
+              <button
+                type="button"
+                class="text-gray-400 hover:text-black font-bold relative z-50 cursor-pointer mb-4 inline-flex items-center gap-1"
+                onclick={() => (activeDocument = null)}>&larr; Back</button
+              >
+              <ErrorBoundary>
+                <Component
+                  initialData={formInitialData}
+                  patientId={selectedPatientId || ""}
+                  onSave={async (formData: any) => {
+                    if (activeDocConfig.mutation) {
+                      const args: any = {
+                        patientId: selectedPatientId,
+                        [activeDocConfig.argKey!]: formData,
+                      };
+                      if (activeDocConfig.mutation === api.forms.saveForm) {
+                        args.type = activeDocConfig.type;
+                      }
+                      await convex.mutation(activeDocConfig.mutation, args);
+                    }
+                  }}
+                />
+              </ErrorBoundary>
+            </div>
+          {:else if activeDocument === "debug"}
+            <!-- Debug comp -->
+            <div class="max-w-4xl mx-auto space-y-6">
+              <div
+                class="bg-white p-12 rounded-2xl border-4 border-dashed border-blue-100 flex flex-col items-center gap-4"
+              >
+                <h2 class="text-2xl font-black text-blue-900">
+                  Debug Renderer
+                </h2>
+              </div>
+            </div>
+          {/if}
+        {/if}
+      </main>
+    {/if}
   </div>
 
   <!-- ACTION MODAL -->

@@ -102,39 +102,40 @@ export const getRecent = query({
 export const getQueue = query({
     args: {},
     handler: async (ctx) => {
-        // 1. Get all patients who are marked as present
-        // Note: In a large production app, we should add an index on 'present'
-        const presentPatients = await ctx.db
-            .query("patients")
-            .filter((q) => q.eq(q.field("present"), true))
+        const today = new Date().toISOString().split("T")[0]; // YYYY-MM-DD
+
+        // 1. Get all meetings for today that are active/scheduled
+        const todaysMeetings = await ctx.db
+            .query("meetings")
+            .withIndex("by_date", (q) => q.eq("date", today))
+            .filter((q) =>
+                q.or(
+                    q.eq(q.field("status"), "active"),
+                    q.eq(q.field("status"), "scheduled") // or whatever status implies "present"
+                )
+            )
             .collect();
 
-        // 2. Fetch user details and latest meeting for each present patient
+        // 2. Fetch user details for each patient in today's meetings
         const queue = await Promise.all(
-            presentPatients.map(async (patientData) => {
-                const userId = patientData.userId;
-                if (!userId) return null;
+            todaysMeetings.map(async (meeting) => {
+                if (!meeting.patientId) return null;
 
-                const user = await ctx.db.get(userId);
+                const user = await ctx.db.get(meeting.patientId);
                 if (!user) return null;
 
-                // Find the latest meeting for this patient (today or most recent)
-                // We'll simplisticly take the most recent one created
-                const lastMeeting = await ctx.db
-                    .query("meetings")
-                    .withIndex("by_patient_date", (q) => q.eq("patientId", userId))
-                    .order("desc")
-                    .first();
+                const patientData = await ctx.db
+                    .query("patients")
+                    .withIndex("by_user", (q) => q.eq("userId", meeting.patientId as import("./_generated/dataModel").Id<"users">))
+                    .unique();
 
-                // Start of today for filtering if strictly needed, but if they are present, 
-                // we probably want to show their relevant meeting regardless or create one.
-                // For now, let's attach the last meeting if it looks relevant (e.g. status scheduled)
+                if (!patientData) return null;
 
                 return {
                     ...user,
                     ...patientData,
-                    _id: userId, // Use user ID as main ID for frontend consistency
-                    meetingToday: lastMeeting
+                    _id: user._id, // Use user ID as main ID for frontend consistency
+                    meetingToday: meeting
                 };
             })
         );
@@ -143,52 +144,37 @@ export const getQueue = query({
     },
 });
 
-export const getDailyChairs = query({
-    args: {},
-    handler: async (ctx) => {
-        // Get all meetings from today (or very recent) that have a chair Assigned
-        // In a real app, filtering by date would be more precise with an index
-        const meetings = await ctx.db
+export const markPresent = mutation({
+    args: {
+        patientId: v.id("users"),
+        present: v.boolean(),
+    },
+    handler: async (ctx, args) => {
+        const today = new Date().toISOString().split("T")[0];
+
+        const existingMeeting = await ctx.db
             .query("meetings")
-            .order("desc")
-            .take(100); // Reasonable limit for now
+            .withIndex("by_patient_date", (q) => q.eq("patientId", args.patientId).eq("date", today))
+            .first();
 
-        const today = new Date().toISOString().split('T')[0];
-
-        const activeMeetings = meetings.filter(m =>
-            m.date.startsWith(today) &&
-            m.chairId !== undefined &&
-            m.chairId !== null
-        );
-
-        // Fetch user details for these meetings
-        const chairsWithPatients = await Promise.all(
-            activeMeetings.map(async (m) => {
-                if (!m.patientId) return null;
-                const user = await ctx.db.get(m.patientId);
-                const patientData = await ctx.db
-                    .query("patients")
-                    .withIndex("by_user", (q) => q.eq("userId", m.patientId!))
-                    .unique();
-
-                if (!user) return null;
-
-                return {
-                    chairId: m.chairId, // "0", "1", etc. (index as string)
-                    patient: {
-                        _id: user._id,
-                        id: user._id,
-                        name: user.firstName && user.lastName
-                            ? `${user.firstName} ${user.lastName}`
-                            : "Unknown",
-                        priority: patientData?.priority || "stable",
-                        alert: patientData?.alert,
-                        chairNumber: String(Number(m.chairId) + 1).padStart(2, "0")
-                    }
-                };
-            })
-        );
-
-        return chairsWithPatients.filter(Boolean);
+        if (args.present) {
+            if (!existingMeeting) {
+                // Create a new meeting for today to mark them as present
+                await ctx.db.insert("meetings", {
+                    patientId: args.patientId,
+                    date: today,
+                    status: "scheduled", // default status
+                    title: "Hemodialysis Session",
+                });
+            } else if (existingMeeting.status === "cancelled") {
+                // Re-activate
+                await ctx.db.patch(existingMeeting._id, { status: "scheduled" });
+            }
+        } else {
+            // Un-mark present (cancel or delete the meeting if it was just created)
+            if (existingMeeting) {
+                await ctx.db.patch(existingMeeting._id, { status: "cancelled" });
+            }
+        }
     }
 });

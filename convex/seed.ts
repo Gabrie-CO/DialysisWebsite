@@ -115,26 +115,33 @@ export const seedTodayMeetings = mutation({
 
         let count = 0;
         let historyCount = 0;
+        let formCount = 0;
 
-        for (const patient of patients) {
-            // 1. Check if meeting exists for today
-            const existingMeeting = await ctx.db
-                .query("meetings")
-                .withIndex("by_patient_date", (q) => q.eq("patientId", patient.userId))
-                .filter((q) => q.gte(q.field("date"), startOfDay) && q.lte(q.field("date"), endOfDay))
-                .first();
+        for (let idx = 0; idx < patients.length; idx++) {
+            const patient = patients[idx];
+            // Split them up: half have a meeting today, half don't
+            const hasMeetingToday = idx % 2 === 0;
 
-            if (!existingMeeting) {
-                await ctx.db.insert("meetings", {
-                    patientId: patient.userId,
-                    date: isoDate,
-                    status: "scheduled",
-                    title: "Scheduled Dialysis",
-                    condition: "Stable",
-                    chairId: (Math.floor(Math.random() * 10) + 1).toString(),
-                    weight: { pre: "75.2", post: "73.5" }
-                });
-                count++;
+            if (hasMeetingToday) {
+                // 1. Check if meeting exists for today
+                const existingMeeting = await ctx.db
+                    .query("meetings")
+                    .withIndex("by_patient_date", (q) => q.eq("patientId", patient.userId))
+                    .filter((q) => q.gte(q.field("date"), startOfDay) && q.lte(q.field("date"), endOfDay))
+                    .first();
+
+                if (!existingMeeting) {
+                    await ctx.db.insert("meetings", {
+                        patientId: patient.userId,
+                        date: isoDate,
+                        status: "scheduled",
+                        title: "Scheduled Dialysis",
+                        condition: "Stable",
+                        chairId: (Math.floor(Math.random() * 10) + 1).toString(),
+                        weight: { pre: "75.2", post: "73.5" }
+                    });
+                    count++;
+                }
             }
 
             // 2. Seed some historical meetings if they don't have many
@@ -176,13 +183,24 @@ export const seedTodayMeetings = mutation({
 
             }
 
-            // Ensure patient is marked as present
-            if (!patient.present) {
-                await ctx.db.patch(patient._id, { present: true });
+            // Seed some random form data to the forms table
+            const existingForm = await ctx.db
+                .query("forms")
+                .withIndex("by_patient_type", (q) => q.eq("patientId", patient.userId).eq("type", "cidh"))
+                .first();
+
+            if (!existingForm) {
+                await ctx.db.insert("forms", {
+                    patientId: patient.userId,
+                    type: "cidh",
+                    data: { notes: "Seeded CIDH Form" },
+                    updatedAt: isoDate
+                });
+                formCount++;
             }
         }
 
-        return `Seeded ${count} meetings for today, ${historyCount} historical meetings, and pinned items for patients.`;
+        return `Seeded ${count} meetings for today, ${historyCount} historical meetings, ${formCount} forms, and pinned items for patients.`;
     },
 });
 

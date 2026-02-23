@@ -23,7 +23,6 @@ export default defineSchema({
     patients: defineTable({
         userId: v.id("users"), // Link config
         // Patient specific fields
-        present: v.optional(v.boolean()), // checked in / in building
         priority: v.optional(v.string()), // critical, warning, stable
         condition: v.optional(v.string()), // critical, warning, stable (sync with priority if needed, but keeping separate for form)
 
@@ -112,6 +111,23 @@ export default defineSchema({
         })),
         pinnedSections: v.optional(v.array(v.string())), // List of pinned section IDs
     }).index("by_user", ["userId"]),
+
+    forms: defineTable({
+        patientId: v.id("users"),
+        type: v.union(
+            v.literal("cidh"), 
+            v.literal("clinicHistoryOld"), 
+            v.literal("fistula"), 
+            v.literal("hemodialysis"), 
+            v.literal("medicationSheet"), 
+            v.literal("examControls"), 
+            v.literal("monthlyProgress")
+        ),
+        data: v.any(),
+        updatedAt: v.string(),
+    })
+    .index("by_patient", ["patientId"])
+    .index("by_patient_type", ["patientId", "type"]),
 
     monthlyAssessments: defineTable({
         patientId: v.id("users"),

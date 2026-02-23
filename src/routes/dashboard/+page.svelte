@@ -180,6 +180,7 @@
       defaultData: DEFAULT_PATIENT_CARD,
       mutation: api.patients.updatePatientCard,
       argKey: "patientCardData",
+      type: "patientCard",
     },
     {
       id: "clinicHistory",
@@ -224,6 +225,7 @@
       dataKey: "clinicalHistory",
       mutation: api.patients.updateClinicalHistory,
       argKey: "clinicalHistoryData",
+      type: "clinicalHistory2",
     },
     {
       id: "fistula",
@@ -232,8 +234,9 @@
       desc: "Fistula monitoring",
       component: Fistula,
       dataKey: "fistula",
-      mutation: api.patients.updateFistula,
+      mutation: api.forms.saveForm,
       argKey: "data",
+      type: "fistula",
     },
     {
       id: "hemodialysisSheet",
@@ -242,8 +245,9 @@
       desc: "Daily hemodialysis record",
       component: HemodialysisSheet,
       dataKey: "hemodialysis",
-      mutation: api.patients.updateHemodialysis,
+      mutation: api.forms.saveForm,
       argKey: "data",
+      type: "hemodialysis",
     },
     {
       id: "infections",
@@ -254,6 +258,7 @@
       dataKey: "infections",
       mutation: api.patients.updateInfections,
       argKey: "infectionsData",
+      type: "infections",
     },
     {
       id: "medicationSheet",
@@ -262,8 +267,9 @@
       desc: "Medication administration",
       component: MedicationApplicationSheet,
       dataKey: "medicationSheet",
-      mutation: api.patients.updateMedicationSheet,
+      mutation: api.forms.saveForm,
       argKey: "data",
+      type: "medicationSheet",
     },
     {
       id: "examControls",
@@ -272,8 +278,9 @@
       desc: "Laboratory exam controls",
       component: ExamControls,
       dataKey: "examControls",
-      mutation: api.patients.updateExamControls,
+      mutation: api.forms.saveForm,
       argKey: "data",
+      type: "examControls",
     },
     {
       id: "monthlyProgress",
@@ -282,8 +289,9 @@
       desc: "Monthly patient progress",
       component: MonthlyProgress,
       dataKey: "monthlyProgress",
-      mutation: api.patients.updateMonthlyProgress,
+      mutation: api.forms.saveForm,
       argKey: "data",
+      type: "monthlyProgress",
     },
     {
       id: "debug",
@@ -295,6 +303,24 @@
 
   let activeDocConfig = $derived(
     AVAILABLE_DOCUMENTS.find((d) => d.id === activeDocument) as any,
+  );
+
+  let activeFormQuery = $derived(
+    activeDocConfig &&
+      activeDocConfig.mutation === api.forms.saveForm &&
+      selectedPatientId
+      ? useQuery(api.forms.getForm, {
+          patientId: selectedPatientId as any,
+          type: activeDocConfig.type as any,
+        })
+      : { data: undefined },
+  );
+
+  let formInitialData = $derived(
+    activeFormQuery.data?.data ||
+      (patient as any)?.[activeDocConfig?.dataKey!] ||
+      activeDocConfig?.defaultData ||
+      {},
   );
 </script>
 
@@ -388,15 +414,17 @@
             <ErrorBoundary>
               <Component
                 patientId={selectedPatientId || ""}
-                initialData={(patient as any)?.[activeDocConfig.dataKey!] ||
-                  activeDocConfig.defaultData ||
-                  {}}
+                initialData={formInitialData}
                 onSave={async (formData: any) => {
                   if (activeDocConfig.mutation) {
-                    await convex.mutation(activeDocConfig.mutation, {
-                      patientId: selectedPatientId as any,
+                    const args: any = {
+                      patientId: selectedPatientId,
                       [activeDocConfig.argKey!]: formData,
-                    } as any);
+                    };
+                    if (activeDocConfig.mutation === api.forms.saveForm) {
+                      args.type = activeDocConfig.type;
+                    }
+                    await convex.mutation(activeDocConfig.mutation, args);
                   }
                 }}
               />
