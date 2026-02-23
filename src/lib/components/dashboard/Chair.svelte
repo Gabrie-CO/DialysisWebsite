@@ -50,10 +50,15 @@
         ⋮
     </button>
 
-    <div class="text-[10px] uppercase font-bold opacity-80 mb-1">
-        Chair {props.chairNumber}
+    <div
+        class="text-[10px] uppercase font-bold opacity-80 mb-1 tracking-widest"
+    >
+        Chair
     </div>
-    <div class="text-lg font-bold text-center leading-tight">
+    <div class="text-3xl font-black mb-1 opacity-90">
+        {props.chairNumber}
+    </div>
+    <div class="text-sm font-bold text-center leading-tight">
         {props.patientName}
     </div>
     <div class="mt-2 text-[9px] font-mono tracking-widest opacity-60 uppercase">

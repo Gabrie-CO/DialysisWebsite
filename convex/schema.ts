@@ -110,24 +110,26 @@ export default defineSchema({
             updatedAt: v.optional(v.string()),
         })),
         pinnedSections: v.optional(v.array(v.string())), // List of pinned section IDs
+        block: v.optional(v.number()), // Shift/Block the patient belongs to
+        present: v.optional(v.boolean()), // Whether the patient is currently in the queue/clinic
     }).index("by_user", ["userId"]),
 
     forms: defineTable({
         patientId: v.id("users"),
         type: v.union(
-            v.literal("cidh"), 
-            v.literal("clinicHistoryOld"), 
-            v.literal("fistula"), 
-            v.literal("hemodialysis"), 
-            v.literal("medicationSheet"), 
-            v.literal("examControls"), 
+            v.literal("cidh"),
+            v.literal("clinicHistoryOld"),
+            v.literal("fistula"),
+            v.literal("hemodialysis"),
+            v.literal("medicationSheet"),
+            v.literal("examControls"),
             v.literal("monthlyProgress")
         ),
         data: v.any(),
         updatedAt: v.string(),
     })
-    .index("by_patient", ["patientId"])
-    .index("by_patient_type", ["patientId", "type"]),
+        .index("by_patient", ["patientId"])
+        .index("by_patient_type", ["patientId", "type"]),
 
     monthlyAssessments: defineTable({
         patientId: v.id("users"),
@@ -139,6 +141,18 @@ export default defineSchema({
         .index("by_patient_month", ["patientId", "month", "year"])
         .index("by_patient_type", ["patientId", "type"]),
 
+    clinics: defineTable({
+        name: v.string(),
+        address: v.optional(v.string()),
+        settings: v.optional(v.any()),
+        activeChairs: v.array(
+            v.object({
+                chairId: v.string(),
+                patientId: v.id("users"),
+            })
+        ),
+    }),
+
     meetings: defineTable({
         date: v.string(),
         status: v.string(),
@@ -147,6 +161,8 @@ export default defineSchema({
         chairId: v.optional(v.string()), // Store chair number/ID
         weight: v.optional(v.object({ pre: v.string(), post: v.string() })),
         condition: v.optional(v.string()), // e.g. "Stable", "Critical"
+        block: v.optional(v.number()), // Indicates what block they attended
+        clinicId: v.optional(v.id("clinics")), // Indicates which hospital they are in
         // Snapshot of patient card at the time of meeting
         patientCardData: v.optional(v.object({
             elderly80_90: v.boolean(),

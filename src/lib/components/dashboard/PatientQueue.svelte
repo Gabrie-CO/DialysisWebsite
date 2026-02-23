@@ -1,15 +1,25 @@
 <script lang="ts">
     let props = $props<{
         patients: any[];
+        activeBlock?: number;
         onDragStart: (e: DragEvent, patientId: string) => void;
         onPatientDoubleClick?: (patientId: string) => void;
     }>();
 </script>
 
 <div class="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm w-full">
-    <h3 class="text-sm font-bold text-gray-400 uppercase tracking-widest mb-4">
-        Patient Queue
-    </h3>
+    <div class="flex items-center justify-between mb-4">
+        <h3 class="text-sm font-bold text-gray-400 uppercase tracking-widest">
+            Patient Queue
+        </h3>
+        {#if props.activeBlock}
+            <span
+                class="bg-blue-100 text-blue-800 text-xs font-bold px-2 py-1 rounded"
+            >
+                Block {props.activeBlock}
+            </span>
+        {/if}
+    </div>
 
     {#if props.patients.length === 0}
         <div class="text-gray-400 text-sm italic py-4 text-center">
@@ -19,7 +29,14 @@
         <div class="flex flex-col gap-3">
             {#each props.patients as p}
                 <div
-                    class="p-3 bg-blue-50 hover:bg-blue-100 border border-blue-100 rounded-xl cursor-grab active:cursor-grabbing transition-colors relative group"
+                    class="p-3 border rounded-xl cursor-grab active:cursor-grabbing transition-colors relative group
+                    {p.block === 1
+                        ? 'bg-blue-50 hover:bg-blue-100 border-blue-200'
+                        : p.block === 2
+                          ? 'bg-green-50 hover:bg-green-100 border-green-200'
+                          : p.block === 3
+                            ? 'bg-orange-50 hover:bg-orange-100 border-orange-200'
+                            : 'bg-gray-50 hover:bg-gray-100 border-gray-200'}"
                     draggable="true"
                     ondragstart={(e) => props.onDragStart(e, p._id)}
                     ondblclick={(e) => {

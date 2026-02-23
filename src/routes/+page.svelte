@@ -11,6 +11,22 @@
   import ClinicStats from "$lib/components/dashboard/ClinicStats.svelte";
   import InfoSection from "$lib/components/dashboard/InfoSection.svelte";
   import PatientQueue from "$lib/components/dashboard/PatientQueue.svelte";
+  import PatientHeader from "$lib/components/dashboard/PatientHeader.svelte";
+  import PatientTimeline from "$lib/components/dashboard/PatientTimeline.svelte";
+
+  // Forms
+  import PatientCard from "$lib/components/forms/body/patientCard.svelte";
+  import Fichas from "$lib/components/forms/body/fichas.svelte";
+  import CIDH from "$lib/components/forms/body/CIDH.svelte";
+  import ClinicHistory from "$lib/components/forms/body/ClinicHistory.svelte";
+  import ClinicalHistory2 from "$lib/components/forms/body/ClinicalHistory2.svelte";
+  import Fistula from "$lib/components/forms/body/Fistula.svelte";
+  import HemodialysisSheet from "$lib/components/forms/body/HemodialysisSheet.svelte";
+  import Infections from "$lib/components/forms/body/Infections.svelte";
+  import MedicationApplicationSheet from "$lib/components/forms/body/MedicationApplicationSheet.svelte";
+  import ExamControls from "$lib/components/forms/body/examControls.svelte";
+  import MonthlyProgress from "$lib/components/forms/body/monthlyProgress.svelte";
+  import ErrorBoundary from "$lib/components/ui/ErrorBoundary.svelte";
 
   import type { PageData } from "./$types";
 
@@ -24,7 +40,10 @@
   // Dashboard State
   let existingPatients = $derived(patientsQuery.data || []);
   // Chairs: Array of 12
-  const dailyChairsQuery = useQuery(api.meetings.getDailyChairs, {});
+  const dailyChairsQuery = useQuery(api.clinics.getDailyChairs, {});
+
+  // Fetch Queue Data
+  const queueQuery = useQuery(api.meetings.getQueue, {});
 
   // Dashboard State
   let cleaningChairs = $state(new Set<number>());
@@ -35,7 +54,10 @@
       dailyChairsQuery.data.forEach((c: any) => {
         const index = Number(c.chairId);
         if (index >= 0 && index < 12) {
-          list[index] = c.patient;
+          list[index] = {
+            ...c.patient,
+            chairNumber: String(index + 1).padStart(2, "0"),
+          };
         }
       });
     }
@@ -56,13 +78,34 @@
     return list;
   });
 
-  // Queue: Fetched from backend, filtered by those not in chairs
-  const queueQuery = useQuery(api.meetings.getQueue, {});
-  let queue = $derived(
+  let rawQueue = $derived(
     (queueQuery.data || []).filter(
       (p) => !chairs.some((main) => main && main.id === p._id),
     ),
   );
+
+  // Block Management
+  let activeBlock = $state(1);
+
+  // Auto-advance block if current block is empty
+  $effect(() => {
+    // Check if there are ANY patients remaining (in queue or chairs) for the active block
+    // We only advance if the queue is empty AND no chairs are currently treating patients for this block
+    const queueHasActiveBlock = rawQueue.some((p) => p.block === activeBlock);
+
+    if (!queueHasActiveBlock && rawQueue.length > 0) {
+      // Find the next block that actually has patients in the queue
+      const nextAvailableBlock = Math.min(
+        ...rawQueue.map((p) => p.block || 999),
+      );
+      if (nextAvailableBlock !== 999 && nextAvailableBlock > activeBlock) {
+        activeBlock = nextAvailableBlock;
+      }
+    }
+  });
+
+  // Display only the queue for the active block
+  let queue = $derived(rawQueue.filter((p) => p.block === activeBlock));
 
   // Derived Dashboard Stats
   let activeAlerts = $derived(
@@ -84,17 +127,53 @@
     chairs.filter((p) => p !== null && p.priority === "critical").length,
   );
 
+  // Form Defaults
+  const DEFAULT_PATIENT_CARD = {
+    elderly80_90: false,
+    malnutrition: false,
+    preservedDiuresis: false,
+    time: "",
+    qd: "",
+    qb: "",
+    ktvt: "",
+    filter: "",
+    observations: "",
+    signature: "",
+  };
+
   // Routing / View State
   let selectedPatientId = $derived(page.url.searchParams.get("id") || null);
   let isSidebarOpen = $state(false);
   let activeChairForAction = $state<{ index: number; patient: any } | null>(
     null,
   );
+  let activeTab = $state("timeline");
+  let activeDocument = $state<string | null>(null);
+
+  let patient = $derived(
+    existingPatients.find((p: any) => p._id === selectedPatientId) ||
+      existingPatients[0],
+  );
+
+  let activeSession = $derived(
+    data.activeSession &&
+      selectedPatientId &&
+      data.activeSession[selectedPatientId]
+      ? data.activeSession[selectedPatientId]
+      : null,
+  );
 
   // Handlers
+  function resetToDashboard() {
+    goto("/");
+  }
+
   function handleSelectPatient(id: string) {
     if (id === "cleaning") return;
-    goto(`/dashboard?id=${id}`);
+    goto(`/?id=${id}`);
+    activeTab = "timeline";
+    activeDocument = null;
+    isSidebarOpen = false;
   }
 
   function signOutPatient(chairIndex: number) {
@@ -103,7 +182,7 @@
     const p = chairs[chairIndex];
     if (p) {
       // Unassign from chair in DB
-      convex.mutation(api.meetings.assignChair, {
+      convex.mutation(api.clinics.assignChair, {
         patientId: p.id || p._id,
         chairId: undefined,
       });
@@ -140,7 +219,7 @@
       });
 
       // 2. Clear chair assignment
-      convex.mutation(api.meetings.assignChair, {
+      convex.mutation(api.clinics.assignChair, {
         patientId: p.id || p._id,
         chairId: undefined,
       });
@@ -157,7 +236,7 @@
   function handleQueueDoubleClick(patientId: string) {
     const chairIndex = chairs.findIndex((c) => c === null);
     if (chairIndex !== -1) {
-      convex.mutation(api.meetings.assignChair, {
+      convex.mutation(api.clinics.assignChair, {
         patientId: patientId as any,
         chairId: String(chairIndex),
       });
@@ -377,88 +456,90 @@
   />
 
   <div class="flex-1 flex flex-col min-w-0">
-    <!-- DASHBOARD VIEW -->
-    <main class="flex-1 overflow-y-auto p-4 md:p-8 bg-gray-50">
-      <div class="max-w-7xl mx-auto">
-        <header
-          class="mb-10 flex flex-col md:flex-row justify-between items-end gap-4"
-        >
-          <div>
-            <h1 class="text-3xl font-black text-gray-900 tracking-tight">
-              Clinic Overview
-            </h1>
-            <p class="text-gray-500 font-medium mb-4">
-              Real-time status of all active treatment chairs
-            </p>
-            <div class="flex items-center gap-4">
-              <ClinicStats {totalPatients} {totalChairs} />
+    {#if !selectedPatientId}
+      <!-- DASHBOARD VIEW -->
+      <main class="flex-1 overflow-y-auto p-4 md:p-8 bg-gray-50">
+        <div class="max-w-7xl mx-auto">
+          <header
+            class="mb-10 flex flex-col md:flex-row justify-between items-end gap-4"
+          >
+            <div>
+              <h1 class="text-3xl font-black text-gray-900 tracking-tight">
+                Clinic Overview
+              </h1>
+              <p class="text-gray-500 font-medium mb-4">
+                Real-time status of all active treatment chairs
+              </p>
+              <div class="flex items-center gap-4">
+                <ClinicStats {totalPatients} {totalChairs} />
+              </div>
             </div>
-          </div>
-          <!-- Info Section Scaled -->
-          <div class="origin-top-right transform scale-90 md:scale-100">
-            <InfoSection {infectionCount} {totalPatients} />
-          </div>
-        </header>
+            <!-- Info Section Scaled -->
+            <div class="origin-top-right transform scale-90 md:scale-100">
+              <InfoSection {infectionCount} {totalPatients} />
+            </div>
+          </header>
 
-        {#if activeAlerts.length > 0}
-          <ActiveAlerts alerts={activeAlerts} />
-        {/if}
+          {#if activeAlerts.length > 0}
+            <ActiveAlerts alerts={activeAlerts} />
+          {/if}
 
-        <div class="flex flex-col lg:flex-row gap-8 mt-8">
-          <!-- Left: Chairs -->
-          <div class="flex-1">
-            <h3
-              class="text-sm font-bold text-gray-400 uppercase tracking-widest mb-4"
-            >
-              Treatment Area
-            </h3>
-            <div
-              class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
-            >
-              {#each chairs as chair, i}
-                <div
-                  role="region"
-                  ondragover={handleDragOver}
-                  ondrop={(e) => handleDrop(e, i)}
-                  class="h-full"
-                >
-                  {#if chair}
-                    <Chair
-                      patientName={chair.name}
-                      chairNumber={chair.chairNumber}
-                      priority={chair.priority}
-                      onclick={() => {
-                        /* Navigate to patient or show details */
-                      }}
-                      onDoubleClick={() => handleChairDoubleClick(i, chair)}
-                      onSignOut={() => signOutPatient(i)}
-                    />
-                  {:else}
-                    <div
-                      class="flex flex-col items-center justify-center p-4 border-2 border-dashed border-gray-300 rounded-xl h-full min-h-[140px] opacity-70 hover:opacity-100 hover:border-blue-400 hover:bg-blue-50 transition-all cursor-default"
-                    >
+          <div class="flex flex-col lg:flex-row gap-8 mt-8">
+            <!-- Left: Chairs -->
+            <div class="flex-1">
+              <h3
+                class="text-sm font-bold text-gray-400 uppercase tracking-widest mb-4"
+              >
+                Treatment Area
+              </h3>
+              <div
+                class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+              >
+                {#each chairs as chair, i}
+                  <div
+                    role="region"
+                    ondragover={handleDragOver}
+                    ondrop={(e) => handleDrop(e, i)}
+                    class="h-full"
+                  >
+                    {#if chair}
+                      <Chair
+                        patientName={chair.name}
+                        chairNumber={chair.chairNumber}
+                        priority={chair.priority}
+                        onclick={() => {
+                          /* Navigate to patient or show details */
+                        }}
+                        onDoubleClick={() => handleChairDoubleClick(i, chair)}
+                        onSignOut={() => signOutPatient(i)}
+                      />
+                    {:else}
                       <div
-                        class="text-[10px] uppercase font-bold text-gray-400 mb-1"
+                        class="flex flex-col items-center justify-center p-4 border-2 border-dashed border-gray-300 rounded-xl h-full min-h-[140px] opacity-70 hover:opacity-100 hover:border-blue-400 hover:bg-blue-50 transition-all cursor-default"
                       >
-                        Chair {String(i + 1).padStart(2, "0")}
+                        <div
+                          class="text-[10px] uppercase font-bold text-gray-400 mb-1"
+                        >
+                          Chair {String(i + 1).padStart(2, "0")}
+                        </div>
+                        <div class="text-sm font-bold text-gray-400">
+                          Available
+                        </div>
+                        <div class="text-[10px] text-gray-300 mt-2">
+                          Drop Patient Here
+                        </div>
                       </div>
-                      <div class="text-sm font-bold text-gray-400">
-                        Available
-                      </div>
-                      <div class="text-[10px] text-gray-300 mt-2">
-                        Drop Patient Here
-                      </div>
-                    </div>
-                  {/if}
-                </div>
-              {/each}
+                    {/if}
+                  </div>
+                {/each}
+              </div>
             </div>
-          </div>
 
             <!-- Right: Queue -->
             <div class="w-full lg:w-72 shrink-0">
               <PatientQueue
                 patients={queue}
+                {activeBlock}
                 onDragStart={handleDragStart}
                 onPatientDoubleClick={handleQueueDoubleClick}
               />

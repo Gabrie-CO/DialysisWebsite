@@ -46,39 +46,7 @@ export const createOrUpdate = mutation({
     },
 });
 
-export const assignChair = mutation({
-    args: {
-        patientId: v.id("users"),
-        chairId: v.optional(v.string()) // null to unassign
-    },
-    handler: async (ctx, args) => {
-        // Find today's meeting for this patient
-        const today = new Date().toISOString().split('T')[0];
 
-        // We look for a meeting created today
-        // Ideally we'd have a better date query but for now let's scan recent
-        const meetings = await ctx.db
-            .query("meetings")
-            .withIndex("by_patient_date", (q) => q.eq("patientId", args.patientId))
-            .order("desc")
-            .take(5);
-
-        const meetingToday = meetings.find(m => m.date.startsWith(today));
-
-        if (meetingToday) {
-            await ctx.db.patch(meetingToday._id, { chairId: args.chairId });
-        } else if (args.chairId) {
-            // Create new meeting if assigning to chair and none exists
-            await ctx.db.insert("meetings", {
-                patientId: args.patientId,
-                date: new Date().toISOString(),
-                status: "in-progress",
-                title: "Hemodialysis Session",
-                chairId: args.chairId
-            });
-        }
-    }
-});
 
 // Get recent meetings for a patient
 export const getRecent = query({

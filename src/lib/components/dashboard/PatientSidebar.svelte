@@ -16,6 +16,20 @@
 
   // Renaming to patientsQuery since it seems to be fetching a list
   const patientsQuery: any = useQuery(api.patients.get);
+
+  let searchQuery = $state("");
+
+  let filteredPatients = $derived(
+    (patientsQuery.data || []).filter((p: any) => {
+      if (!searchQuery) return true;
+      const q = searchQuery.toLowerCase();
+      return (
+        p.firstName?.toLowerCase().includes(q) ||
+        p.lastName?.toLowerCase().includes(q) ||
+        p.code?.toLowerCase().includes(q)
+      );
+    }),
+  );
 </script>
 
 <!-- Mobile Overlay Backdrops are handled in parent, this is just the drawer -->
@@ -38,6 +52,7 @@
     </div>
     <input
       type="text"
+      bind:value={searchQuery}
       placeholder="Search name or code..."
       class="w-full bg-gray-50 border border-gray-200 rounded px-2 py-1 text-sm outline-none focus:border-blue-500"
     />
@@ -55,7 +70,7 @@
             : JSON.stringify(patientsQuery.error, null, 2)}</pre>
       </div>
     {:else}
-      {#each patientsQuery.data || [] as p}
+      {#each filteredPatients as p}
         <button
           class="w-full text-left p-3 border-b border-gray-50 hover:bg-gray-50 transition-colors flex justify-between items-center group
                     {selectedPatientId === p._id
