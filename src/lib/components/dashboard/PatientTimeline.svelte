@@ -18,18 +18,29 @@
     );
 
     const criticalInfoData = $derived(
-        patient.data
+        patient.data?.criticalInfo
             ? {
-                  bodyWeight: patient.data.bodyWeight ?? 0,
-                  preWeight: patient.data.preWeight ?? 0,
-                  condition: patient.data.condition ?? "stable",
-                  infected: patient.data.infected ?? false,
+                  bodyWeight: patient.data.criticalInfo.bodyWeight ?? 0,
+                  preWeight: patient.data.criticalInfo.preWeight ?? 0,
+                  condition: patient.data.criticalInfo.condition ?? "stable",
+                  infected: patient.data.criticalInfo.infected ?? false,
                   preExistingConditions:
-                      patient.data.preExistingConditions ?? "",
-                  treatmentType: patient.data.treatmentType ?? "",
-                  observations: patient.data.observations ?? "",
+                      patient.data.criticalInfo.preExistingConditions ?? "",
+                  treatmentType: patient.data.criticalInfo.treatmentType ?? "",
+                  observations: patient.data.criticalInfo.observations ?? "",
               }
-            : undefined,
+            : patient.data // Fallback to root (legacy/transition) if not in form yet
+              ? {
+                    bodyWeight: patient.data.bodyWeight ?? 0,
+                    preWeight: patient.data.preWeight ?? 0,
+                    condition: patient.data.condition ?? "stable",
+                    infected: patient.data.infected ?? false,
+                    preExistingConditions:
+                        patient.data.preExistingConditions ?? "",
+                    treatmentType: patient.data.treatmentType ?? "",
+                    observations: patient.data.observations ?? "",
+                }
+              : undefined,
     );
 
     const pinnedItems = $derived.by(() => {

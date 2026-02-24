@@ -29,14 +29,13 @@
         <div class="flex flex-col gap-3">
             {#each props.patients as p}
                 <div
-                    class="p-3 border rounded-xl cursor-grab active:cursor-grabbing transition-colors relative group
-                    {p.block === 1
-                        ? 'bg-blue-50 hover:bg-blue-100 border-blue-200'
-                        : p.block === 2
-                          ? 'bg-green-50 hover:bg-green-100 border-green-200'
-                          : p.block === 3
-                            ? 'bg-orange-50 hover:bg-orange-100 border-orange-200'
-                            : 'bg-gray-50 hover:bg-gray-100 border-gray-200'}"
+                    class="p-3 rounded-xl cursor-grab active:cursor-grabbing transition-colors relative group border"
+                    class:bg-yellow-50={!p.block || p.block === "1"}
+                    class:border-yellow-100={!p.block || p.block === "1"}
+                    class:bg-blue-50={p.block === "2"}
+                    class:border-blue-100={p.block === "2"}
+                    class:bg-indigo-50={p.block === "3"}
+                    class:border-indigo-100={p.block === "3"}
                     draggable="true"
                     ondragstart={(e) => props.onDragStart(e, p._id)}
                     ondblclick={(e) => {
@@ -52,7 +51,16 @@
                 >
                     <!-- Fallback Double Click Button -->
                     <button
-                        class="absolute top-1 right-1 opacity-0 group-hover:opacity-100 p-1 bg-blue-200 hover:bg-blue-300 rounded text-[10px] font-bold text-blue-800 transition-all z-10"
+                        class="absolute top-1 right-1 opacity-0 group-hover:opacity-100 p-1 rounded text-[10px] font-bold transition-all z-10"
+                        class:bg-yellow-200={!p.block || p.block === "1"}
+                        class:text-yellow-800={!p.block || p.block === "1"}
+                        class:hover:bg-yellow-300={!p.block || p.block === "1"}
+                        class:bg-blue-200={p.block === "2"}
+                        class:text-blue-800={p.block === "2"}
+                        class:hover:bg-blue-300={p.block === "2"}
+                        class:bg-indigo-200={p.block === "3"}
+                        class:text-indigo-800={p.block === "3"}
+                        class:hover:bg-indigo-300={p.block === "3"}
                         onclick={(e) => {
                             e.stopPropagation();
                             if (props.onPatientDoubleClick)
@@ -62,11 +70,21 @@
                     >
                         Auto-Assign
                     </button>
-                    <div class="font-bold text-gray-900">
-                        {p.name ||
-                            (p.firstName && p.lastName
-                                ? `${p.firstName} ${p.lastName}`
-                                : "Unknown Patient")}
+                    <div
+                        class="font-bold text-gray-900 flex justify-between items-center"
+                    >
+                        <span>
+                            {p.name ||
+                                (p.firstName && p.lastName
+                                    ? `${p.firstName} ${p.lastName}`
+                                    : "Unknown Patient")}
+                        </span>
+                        {#if p.block}
+                            <span
+                                class="text-[10px] font-mono opacity-50 px-1 border rounded border-gray-400/20"
+                                >B{p.block}</span
+                            >
+                        {/if}
                     </div>
                     {#if p.alert}
                         <div

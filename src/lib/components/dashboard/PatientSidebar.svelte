@@ -86,7 +86,7 @@
               {p.lastName}
             </div>
             <div class="text-[10px] text-gray-500 font-mono">
-              {p.code}
+              {p.generalInfo?.code ?? p.code ?? ""}
             </div>
           </div>
           <div class="flex flex-col items-end gap-1">

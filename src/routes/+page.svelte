@@ -46,7 +46,8 @@
   const queueQuery = useQuery(api.meetings.getQueue, {});
 
   // Dashboard State
-  let cleaningChairs = $state(new Set<number>());
+  // cleaningChairs is now derived from the query data, not local state
+  // let cleaningChairs = $state(new Set<number>());
 
   let chairs = $derived.by(() => {
     const list = Array(12).fill(null);
@@ -61,26 +62,12 @@
         }
       });
     }
-
-    // Apply cleaning overlay
-    for (let i = 0; i < 12; i++) {
-      if (cleaningChairs.has(i)) {
-        list[i] = {
-          id: "cleaning",
-          name: "Cleaning Required",
-          priority: "cleaning",
-          chairNumber: String(i + 1).padStart(2, "0"),
-          alert: "Needs disinfection",
-        };
-      }
-    }
-
     return list;
   });
 
   let rawQueue = $derived(
     (queueQuery.data || []).filter(
-      (p) => !chairs.some((main) => main && main.id === p._id),
+      (p) => !chairs.some((main) => main && main?.id === p?._id),
     ),
   );
 
@@ -119,12 +106,12 @@
       })),
   );
   let totalPatients = $derived(
-    chairs.filter((p) => p !== null && p.priority !== "cleaning").length,
+    chairs.filter((p) => p !== null && p!.priority !== "cleaning").length,
   );
   const totalChairs = 12;
   // Infection count derived from 'critical' patients for now, or 0 if none.
   let infectionCount = $derived(
-    chairs.filter((p) => p !== null && p.priority === "critical").length,
+    chairs.filter((p) => p !== null && p!.priority === "critical").length,
   );
 
   // Form Defaults
@@ -169,40 +156,34 @@
   }
 
   function handleSelectPatient(id: string) {
-    if (id === "cleaning") return;
-    goto(`/?id=${id}`);
-    activeTab = "timeline";
-    activeDocument = null;
-    isSidebarOpen = false;
+    if (String(id).startsWith("cleaning-")) return;
+    goto(`/dashboard?id=${id}`);
   }
 
   function signOutPatient(chairIndex: number) {
-    if (cleaningChairs.has(chairIndex)) return;
-
     const p = chairs[chairIndex];
     if (p) {
-      // Unassign from chair in DB
-      convex.mutation(api.clinics.assignChair, {
-        patientId: p.id || p._id,
-        chairId: undefined,
-      });
+      if (p.priority === "cleaning") {
+        // Mark as clean (Available) via backend
+        convex.mutation(api.chairs.finishCleaning, {
+          chairId: String(chairIndex),
+        });
+      } else {
+        // Unassign from chair in DB
+        convex.mutation(api.meetings.assignChair, {
+          patientId: p.id || p._id,
+          chairId: undefined,
+        });
+      }
     }
   }
 
   function handleChairDoubleClick(index: number, patient: any) {
-    if (cleaningChairs.has(index)) {
-      // Mark as cleaned (Available)
-      const next = new Set(cleaningChairs);
-      next.delete(index);
-      cleaningChairs = next;
-      return;
-    }
-
     if (patient.priority === "cleaning") {
-      // Should be covered by above, but just in case
-      const next = new Set(cleaningChairs);
-      next.delete(index);
-      cleaningChairs = next;
+      // Mark as clean (Available)
+      convex.mutation(api.chairs.finishCleaning, {
+        chairId: String(index),
+      });
     } else {
       activeChairForAction = { index, patient };
     }
@@ -224,10 +205,11 @@
         chairId: undefined,
       });
 
-      // 3. Mark chair as needing cleaning
-      const next = new Set(cleaningChairs);
-      next.add(index);
-      cleaningChairs = next;
+      // 3. Mark chair as needing cleaning (Backend)
+      convex.mutation(api.chairs.startCleaning, {
+        chairId: String(index),
+        notes: "Auto-clean after discharge",
+      });
 
       activeChairForAction = null;
     }
@@ -264,173 +246,15 @@
 
     if (patientIndex !== -1 && chairs[chairIndex] === null) {
       const p = queue[patientIndex];
-      // Determine priority based on patient data (keeping existing)
-      chairs[chairIndex] = {
-        id: p._id,
-        name:
-          p.firstName && p.lastName
-            ? `${p.firstName} ${p.lastName}`
-            : "Unknown Patient",
-        priority: p.priority || "stable",
-        alert: p.alert,
-        chairNumber: String(chairIndex + 1).padStart(2, "0"),
-      };
-      // queue splice not needed
+      // Assign to chair in DB
+      if (p) {
+        convex.mutation(api.meetings.assignChair, {
+          patientId: p._id, // User ID
+          chairId: String(chairIndex),
+        });
+      }
     }
   }
-
-  const AVAILABLE_DOCUMENTS = [
-    {
-      id: "patientCard",
-      title: "Ficha de Paciente",
-      icon: "📋",
-      desc: "General patient information",
-      component: PatientCard,
-      dataKey: "patientCard",
-      defaultData: DEFAULT_PATIENT_CARD,
-      mutation: api.patients.updatePatientCard,
-      argKey: "patientCardData",
-      type: "patientCard",
-    },
-    {
-      id: "fichas",
-      title: "Fichas (Checklists)",
-      icon: "✅",
-      desc: "Annual checklists validation",
-      component: Fichas,
-      dataKey: "fichas",
-      mutation: api.patients.updateFichas,
-      argKey: "fichasData",
-      type: "fichas",
-    },
-    {
-      id: "cidh",
-      title: "Infection Control (CIDH)",
-      icon: "🦠",
-      desc: "Report infection signs/events",
-      component: CIDH,
-      dataKey: "cidh",
-      mutation: api.forms.saveForm,
-      argKey: "data",
-      type: "cidh",
-    },
-    {
-      id: "clinicalHistory",
-      title: "Clinical History",
-      icon: "🏥",
-      desc: "Complete clinical history",
-      component: ClinicHistory,
-      dataKey: "clinicHistoryOld",
-      mutation: api.forms.saveForm,
-      argKey: "data",
-      type: "clinicHistoryOld",
-    },
-    {
-      id: "clinicalHistory2",
-      title: "Clinical History 2",
-      icon: "🏥",
-      desc: "Alternative clinical history",
-      component: ClinicalHistory2,
-      dataKey: "clinicalHistory",
-      mutation: api.patients.updateClinicalHistory, // keeping original unless it was part of unions
-      argKey: "clinicalHistoryData",
-      type: "clinicalHistory2",
-    },
-    {
-      id: "fistula",
-      title: "Fistula Check",
-      icon: "💉",
-      desc: "Fistula monitoring",
-      component: Fistula,
-      dataKey: "fistula",
-      mutation: api.forms.saveForm,
-      argKey: "data",
-      type: "fistula",
-    },
-    {
-      id: "hemodialysisSheet",
-      title: "Hemodialysis Sheet",
-      icon: "🩸",
-      desc: "Daily hemodialysis record",
-      component: HemodialysisSheet,
-      dataKey: "hemodialysis",
-      mutation: api.forms.saveForm,
-      argKey: "data",
-      type: "hemodialysis",
-    },
-    {
-      id: "infections",
-      title: "Infections",
-      icon: "🤒",
-      desc: "Infection tracking",
-      component: Infections,
-      dataKey: "infections",
-      mutation: api.patients.updateInfections,
-      argKey: "infectionsData",
-      type: "infections",
-    },
-    {
-      id: "medicationSheet",
-      title: "Medication Sheet",
-      icon: "💊",
-      desc: "Medication administration",
-      component: MedicationApplicationSheet,
-      dataKey: "medicationSheet",
-      mutation: api.forms.saveForm,
-      argKey: "data",
-      type: "medicationSheet",
-    },
-    {
-      id: "examControls",
-      title: "Exam Controls",
-      icon: "🔬",
-      desc: "Laboratory exam controls",
-      component: ExamControls,
-      dataKey: "examControls",
-      mutation: api.forms.saveForm,
-      argKey: "data",
-      type: "examControls",
-    },
-    {
-      id: "monthlyProgress",
-      title: "Monthly Progress",
-      icon: "📅",
-      desc: "Monthly patient progress",
-      component: MonthlyProgress,
-      dataKey: "monthlyProgress",
-      mutation: api.forms.saveForm,
-      argKey: "data",
-      type: "monthlyProgress",
-    },
-    {
-      id: "debug",
-      title: "Debug Refresh",
-      icon: "🧪",
-      desc: "Check form re-rendering",
-    },
-  ];
-
-  let activeDocConfig = $derived(
-    AVAILABLE_DOCUMENTS.find((d) => d.id === activeDocument),
-  );
-
-  let activeFormQuery = $derived(
-    activeDocConfig &&
-      activeDocConfig.mutation === api.forms.saveForm &&
-      selectedPatientId
-      ? useQuery(api.forms.getForm, {
-          patientId: selectedPatientId as any,
-          type: activeDocConfig.type as any,
-        })
-      : { data: undefined },
-  );
-
-  let formInitialData = $derived(
-    activeFormQuery.data?.data ||
-      (patient as any)?.[activeDocConfig?.dataKey!] ||
-      activeDocConfig?.defaultData ||
-      {},
-  );
 </script>
 
 <div class="flex h-screen w-full bg-gray-100 font-sans overflow-hidden">
