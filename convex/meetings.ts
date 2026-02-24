@@ -7,14 +7,9 @@ export const createOrUpdate = mutation({
         patientId: v.id("users"),
         date: v.string(),
         status: v.string(),
-        title: v.string(), // e.g. "Hemodialysis Session"
         chairId: v.optional(v.string()),
-        weight: v.optional(v.object({ pre: v.string(), post: v.string() })),
         condition: v.optional(v.string()),
-        clinicName: v.optional(v.string()),
         schedule: v.optional(v.string()),
-        shift: v.optional(v.string()),
-        type: v.optional(v.string()),
         patientCardData: v.optional(v.object({
             elderly80_90: v.boolean(),
             malnutrition: v.boolean(),
@@ -40,14 +35,9 @@ export const createOrUpdate = mutation({
             patientId: args.patientId,
             date: args.date,
             status: args.status,
-            title: args.title,
             chairId: args.chairId,
-            weight: args.weight,
             condition: args.condition,
-            clinicName: args.clinicName,
             schedule: args.schedule,
-            shift: args.shift,
-            type: args.type,
             patientCardData: args.patientCardData,
         });
         return id;
@@ -78,81 +68,55 @@ export const getRecent = query({
 export const getQueue = query({
     args: {},
     handler: async (ctx) => {
-        // 1. Get all patients who are marked as present
-        const presentPatients = await ctx.db
-            .query("patients")
-            .filter((q) => q.eq(q.field("present"), true))
+        // Find today's date formatted as YYYY-MM-DD
+        const now = new Date();
+        // Fallback or explicit today's date assuming server time aligns roughly
+        const todayDate = now.toISOString().split("T")[0];
+
+        // 1. Find all meetings for today
+        const todayMeetings = await ctx.db
+            .query("meetings")
+            .withIndex("by_date", (q) => q.eq("date", todayDate))
             .collect();
 
-        // 2. Fetch user details and latest meeting for each present patient
-        const allPresent = await Promise.all(
-            presentPatients.map(async (patientData) => {
-                const userId = patientData.userId;
-                if (!userId) return null;
+        // 2. Filter meeting objects that meet Queue requirements:
+        //    - Status is "scheduled" or "active"
+        //    - Not currently in a chair (no chairId)
+        //    - Has a valid block assigned 
+        const queueMeetings = todayMeetings.filter(m =>
+            (m.status === "scheduled" || m.status === "active") &&
+            !m.chairId &&
+            m.block !== undefined
+        );
 
-                const user = await ctx.db.get(userId);
+        // 3. Fetch user and patient details for those meetings
+        const queuePatients = await Promise.all(
+            queueMeetings.map(async (meeting) => {
+                if (!meeting.patientId) return null;
+
+                const user = await ctx.db.get(meeting.patientId);
                 if (!user) return null;
 
-                // Find the latest meeting for this patient (today or most recent)
-                const lastMeeting = await ctx.db
-                    .query("meetings")
-                    .withIndex("by_patient_date", (q) => q.eq("patientId", userId))
-                    .order("desc")
-                    .first();
+                const patientData = await ctx.db
+                    .query("patients")
+                    .withIndex("by_user", q => q.eq("userId", meeting.patientId!))
+                    .unique();
 
-                const block = patientData.block || 3; // Default to last block if missing
-
-                // Check if they are currently assigned to a chair
-                const isAssigned = lastMeeting?.chairId != null;
+                if (!patientData) return null;
 
                 return {
                     ...user,
                     ...patientData,
-                    _id: userId,
-                    meetingToday: lastMeeting,
-                    block: block,
-                    isAssigned
+                    _id: meeting.patientId, // Frontend dnd logic expects this to be the userId
+                    meetingToday: meeting,
+                    block: meeting.block,
+                    isAssigned: false
                 };
             })
         );
 
-        const validPatients = allPresent.filter((p) => p !== null && !p.isAssigned);
-
-        // 3. Group by Block
-        const blocks = { "1": [], "2": [], "3": [] } as Record<string, typeof validPatients>;
-
-        validPatients.forEach(p => {
-            const b = String(p!.block);
-            if (blocks[b]) {
-                blocks[b].push(p);
-            } else {
-                // Handle unexpected block names by grouping them in '3' or a default
-                blocks["3"].push(p);
-            }
-        });
-
-        // 4. Find the first block that has waiting patients
-        console.log("Queue Status:", {
-            totalValid: validPatients.length,
-            B1: blocks["1"].length,
-            B2: blocks["2"].length,
-            B3: blocks["3"].length
-        });
-
-        if (blocks["1"].length > 0) {
-            console.log("Returning Block 1");
-            return blocks["1"];
-        }
-        if (blocks["2"].length > 0) {
-            console.log("Returning Block 2");
-            return blocks["2"];
-        }
-        if (blocks["3"].length > 0) {
-            console.log("Returning Block 3");
-            return blocks["3"];
-        }
-
-        return [];
+        // 4. Return the entire valid queue array so `+page.svelte` can manage the `activeBlock` slicing
+        return queuePatients.filter((p): p is NonNullable<typeof p> => p !== null);
     },
 });
 

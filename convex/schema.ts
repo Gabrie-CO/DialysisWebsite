@@ -24,11 +24,7 @@ export default defineSchema({
         userId: v.id("users"), // Link config
         // Patient specific fields
         priority: v.optional(v.string()), // critical, warning, stable
-        condition: v.optional(v.string()), // critical, warning, stable (sync with priority if needed, but keeping separate for form)
-
         alert: v.optional(v.string()), // Single alert message from dashboard
-        pinnedSections: v.optional(v.array(v.string())), // List of pinned section IDs
-        block: v.optional(v.number()), // Shift/Block the patient belongs to
         present: v.optional(v.boolean()), // Whether the patient is currently in the queue/clinic
     }).index("by_user", ["userId"]),
 
@@ -66,17 +62,12 @@ export default defineSchema({
     meetings: defineTable({
         date: v.string(),
         status: v.string(),
-        title: v.string(),
         patientId: v.optional(v.id("users")), // Made optional to support legacy/empty meetings
         chairId: v.optional(v.string()),
-        weight: v.optional(v.object({ pre: v.string(), post: v.string() })),
         condition: v.optional(v.string()),
         block: v.optional(v.number()), // Indicates what block they attended
         clinicId: v.optional(v.id("clinics")), // Indicates which hospital they are in
-        clinicName: v.optional(v.string()),
         schedule: v.optional(v.string()),
-        shift: v.optional(v.string()),
-        type: v.optional(v.string()),
         // Snapshot of patient card at the time of meeting
         patientCardData: v.optional(v.object({
             elderly80_90: v.boolean(),

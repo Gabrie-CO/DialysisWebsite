@@ -6,5 +6,22 @@
   1. The patient must have a meeting record with today's date exactly formatted as `YYYY-MM-DD`.
   2. The status of that meeting must be `"active"` or `"scheduled"`.
   3. The patient must **not** be assigned to a chair on the dashboard.
+  4. The meeting record must have a valid `block` number assigned (e.g., `block: 1`).
 - **Queue vs Chairs Initialization**: During initialization or seeding, do not assign patients to chairs (`chairId`) if the intention is to populate the "Patient Queue". Setting a chair ID immediately hides the patient from the pending queue.
+- **Queue Data Source Caution**: The patient queue is driven entirely by the `meetings` table. **Never** query the `patients` table for fields like `block` or `present` to determine queue visibility. Those properties are tracked on the individual daily `meeting` record. The backend should return the full valid queue and map the `block` directly from the `meetings` record, allowing the frontend to handle the `activeBlock` slicing.
 - **Queue Block Advancing**: The Patient Queue should automatically advance to showing the next active block *only* when the current block's queue is completely empty. We do not need to wait for the current block's chairs to be empty as long as their queue is cleared.
+- **Convex Bundling & Type Imports**: When importing types from Convex's generated `dataModel`, always use the top-level `import type` syntax (e.g., `import type { Id } from "./_generated/dataModel"`). Using value-import syntax with inline type modifiers (`import { type Id } from ...`) can cause Esbuild to fail during `npx convex dev`, because it attempts to resolve a non-existent `./_generated/dataModel.js` runtime file.
+- **Valid Meeting Object Example**: A well-formed meeting object for the queue looks like this:
+  ```javascript
+  { 
+    _creationTime: 1771908060520.5212, 
+    _id: "j970qnp3zhgyke6zk50amrmy0581rmax", 
+    block: 1, 
+    clinicId: "k577r3bz52m3fadwp976391qkx81q8c0", 
+    condition: "Stable", 
+    date: "2026-02-24", // Exact YYYY-MM-DD format
+    patientId: "j578wnqhnb1e7b10bc371d7wwx81s8tj", 
+    status: "scheduled", 
+    // Notice: NO chairId is set initially if they are in the queue
+  }
+  ```

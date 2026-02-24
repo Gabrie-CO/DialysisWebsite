@@ -59,14 +59,12 @@ export const seedPatients = mutation({
                 await ctx.db.patch(existingPatient._id, {
                     priority: patient.priority,
                     alert: patient.alert || undefined,
-                    block: patient.block,
                 });
             } else {
                 await ctx.db.insert("patients", {
                     userId: userId,
                     priority: patient.priority,
                     alert: patient.alert || undefined,
-                    block: patient.block,
                 });
             }
         }
@@ -93,118 +91,94 @@ export const seedClinicsAndMeetings = mutation({
 
         const patients = await ctx.db.query("patients").collect();
         const now = new Date();
-        const todayDate = now.toISOString().split("T")[0]; // YYYY-MM-DD
+        const todayStr = now.toISOString().split("T")[0]; // YYYY-MM-DD
+        const tomorrowDate = new Date(now);
+        tomorrowDate.setDate(now.getDate() + 1);
+        const tomorrowStr = tomorrowDate.toISOString().split("T")[0]; // YYYY-MM-DD
+
+        const yesterdayDate = new Date(now);
+        yesterdayDate.setDate(now.getDate() - 1);
+        const yesterdayStr = yesterdayDate.toISOString().split("T")[0]; // YYYY-MM-DD
 
         let count = 0;
-        let historyCount = 0;
-        let activeChairs: { chairId: string, patientId: import("./_generated/dataModel").Id<"users"> }[] = [];
-
-        // Distribute patients by block
-        const block1 = patients.filter(p => p.block === 1);
-        const block2 = patients.filter(p => p.block === 2);
-        const block3 = patients.filter(p => p.block === 3);
-
-        // Presence Logic: 
-        // Block 1: First 3 present, rest absent
-        // Block 2: First 4 present, rest absent
-        // Block 3: First 2 present, rest absent
-        // Presence Logic: Everyone starts in the queue (no one in a chair)
-        const presentPatients: any[] = [];
-
-        let chairCounter = 1;
+        let todayQueueCount = 0; // Track how many patients are added to today's queue
 
         for (const patient of patients) {
-            const isPresent = presentPatients.some(p => p._id === patient._id);
-
-            // Mark presence in the patient record so the queue query picks them up
-            await ctx.db.patch(patient._id, { present: isPresent });
-
-            // 1. Check if meeting exists for today
-            const existingMeeting = await ctx.db
+            // Give them a past meeting
+            const pastMeeting = await ctx.db
                 .query("meetings")
-                .withIndex("by_patient_date", (q) => q.eq("patientId", patient.userId).eq("date", todayDate))
+                .withIndex("by_patient_date", (q) => q.eq("patientId", patient.userId).eq("date", yesterdayStr))
                 .first();
 
-            let chairIdForPatient: string | undefined = undefined;
-            if (isPresent) {
-                chairIdForPatient = chairCounter.toString();
-                activeChairs.push({
-                    chairId: chairIdForPatient,
-                    patientId: patient.userId,
-                });
-                chairCounter++;
-                if (chairCounter > 12) chairCounter = 1; // reset if overflowing max chairs
-            }
-
-            if (!existingMeeting) {
+            if (!pastMeeting) {
                 await ctx.db.insert("meetings", {
                     patientId: patient.userId,
-                    date: todayDate,
-                    status: isPresent ? "active" : "scheduled",
-                    title: "Scheduled Dialysis",
+                    date: yesterdayStr,
+                    status: "completed",
                     condition: "Stable",
-                    chairId: chairIdForPatient,
-                    block: patient.block,
+                    chairId: undefined, // ensure no chair id for past queue
                     clinicId: clinic._id,
-                    weight: isPresent ? { pre: "75.2", post: "73.5" } : undefined
+                    patientCardData: {
+                        elderly80_90: false,
+                        malnutrition: false,
+                        preservedDiuresis: true,
+                        time: "4:00",
+                        qd: "500",
+                        qb: "300",
+                        ktvt: "1.4",
+                        filter: "FX80",
+                        observations: "Patient responded well to treatment.",
+                        signature: "Dr. Smith",
+                    }
                 });
                 count++;
-            } else {
-                await ctx.db.patch(existingMeeting._id, {
-                    status: isPresent ? "active" : "scheduled",
-                    chairId: chairIdForPatient,
-                    block: patient.block,
+            }
+
+            // Give them a future meeting
+            const futureMeeting = await ctx.db
+                .query("meetings")
+                .withIndex("by_patient_date", (q) => q.eq("patientId", patient.userId).eq("date", tomorrowStr))
+                .first();
+
+            if (!futureMeeting) {
+                await ctx.db.insert("meetings", {
+                    patientId: patient.userId,
+                    date: tomorrowStr,
+                    status: "scheduled",
+                    condition: "Stable",
+                    chairId: undefined, // ensure no chair id for future queue
                     clinicId: clinic._id,
                 });
+                count++;
             }
 
-            // 2. Historical meeting clearing or seeding (preventing too much garbage)
-            const recentCount = await ctx.db
-                .query("meetings")
-                .withIndex("by_patient_date", (q) => q.eq("patientId", patient.userId))
-                // .filter(q => q.neq(q.field("type"), "pinned_item")) // type field removed from meetings
-                .collect();
+            // Give 3 patients a meeting for today to place them in the queue
+            if (todayQueueCount < 3) {
+                const todayMeeting = await ctx.db
+                    .query("meetings")
+                    .withIndex("by_patient_date", (q) => q.eq("patientId", patient.userId).eq("date", todayStr))
+                    .first();
 
-            if (recentCount.length < 5) {
-                for (let i = 1; i <= 4; i++) {
-                    const pastDate = new Date();
-                    pastDate.setDate(now.getDate() - (i * 2));
+                if (!todayMeeting) {
                     await ctx.db.insert("meetings", {
                         patientId: patient.userId,
-                        date: pastDate.toISOString(),
-                        status: "completed",
-                        title: "Completed Dialysis",
+                        date: todayStr,
+                        status: "scheduled",    // Needs to be active or scheduled to be in queue
                         condition: "Stable",
-                        chairId: (Math.floor(Math.random() * 10) + 1).toString(),
-                        block: patient.block,
+                        chairId: undefined,     // Ensure NO chair ID is set
                         clinicId: clinic._id,
-                        weight: { pre: "76.0", post: "74.2" },
-                        patientCardData: {
-                            elderly80_90: false,
-                            malnutrition: false,
-                            preservedDiuresis: true,
-                            time: "4:00",
-                            qd: "500",
-                            qb: "300",
-                            ktvt: "1.4",
-                            filter: "FX80",
-                            observations: "Patient responded well to treatment.",
-                            signature: "Dr. Smith",
-                        }
+                        block: 1,               // Queue constraint
                     });
-                    historyCount++;
+                    count++;
+                } else if (todayMeeting.chairId || todayMeeting.block !== 1) {
+                    // if they had a chairId previously or wrong block, update to put them back in the queue
+                    await ctx.db.patch(todayMeeting._id, { chairId: undefined, status: "scheduled", block: 1 });
                 }
-
-
-            }
-
-            // Ensure patient is marked as present
-            if (!patient.present) {
-                await ctx.db.patch(patient._id, { present: true });
+                todayQueueCount++;
             }
         }
 
-        return `Seeded ${count} meetings for today, ${historyCount} historical meetings, and pinned items for patients.`;
+        return `Seeded ${count} meetings (past, future, and ${todayQueueCount} for today's queue).`;
     },
 });
 
@@ -252,7 +226,6 @@ export const seedQueuePatients = mutation({
             if (patient) {
                 await ctx.db.patch(patient._id, {
                     present: true,
-                    block: patientMock.block,
                     priority: patientMock.priority,
                     alert: patientMock.alert || undefined
                 });
@@ -260,7 +233,6 @@ export const seedQueuePatients = mutation({
                 await ctx.db.insert("patients", {
                     userId,
                     present: true,
-                    block: patientMock.block,
                     priority: patientMock.priority,
                     alert: patientMock.alert || undefined
                 });
@@ -312,10 +284,8 @@ export const seedQueuePatients = mutation({
                     patientId: userId,
                     date: now.toISOString(),
                     status: "scheduled",
-                    title: "Scheduled Dialysis",
                     condition: "Stable",
                     chairId: undefined,
-                    weight: { pre: "0", post: "0" }
                 });
                 count++;
             }
@@ -361,7 +331,6 @@ export const seedAll = mutation({
             if (patient) {
                 await ctx.db.patch(patient._id, {
                     present: true,
-                    block: patientMock.block,
                     priority: patientMock.priority,
                     alert: patientMock.alert || undefined
                 });
@@ -369,7 +338,6 @@ export const seedAll = mutation({
                 await ctx.db.insert("patients", {
                     userId,
                     present: true,
-                    block: patientMock.block,
                     priority: patientMock.priority,
                     alert: patientMock.alert || undefined
                 });
@@ -421,10 +389,8 @@ export const seedAll = mutation({
                     patientId: userId,
                     date: now.toISOString(),
                     status: "scheduled",
-                    title: "Scheduled Dialysis",
                     condition: "Stable",
                     chairId: undefined,
-                    weight: { pre: "0", post: "0" }
                 });
                 count++;
             }

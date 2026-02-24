@@ -1,6 +1,6 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
-import { type Id } from "./_generated/dataModel";
+import type { Id } from "./_generated/dataModel";
 
 // Helper to fetch all forms for a patient and merge them into an object
 async function getPatientForms(ctx: any, userId: Id<"users">) {
