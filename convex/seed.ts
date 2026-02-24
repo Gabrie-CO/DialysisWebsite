@@ -96,6 +96,7 @@ export const seedClinicsAndMeetings = mutation({
         const todayDate = now.toISOString().split("T")[0]; // YYYY-MM-DD
 
         let count = 0;
+        let historyCount = 0;
         let activeChairs: { chairId: string, patientId: import("./_generated/dataModel").Id<"users"> }[] = [];
 
         // Distribute patients by block
@@ -124,7 +125,7 @@ export const seedClinicsAndMeetings = mutation({
                 .withIndex("by_patient_date", (q) => q.eq("patientId", patient.userId).eq("date", todayDate))
                 .first();
 
-            let chairIdForPatient = undefined;
+            let chairIdForPatient: string | undefined = undefined;
             if (isPresent) {
                 chairIdForPatient = chairCounter.toString();
                 activeChairs.push({
@@ -208,16 +209,16 @@ export const seedClinicsAndMeetings = mutation({
 });
 
 const MOCK_PATIENTS_WITH_BLOCKS = [
-    { name: "Juan Perez", priority: "critical", alert: "Blood pressure drop", block: "1" },
-    { name: "Maria Garcia", priority: "warning", alert: "Tx time exceeded", block: "1" },
-    { name: "Carlos Rodriguez", priority: "stable", alert: null, block: "1" },
-    { name: "Ana Martinez", priority: "stable", alert: null, block: "2" },
-    { name: "Luis Hernandez", priority: "stable", alert: null, block: "2" },
-    { name: "Elena Gomez", priority: "stable", alert: null, block: "2" },
-    { name: "Miguel Torres", priority: "warning", alert: "High HR", block: "3" },
-    { name: "Sofia Ramirez", priority: "stable", alert: null, block: "3" },
-    { name: "Diego Lopez", priority: "critical", alert: "Low sat", block: "3" },
-    { name: "Lucia Fernandez", priority: "stable", alert: null, block: "3" },
+    { name: "Juan Perez", priority: "critical", alert: "Blood pressure drop", block: 1 },
+    { name: "Maria Garcia", priority: "warning", alert: "Tx time exceeded", block: 1 },
+    { name: "Carlos Rodriguez", priority: "stable", alert: null, block: 1 },
+    { name: "Ana Martinez", priority: "stable", alert: null, block: 2 },
+    { name: "Luis Hernandez", priority: "stable", alert: null, block: 2 },
+    { name: "Elena Gomez", priority: "stable", alert: null, block: 2 },
+    { name: "Miguel Torres", priority: "warning", alert: "High HR", block: 3 },
+    { name: "Sofia Ramirez", priority: "stable", alert: null, block: 3 },
+    { name: "Diego Lopez", priority: "critical", alert: "Low sat", block: 3 },
+    { name: "Lucia Fernandez", priority: "stable", alert: null, block: 3 },
 ];
 
 export const seedQueuePatients = mutation({
