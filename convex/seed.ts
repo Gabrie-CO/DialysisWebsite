@@ -103,6 +103,11 @@ export const seedClinicsAndMeetings = mutation({
         let count = 0;
         let todayQueueCount = 0; // Track how many patients are added to today's queue
 
+        // We want to add patients to blocks 1, 2, and 3.
+        let block1Count = 0;
+        let block2Count = 0;
+        let block3Count = 0;
+
         for (const patient of patients) {
             // Give them a past meeting
             const pastMeeting = await ctx.db
@@ -140,8 +145,20 @@ export const seedClinicsAndMeetings = mutation({
                 count++;
             }
 
-            // Give 3 patients a meeting for today to place them in the queue
-            if (todayQueueCount < 3) {
+            // Distribute 9 patients across 3 blocks
+            let targetBlock: number | undefined;
+            if (block1Count < 3) {
+                targetBlock = 1;
+                block1Count++;
+            } else if (block2Count < 3) {
+                targetBlock = 2;
+                block2Count++;
+            } else if (block3Count < 3) {
+                targetBlock = 3;
+                block3Count++;
+            }
+
+            if (targetBlock !== undefined) {
                 const todayMeeting = await ctx.db
                     .query("meetings")
                     .withIndex("by_patient_date", (q) => q.eq("patientId", patient.userId).eq("date", todayStr))
@@ -155,12 +172,12 @@ export const seedClinicsAndMeetings = mutation({
                         condition: "Stable",
                         chairId: undefined,     // Ensure NO chair ID is set
                         clinicId: clinic._id,
-                        block: 1,               // Queue constraint
+                        block: targetBlock,               // Queue constraint
                     });
                     count++;
-                } else if (todayMeeting.chairId || todayMeeting.block !== 1) {
+                } else if (todayMeeting.chairId || todayMeeting.block !== targetBlock) {
                     // if they had a chairId previously or wrong block, update to put them back in the queue
-                    await ctx.db.patch(todayMeeting._id, { chairId: undefined, status: "scheduled", block: 1 });
+                    await ctx.db.patch(todayMeeting._id, { chairId: undefined, status: "scheduled", block: targetBlock });
                 }
                 todayQueueCount++;
             }

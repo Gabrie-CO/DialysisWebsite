@@ -46,7 +46,24 @@ export const getDailyChairs = query({
                 };
             })
         );
-        return chairs.filter(c => c !== null);
+        const activeChairs = chairs.filter(c => c !== null);
+
+        // Fetch chairs currently being cleaned
+        const cleaningChairs = await ctx.db
+            .query("chairs")
+            .filter(q => q.eq(q.field("status"), "cleaning"))
+            .collect();
+
+        const formattedCleaningChairs = cleaningChairs.map(c => ({
+            chairId: c.chairId,
+            patient: {
+                id: `cleaning-${c.chairId}`,
+                name: "Cleaning in progress",
+                priority: "cleaning"
+            }
+        }));
+
+        return [...activeChairs, ...formattedCleaningChairs];
     }
 });
 
@@ -97,6 +114,72 @@ export const assignChair = mutation({
                 date: new Date().toISOString(),
                 status: "in-progress",
                 chairId: args.chairId
+            });
+        }
+    }
+});
+
+export const dischargePatient = mutation({
+    args: {
+        chairId: v.string(),     // index
+        patientId: v.id("users"),
+    },
+    handler: async (ctx, args) => {
+        // 1. Mark present: false
+        const patientData = await ctx.db
+            .query("patients")
+            .withIndex("by_user", (q) => q.eq("userId", args.patientId))
+            .unique();
+
+        if (patientData) {
+            await ctx.db.patch(patientData._id, { present: false });
+        }
+
+        // 2. Clear chair assignment in clinics
+        let clinic = await ctx.db.query("clinics").first();
+        if (clinic) {
+            let updatedChairs = clinic.activeChairs.filter(c => c.chairId !== args.chairId);
+            await ctx.db.patch(clinic._id, { activeChairs: updatedChairs });
+        }
+
+        // 3. Mark meeting as completed
+        const today = new Date().toISOString().split('T')[0];
+        const meetings = await ctx.db
+            .query("meetings")
+            .withIndex("by_patient_date", (q) => q.eq("patientId", args.patientId))
+            .order("desc")
+            .take(5);
+
+        const meetingToday = meetings.find(m => m.date.startsWith(today));
+
+        if (meetingToday) {
+            await ctx.db.patch(meetingToday._id, {
+                chairId: undefined,
+                status: "completed"
+            });
+        }
+
+        // 4. Mark chair as cleaning
+        const existingChair = await ctx.db
+            .query("chairs")
+            .withIndex("by_chairId", (q) => q.eq("chairId", args.chairId))
+            .first();
+
+        const now = new Date().toISOString();
+
+        if (existingChair) {
+            await ctx.db.patch(existingChair._id, {
+                status: "cleaning",
+                startTime: now,
+                endTime: undefined,
+                notes: "Auto-clean after discharge",
+            });
+        } else {
+            await ctx.db.insert("chairs", {
+                chairId: args.chairId,
+                status: "cleaning",
+                startTime: now,
+                notes: "Auto-clean after discharge",
             });
         }
     }

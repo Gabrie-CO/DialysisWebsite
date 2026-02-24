@@ -77,16 +77,19 @@
 
   // Auto-advance block if current block is empty
   $effect(() => {
-    // Check if there are ANY patients remaining (in queue or chairs) for the active block
-    // We only advance if the queue is empty AND no chairs are currently treating patients for this block
+    // We only advance if the queue is empty. We DO NOT wait for chairs to finish.
     const queueHasActiveBlock = rawQueue.some((p) => p?.block === activeBlock);
 
     if (!queueHasActiveBlock && rawQueue.length > 0) {
       // Find the next block that actually has patients in the queue
-      const nextAvailableBlock = Math.min(
-        ...rawQueue.map((p) => p?.block || 999),
-      );
-      if (nextAvailableBlock !== 999 && nextAvailableBlock > activeBlock) {
+      const blocksWithPatients = new Set(rawQueue.map((p) => p.block));
+      const sortedBlocks = Array.from(blocksWithPatients)
+        .filter((b) => b !== undefined)
+        .sort((a, b) => a - b);
+
+      const nextAvailableBlock = sortedBlocks.find((b) => b > activeBlock);
+
+      if (nextAvailableBlock) {
         activeBlock = nextAvailableBlock;
       }
     }
@@ -369,22 +372,12 @@
     if (activeChairForAction) {
       const { index, patient: p } = activeChairForAction;
 
-      // Mark patient as not present (removes from queue query)
-      convex.mutation(api.meetings.markPresent, {
-        patientId: p.id || p._id, // Handle both shapes if needed
-        present: false,
-      });
+      const pid = p.id || p._id;
 
-      // 2. Clear chair assignment
-      convex.mutation(api.clinics.assignChair, {
-        patientId: p.id || p._id,
-        chairId: undefined,
-      });
-
-      // 3. Mark chair as needing cleaning (Backend)
-      convex.mutation(api.chairs.startCleaning, {
+      // Atomically mark patient as completed, clear chair assignment, and set chair to cleaning
+      convex.mutation(api.clinics.dischargePatient, {
+        patientId: pid,
         chairId: String(index),
-        notes: "Auto-clean after discharge",
       });
 
       activeChairForAction = null;

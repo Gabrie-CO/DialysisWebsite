@@ -30,12 +30,12 @@
             {#each props.patients as p}
                 <div
                     class="p-3 rounded-xl cursor-grab active:cursor-grabbing transition-colors relative group border"
-                    class:bg-yellow-50={!p.block || p.block === "1"}
-                    class:border-yellow-100={!p.block || p.block === "1"}
-                    class:bg-blue-50={p.block === "2"}
-                    class:border-blue-100={p.block === "2"}
-                    class:bg-indigo-50={p.block === "3"}
-                    class:border-indigo-100={p.block === "3"}
+                    class:bg-yellow-50={!p.block || p.block === 1}
+                    class:border-yellow-100={!p.block || p.block === 1}
+                    class:bg-blue-50={p.block === 2}
+                    class:border-blue-100={p.block === 2}
+                    class:bg-indigo-50={p.block === 3}
+                    class:border-indigo-100={p.block === 3}
                     draggable="true"
                     ondragstart={(e) => props.onDragStart(e, p._id)}
                     ondblclick={(e) => {
@@ -52,15 +52,15 @@
                     <!-- Fallback Double Click Button -->
                     <button
                         class="absolute top-1 right-1 opacity-0 group-hover:opacity-100 p-1 rounded text-[10px] font-bold transition-all z-10"
-                        class:bg-yellow-200={!p.block || p.block === "1"}
-                        class:text-yellow-800={!p.block || p.block === "1"}
-                        class:hover:bg-yellow-300={!p.block || p.block === "1"}
-                        class:bg-blue-200={p.block === "2"}
-                        class:text-blue-800={p.block === "2"}
-                        class:hover:bg-blue-300={p.block === "2"}
-                        class:bg-indigo-200={p.block === "3"}
-                        class:text-indigo-800={p.block === "3"}
-                        class:hover:bg-indigo-300={p.block === "3"}
+                        class:bg-yellow-200={!p.block || p.block === 1}
+                        class:text-yellow-800={!p.block || p.block === 1}
+                        class:hover:bg-yellow-300={!p.block || p.block === 1}
+                        class:bg-blue-200={p.block === 2}
+                        class:text-blue-800={p.block === 2}
+                        class:hover:bg-blue-300={p.block === 2}
+                        class:bg-indigo-200={p.block === 3}
+                        class:text-indigo-800={p.block === 3}
+                        class:hover:bg-indigo-300={p.block === 3}
                         onclick={(e) => {
                             e.stopPropagation();
                             if (props.onPatientDoubleClick)
