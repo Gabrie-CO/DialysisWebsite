@@ -118,18 +118,6 @@ export const seedClinicsAndMeetings = mutation({
                     condition: "Stable",
                     chairId: undefined, // ensure no chair id for past queue
                     clinicId: clinic._id,
-                    patientCardData: {
-                        elderly80_90: false,
-                        malnutrition: false,
-                        preservedDiuresis: true,
-                        time: "4:00",
-                        qd: "500",
-                        qb: "300",
-                        ktvt: "1.4",
-                        filter: "FX80",
-                        observations: "Patient responded well to treatment.",
-                        signature: "Dr. Smith",
-                    }
                 });
                 count++;
             }

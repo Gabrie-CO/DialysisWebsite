@@ -47,7 +47,7 @@
         const patientData = patient.data;
         if (!patientData || !patientData.pinnedSections) return [];
 
-        return patientData.pinnedSections.map((section) => {
+        return patientData.pinnedSections.map((section: string) => {
             // Map section ID (e.g. "hemodialysis") to data
             const data = patientData[section as keyof typeof patientData];
             // Format title (e.g. "hemodialysis" -> "Hemodialysis")
@@ -202,12 +202,6 @@
                                                     minute: "2-digit",
                                                 })}
                                             </p>
-                                            <h4
-                                                class="font-bold text-gray-900 text-lg"
-                                            >
-                                                {meeting.title ||
-                                                    "Dialysis Session"}
-                                            </h4>
                                         </div>
 
                                         {#if meeting.chairId}
@@ -250,17 +244,10 @@
                                                 class="text-[10px] uppercase text-gray-400 font-bold block mb-1"
                                                 >Pre-Weight</span
                                             >
-                                            {#if meeting.weight?.pre}
-                                                <span
-                                                    class="font-medium text-gray-700"
-                                                    >{meeting.weight.pre} kg</span
-                                                >
-                                            {:else}
-                                                <span
-                                                    class="text-gray-300 italic"
-                                                    >--</span
-                                                >
-                                            {/if}
+
+                                            <span class="text-gray-300 italic"
+                                                >--</span
+                                            >
                                         </div>
 
                                         <!-- Weight Post -->
@@ -269,41 +256,21 @@
                                                 class="text-[10px] uppercase text-gray-400 font-bold block mb-1"
                                                 >Post-Weight</span
                                             >
-                                            {#if meeting.weight?.post}
-                                                <span
-                                                    class="font-medium text-gray-700"
-                                                    >{meeting.weight.post} kg</span
-                                                >
-                                            {:else}
-                                                <span
-                                                    class="text-gray-300 italic"
-                                                    >--</span
-                                                >
-                                            {/if}
+
+                                            <span class="text-gray-300 italic"
+                                                >--</span
+                                            >
                                         </div>
 
-                                        <!-- Patient Card / Obs -->
+                                        <!-- Observations -->
                                         <div>
                                             <span
                                                 class="text-[10px] uppercase text-gray-400 font-bold block mb-1"
                                                 >Observations</span
                                             >
-                                            {#if meeting.patientCardData?.observations}
-                                                <p
-                                                    class="text-xs text-gray-600 line-clamp-2"
-                                                    title={meeting
-                                                        .patientCardData
-                                                        .observations}
-                                                >
-                                                    {meeting.patientCardData
-                                                        .observations}
-                                                </p>
-                                            {:else}
-                                                <span
-                                                    class="text-gray-300 italic"
-                                                    >--</span
-                                                >
-                                            {/if}
+                                            <span class="text-gray-300 italic"
+                                                >--</span
+                                            >
                                         </div>
                                     </div>
                                 </div>

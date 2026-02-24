@@ -11,7 +11,6 @@
 import type * as assessments from "../assessments.js";
 import type * as chairs from "../chairs.js";
 import type * as clinics from "../clinics.js";
-import type * as debugQueue from "../debugQueue.js";
 import type * as forms from "../forms.js";
 import type * as meetings from "../meetings.js";
 import type * as patients from "../patients.js";
@@ -28,7 +27,6 @@ declare const fullApi: ApiFromModules<{
   assessments: typeof assessments;
   chairs: typeof chairs;
   clinics: typeof clinics;
-  debugQueue: typeof debugQueue;
   forms: typeof forms;
   meetings: typeof meetings;
   patients: typeof patients;

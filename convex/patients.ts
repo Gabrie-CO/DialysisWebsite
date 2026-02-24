@@ -281,7 +281,7 @@ export const togglePin = mutation({
             .withIndex("by_user", (q) => q.eq("userId", args.patientId))
             .unique();
 
-  
+
 
     },
 });
@@ -332,21 +332,7 @@ export const updateCriticalInfo = mutation({
 
         if (meetingToday) {
             await ctx.db.patch(meetingToday._id, {
-
                 condition: priority,
-                patientCardData: {
-                    ...meetingToday.patientCardData,
-                    elderly80_90: meetingToday.patientCardData?.elderly80_90 ?? false,
-                    malnutrition: meetingToday.patientCardData?.malnutrition ?? false,
-                    preservedDiuresis: meetingToday.patientCardData?.preservedDiuresis ?? false,
-                    time: meetingToday.patientCardData?.time ?? "",
-                    qd: meetingToday.patientCardData?.qd ?? "",
-                    qb: meetingToday.patientCardData?.qb ?? "",
-                    ktvt: meetingToday.patientCardData?.ktvt ?? "",
-                    filter: meetingToday.patientCardData?.filter ?? "",
-                    signature: meetingToday.patientCardData?.signature ?? "",
-                    observations: newObservations || meetingToday.patientCardData?.observations || ""
-                }
             });
         } else {
             await ctx.db.insert("meetings", {
@@ -354,18 +340,6 @@ export const updateCriticalInfo = mutation({
                 date: new Date().toISOString(),
                 status: "completed",
                 condition: priority,
-                patientCardData: {
-                    elderly80_90: false,
-                    malnutrition: false,
-                    preservedDiuresis: false,
-                    time: "",
-                    qd: "",
-                    qb: "",
-                    ktvt: "",
-                    filter: "",
-                    signature: "",
-                    observations: newObservations
-                }
             });
         }
     }

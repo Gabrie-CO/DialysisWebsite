@@ -60,29 +60,17 @@ export default defineSchema({
     }),
 
     meetings: defineTable({
-        date: v.string(),
-        status: v.string(),
-        patientId: v.optional(v.id("users")), // Made optional to support legacy/empty meetings
+        block: v.optional(v.float64()),
         chairId: v.optional(v.string()),
+        clinicId: v.optional(v.id("clinics")),
         condition: v.optional(v.string()),
-        block: v.optional(v.number()), // Indicates what block they attended
-        clinicId: v.optional(v.id("clinics")), // Indicates which hospital they are in
+        date: v.string(),
+        patientId: v.optional(v.id("users")),
         schedule: v.optional(v.string()),
-        // Snapshot of patient card at the time of meeting
-        patientCardData: v.optional(v.object({
-            elderly80_90: v.boolean(),
-            malnutrition: v.boolean(),
-            preservedDiuresis: v.boolean(),
-            time: v.string(),
-            qd: v.string(),
-            qb: v.string(),
-            ktvt: v.string(),
-            filter: v.string(),
-            observations: v.string(),
-            signature: v.string(),
-        })),
-    }).index("by_patient_date", ["patientId", "date"])
-        .index("by_date", ["date"]),
+        status: v.string(),
+    })
+        .index("by_date", ["date"])
+        .index("by_patient_date", ["patientId", "date"]),
 
     chairs: defineTable({
         chairId: v.string(), // "1", "2", ... "12"

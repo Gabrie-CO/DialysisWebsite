@@ -10,18 +10,6 @@ export const createOrUpdate = mutation({
         chairId: v.optional(v.string()),
         condition: v.optional(v.string()),
         schedule: v.optional(v.string()),
-        patientCardData: v.optional(v.object({
-            elderly80_90: v.boolean(),
-            malnutrition: v.boolean(),
-            preservedDiuresis: v.boolean(),
-            time: v.string(),
-            qd: v.string(),
-            qb: v.string(),
-            ktvt: v.string(),
-            filter: v.string(),
-            observations: v.string(),
-            signature: v.string(),
-        })),
     },
     handler: async (ctx, args) => {
         // Check if a meeting already exists for this patient on this date (approximate check)
@@ -38,7 +26,6 @@ export const createOrUpdate = mutation({
             chairId: args.chairId,
             condition: args.condition,
             schedule: args.schedule,
-            patientCardData: args.patientCardData,
         });
         return id;
     },
