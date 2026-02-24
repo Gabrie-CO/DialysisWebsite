@@ -96,7 +96,6 @@ export const assignChair = mutation({
                 patientId: args.patientId,
                 date: new Date().toISOString(),
                 status: "in-progress",
-                title: "Hemodialysis Session",
                 chairId: args.chairId
             });
         }

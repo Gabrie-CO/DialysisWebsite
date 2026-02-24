@@ -281,17 +281,8 @@ export const togglePin = mutation({
             .withIndex("by_user", (q) => q.eq("userId", args.patientId))
             .unique();
 
-        let pinnedSections = patientData?.pinnedSections || [];
+  
 
-        if (pinnedSections.includes(args.section)) {
-            pinnedSections = pinnedSections.filter((s) => s !== args.section);
-        } else {
-            pinnedSections.push(args.section);
-        }
-
-        await upsertPatientCore(ctx, args.patientId, {
-            pinnedSections,
-        });
     },
 });
 
@@ -341,10 +332,7 @@ export const updateCriticalInfo = mutation({
 
         if (meetingToday) {
             await ctx.db.patch(meetingToday._id, {
-                weight: {
-                    pre: newWeight.pre || meetingToday.weight?.pre || "",
-                    post: newWeight.post
-                },
+
                 condition: priority,
                 patientCardData: {
                     ...meetingToday.patientCardData,
@@ -365,8 +353,6 @@ export const updateCriticalInfo = mutation({
                 patientId: args.patientId,
                 date: new Date().toISOString(),
                 status: "completed",
-                title: "Dialysis Session",
-                weight: newWeight,
                 condition: priority,
                 patientCardData: {
                     elderly80_90: false,
