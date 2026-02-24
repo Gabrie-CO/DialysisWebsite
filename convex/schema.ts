@@ -23,92 +23,12 @@ export default defineSchema({
     patients: defineTable({
         userId: v.id("users"), // Link config
         // Patient specific fields
+        present: v.optional(v.boolean()), // checked in / in building
+        block: v.optional(v.string()), // block 1, 2, 3
         priority: v.optional(v.string()), // critical, warning, stable
         condition: v.optional(v.string()), // critical, warning, stable (sync with priority if needed, but keeping separate for form)
 
-        // Critical Info Form Fields
-        bodyWeight: v.optional(v.number()),
-        preWeight: v.optional(v.number()),
-        infected: v.optional(v.boolean()),
-        preExistingConditions: v.optional(v.string()),
-        treatmentType: v.optional(v.string()),
-        observations: v.optional(v.string()),
-
         alert: v.optional(v.string()), // Single alert message from dashboard
-        dryWeight: v.optional(v.number()),
-        code: v.optional(v.string()), // e.g. "PT-123"
-        alerts: v.optional(v.array(v.string())),
-        currentAccess: v.optional(
-            v.object({
-                type: v.string(),
-                location: v.string(),
-            })
-        ),
-        criticalInfo: v.optional(v.object({
-            elderly80_90: v.boolean(),
-            malnutrition: v.boolean(),
-            preservedDiuresis: v.boolean(),
-            time: v.string(),
-            qd: v.string(),
-            bodyWeight: v.number(),
-            preWeight: v.optional(v.number()),
-            condition: v.string(),
-            infected: v.boolean(),
-            preExistingConditions: v.string(),
-            treatmentType: v.string(),
-            observations: v.optional(v.string()),
-            updatedAt: v.optional(v.string()),
-        })),
-        patientCard: v.optional(v.object({
-            elderly80_90: v.boolean(),
-            malnutrition: v.boolean(),
-            preservedDiuresis: v.boolean(),
-            time: v.string(),
-            qd: v.string(),
-            qb: v.string(),
-            ktvt: v.string(),
-            filter: v.string(),
-            observations: v.string(),
-            signature: v.string(),
-            updatedAt: v.optional(v.string()),
-        })),
-        // Fichas (Checklists)
-        fichas: v.optional(v.record(v.string(), v.array(v.number()))),
-
-        // Infections
-        infections: v.optional(v.object({
-            name: v.string(),
-            antibiotic: v.string(),
-            dose: v.string(),
-            route: v.string(),
-            pps: v.union(v.literal("negative"), v.literal("positive"), v.null()),
-            startDate: v.string(),
-            endDate: v.string(),
-            observations: v.string(),
-            updatedAt: v.optional(v.string()),
-        })),
-        // Clinical History
-        clinicalHistory: v.optional(v.any()), // ClinicalHistory2
-        // New Forms
-        cidh: v.optional(v.any()),
-        clinicHistoryOld: v.optional(v.any()), // ClinicHistory.svelte
-        fistula: v.optional(v.any()),
-        hemodialysis: v.optional(v.any()),
-        medicationSheet: v.optional(v.any()),
-        examControls: v.optional(v.any()),
-        monthlyProgress: v.optional(v.any()),
-        generalInfo: v.optional(v.object({
-            name: v.string(),
-            age: v.string(),
-            sex: v.string(),
-            civilStatus: v.string(),
-            occupation: v.string(),
-            birthPlace: v.string(),
-            birthDate: v.string(),
-            residence: v.string(),
-            phone: v.string(),
-            updatedAt: v.optional(v.string()),
-        })),
         pinnedSections: v.optional(v.array(v.string())), // List of pinned section IDs
         block: v.optional(v.number()), // Shift/Block the patient belongs to
         present: v.optional(v.boolean()), // Whether the patient is currently in the queue/clinic
@@ -116,16 +36,8 @@ export default defineSchema({
 
     forms: defineTable({
         patientId: v.id("users"),
-        type: v.union(
-            v.literal("cidh"),
-            v.literal("clinicHistoryOld"),
-            v.literal("fistula"),
-            v.literal("hemodialysis"),
-            v.literal("medicationSheet"),
-            v.literal("examControls"),
-            v.literal("monthlyProgress")
-        ),
-        data: v.any(),
+        type: v.string(), // "generalInfo", "clinicalHistory", "criticalInfo", etc.
+        data: v.any(), // Flexible JSON storage for form data
         updatedAt: v.string(),
     })
         .index("by_patient", ["patientId"])
@@ -158,6 +70,7 @@ export default defineSchema({
         status: v.string(),
         title: v.string(),
         patientId: v.optional(v.id("users")), // Made optional to support legacy/empty meetings
+        clinicId: v.optional(v.string()), // New field
         chairId: v.optional(v.string()), // Store chair number/ID
         weight: v.optional(v.object({ pre: v.string(), post: v.string() })),
         condition: v.optional(v.string()), // e.g. "Stable", "Critical"
@@ -178,4 +91,12 @@ export default defineSchema({
         })),
     }).index("by_patient_date", ["patientId", "date"])
         .index("by_date", ["date"]),
+
+    chairs: defineTable({
+        chairId: v.string(), // "1", "2", ... "12"
+        status: v.string(), // "cleaning", "occupied", "available" (though occupied is derived from meetings usually)
+        startTime: v.string(), // ISO date
+        endTime: v.optional(v.string()), // ISO date
+        notes: v.optional(v.string()),
+    }).index("by_chairId", ["chairId"]),
 });

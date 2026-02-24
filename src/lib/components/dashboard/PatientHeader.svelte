@@ -82,15 +82,16 @@
           {patient?.lastName ?? "Patient"}
         </h1>
         <div class="flex gap-3 text-sm text-gray-500 mt-1">
-          {#if patient?.code}
+          {#if patient?.generalInfo?.code ?? patient?.code}
             <span class="font-mono bg-gray-100 px-1 rounded"
-              >{patient.code}</span
+              >{patient?.generalInfo?.code ?? patient?.code}</span
             >
           {/if}
 
           {#if patient?.gender}<span>{patient.gender}</span>{/if}
           <span class="font-bold text-gray-700"
-            >Dry Wt: {patient?.dryWeight ??
+            >Dry Wt: {patient?.criticalInfo?.bodyWeight ??
+              patient?.dryWeight ??
               patient?.demographics?.dryWeight ??
               "--"}kg</span
           >

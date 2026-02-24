@@ -70,45 +70,81 @@ export const getRecent = query({
 export const getQueue = query({
     args: {},
     handler: async (ctx) => {
-        const today = new Date().toISOString().split("T")[0]; // YYYY-MM-DD
-
-        // 1. Get all meetings for today that are active/scheduled
-        const todaysMeetings = await ctx.db
-            .query("meetings")
-            .withIndex("by_date", (q) => q.eq("date", today))
-            .filter((q) =>
-                q.or(
-                    q.eq(q.field("status"), "active"),
-                    q.eq(q.field("status"), "scheduled") // or whatever status implies "present"
-                )
-            )
+        // 1. Get all patients who are marked as present
+        const presentPatients = await ctx.db
+            .query("patients")
+            .filter((q) => q.eq(q.field("present"), true))
             .collect();
 
-        // 2. Fetch user details for each patient in today's meetings
-        const queue = await Promise.all(
-            todaysMeetings.map(async (meeting) => {
-                if (!meeting.patientId) return null;
+        // 2. Fetch user details and latest meeting for each present patient
+        const allPresent = await Promise.all(
+            presentPatients.map(async (patientData) => {
+                const userId = patientData.userId;
+                if (!userId) return null;
 
                 const user = await ctx.db.get(meeting.patientId);
                 if (!user) return null;
 
-                const patientData = await ctx.db
-                    .query("patients")
-                    .withIndex("by_user", (q) => q.eq("userId", meeting.patientId as import("./_generated/dataModel").Id<"users">))
-                    .unique();
+                // Find the latest meeting for this patient (today or most recent)
+                const lastMeeting = await ctx.db
+                    .query("meetings")
+                    .withIndex("by_patient_date", (q) => q.eq("patientId", userId))
+                    .order("desc")
+                    .first();
 
-                if (!patientData) return null;
+                const block = patientData.block || "3"; // Default to last block if missing
+
+                // Check if they are currently assigned to a chair
+                const isAssigned = lastMeeting?.chairId != null;
 
                 return {
                     ...user,
                     ...patientData,
-                    _id: user._id, // Use user ID as main ID for frontend consistency
-                    meetingToday: meeting
+                    _id: userId,
+                    meetingToday: lastMeeting,
+                    block: block,
+                    isAssigned
                 };
             })
         );
 
-        return queue.filter((p) => p !== null);
+        const validPatients = allPresent.filter((p) => p !== null && !p.isAssigned);
+
+        // 3. Group by Block
+        const blocks = { "1": [], "2": [], "3": [] } as Record<string, typeof validPatients>;
+
+        validPatients.forEach(p => {
+            const b = p!.block as string;
+            if (blocks[b]) {
+                blocks[b].push(p);
+            } else {
+                // Handle unexpected block names by grouping them in '3' or a default
+                blocks["3"].push(p);
+            }
+        });
+
+        // 4. Find the first block that has waiting patients
+        console.log("Queue Status:", {
+            totalValid: validPatients.length,
+            B1: blocks["1"].length,
+            B2: blocks["2"].length,
+            B3: blocks["3"].length
+        });
+
+        if (blocks["1"].length > 0) {
+            console.log("Returning Block 1");
+            return blocks["1"];
+        }
+        if (blocks["2"].length > 0) {
+            console.log("Returning Block 2");
+            return blocks["2"];
+        }
+        if (blocks["3"].length > 0) {
+            console.log("Returning Block 3");
+            return blocks["3"];
+        }
+
+        return [];
     },
 });
 
@@ -122,27 +158,92 @@ export const markPresent = mutation({
 
         const existingMeeting = await ctx.db
             .query("meetings")
-            .withIndex("by_patient_date", (q) => q.eq("patientId", args.patientId).eq("date", today))
-            .first();
+            .order("desc")
+            .take(100); // Reasonable limit for now
 
-        if (args.present) {
-            if (!existingMeeting) {
-                // Create a new meeting for today to mark them as present
-                await ctx.db.insert("meetings", {
-                    patientId: args.patientId,
-                    date: today,
-                    status: "scheduled", // default status
-                    title: "Hemodialysis Session",
+        const today = new Date().toISOString().split('T')[0];
+
+        const activeMeetings = meetings.filter(m =>
+            m.date.startsWith(today) &&
+            m.chairId !== undefined &&
+            m.chairId !== null
+        );
+
+        // Fetch user details for these meetings
+        const chairsWithPatients = await Promise.all(
+            activeMeetings.map(async (m) => {
+                if (!m.patientId) return null;
+                const user = await ctx.db.get(m.patientId);
+                const patientData = await ctx.db
+                    .query("patients")
+                    .withIndex("by_user", (q) => q.eq("userId", m.patientId!))
+                    .unique();
+
+                if (!user) return null;
+
+                return {
+                    chairId: m.chairId, // "0", "1", etc. (index as string)
+                    patient: {
+                        _id: user._id,
+                        id: user._id,
+                        name: user.firstName && user.lastName
+                            ? `${user.firstName} ${user.lastName}`
+                            : "Unknown",
+                        priority: patientData?.priority || "stable",
+                        alert: patientData?.alert,
+                        chairNumber: String(Number(m.chairId) + 1).padStart(2, "0")
+                    }
+                };
+            })
+        );
+
+        // Fetch chair statuses
+        const chairStatuses = await ctx.db.query("chairs").collect();
+        const cleaningMap = new Map();
+
+        chairStatuses.forEach(c => {
+            if (c.status === "cleaning") {
+                cleaningMap.set(c.chairId, c);
+            }
+        });
+
+        // Combine logic: 
+        // We need to return an array that the frontend can map to 12 chairs.
+        // The frontend currently expects an array of active meetings/assignments.
+        // We should enrich this or return a full 12-item array if possible, 
+        // but to minimize frontend breakage, let's just piggyback on the existing structure 
+        // OR add a new return field. 
+
+        // Let's modify the return to include 'cleaning' chairs as pseudo-patients or a separate list?
+        // The frontend iterates `chairs` array (derived from dailyChairsQuery).
+
+        // Let's allow the query to return "cleaning" as a patient-like object with priority="cleaning"
+        // This matches how the frontend currently handles local state.
+
+        const combinedResult = [...chairsWithPatients.filter(Boolean)];
+
+        cleaningMap.forEach((chairData, chairId) => {
+            // Only add if not already occupied (though it shouldn't be if logic is correct)
+            // If a chair is cleaning, it shouldn't have an active meeting ideally.
+            // Check if this chairId is already in combinedResult
+            const isOccupied = combinedResult.some((item: any) => item.chairId === chairId);
+
+            if (!isOccupied) {
+                combinedResult.push({
+                    chairId: chairId,
+                    patient: {
+                        _id: "cleaning-" + chairId,
+                        id: "cleaning-" + chairId,
+                        name: "Cleaning Required",
+                        priority: "cleaning",
+                        alert: "Needs disinfection",
+                        chairNumber: String(Number(chairId) + 1).padStart(2, "0"),
+                        startTime: chairData.startTime // Pass this for "how long"
+                    } as any
                 });
-            } else if (existingMeeting.status === "cancelled") {
-                // Re-activate
-                await ctx.db.patch(existingMeeting._id, { status: "scheduled" });
             }
-        } else {
-            // Un-mark present (cancel or delete the meeting if it was just created)
-            if (existingMeeting) {
-                await ctx.db.patch(existingMeeting._id, { status: "cancelled" });
-            }
-        }
+        });
+
+        return combinedResult;
     }
 });
