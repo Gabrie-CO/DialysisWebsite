@@ -13,17 +13,7 @@
 - **Convex Bundling & Type Imports**: When importing types from Convex's generated `dataModel`, always use the top-level `import type` syntax (e.g., `import type { Id } from "./_generated/dataModel"`). Using value-import syntax with inline type modifiers (`import { type Id } from ...`) can cause Esbuild to fail during `npx convex dev`, because it attempts to resolve a non-existent `./_generated/dataModel.js` runtime file.
 - **Valid Meeting Object Example**: A well-formed meeting object for the queue looks like this:
   ```javascript
-  {
-    _creationTime: 1771908060520.5212,
-    _id: "j970qnp3zhgyke6zk50amrmy0581rmax",
-    block: 1,
-    clinicId: "k577r3bz52m3fadwp976391qkx81q8c0",
-    condition: "Stable",
-    date: "2026-02-24", // Exact YYYY-MM-DD format
-    patientId: "j578wnqhnb1e7b10bc371d7wwx81s8tj",
-    status: "scheduled",
-    // Notice: NO chairId is set initially if they are in the queue
-  }
+  
   ```
 - **Svelte/Convex Race Conditions**: When performing a multi-step action like discharging a patient (e.g., mark as completed, remove from chair, change chair to cleaning), **do not** fire multiple sequential `convex.mutation` calls from the Svelte frontend. Because Convex is a real-time reactive database, rapid-fire mutations will trigger interleaved state updates, leading to race conditions where older states overwrite newer ones (like a patient remaining technically `"active"` despite a `"completed"` call). Instead, wrap the entire multi-step process into a **single, backend atomic mutation** (like `dischargePatient`).
 - **Dynamic Block Propagation logic**: The block advancing logic in Svelte should derive its "Is Current Block Empty" state _only_ from the unassigned queue array, not from active chairs. By using `Array.from(new Set(rawQueue.map(p => p.block)))` and sorting it, the system can determine precisely which block is the _next_ block with waiting patients, and assign `activeBlock` dynamically without requiring blocks to empty strictly 1->2->3.

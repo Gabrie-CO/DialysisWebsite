@@ -50,7 +50,7 @@ export default defineSchema({
     clinics: defineTable({
         name: v.string(),
         address: v.optional(v.string()),
-        settings: v.optional(v.any()),
+        numChairs:v.number(),
         activeChairs: v.array(
             v.object({
                 chairId: v.string(),
@@ -79,4 +79,23 @@ export default defineSchema({
         endTime: v.optional(v.string()), // ISO date
         notes: v.optional(v.string()),
     }).index("by_chairId", ["chairId"]),
+
+    specialistAvailability: defineTable({
+        specialistId: v.id("users"),
+        dayOfWeek: v.number(),
+        startTime: v.string(),
+        endTime: v.string(),
+    }).index("by_specialist", ["specialistId"]),
+
+    specialistAppointments: defineTable({
+        patientId: v.id("users"),
+        specialistId: v.id("users"),
+        type: v.union(v.literal("nutrition"), v.literal("psychology")),
+        startTime: v.string(),
+        endTime: v.string(),
+        status: v.string(),
+        meetingLink: v.optional(v.string()),
+    })
+        .index("by_specialist_time", ["specialistId", "startTime"])
+        .index("by_patient", ["patientId"]),
 });

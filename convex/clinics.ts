@@ -6,15 +6,6 @@ export const getDefault = mutation({
     args: {},
     handler: async (ctx) => {
         let clinic = await ctx.db.query("clinics").first();
-        if (!clinic) {
-            const clinicId = await ctx.db.insert("clinics", {
-                name: "Default Clinic",
-                address: "123 Main St",
-                settings: {},
-                activeChairs: [],
-            });
-            clinic = (await ctx.db.get(clinicId))!;
-        }
         return clinic;
     },
 });

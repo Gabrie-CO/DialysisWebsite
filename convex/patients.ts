@@ -270,22 +270,6 @@ export const setPresence = mutation({
     },
 });
 
-export const togglePin = mutation({
-    args: {
-        patientId: v.id("users"),
-        section: v.string(),
-    },
-    handler: async (ctx, args) => {
-        const patientData = await ctx.db
-            .query("patients")
-            .withIndex("by_user", (q) => q.eq("userId", args.patientId))
-            .unique();
-
-
-
-    },
-});
-
 export const updateCriticalInfo = mutation({
     args: {
         patientId: v.id("users"),
