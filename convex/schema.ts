@@ -23,8 +23,6 @@ export default defineSchema({
     patients: defineTable({
         userId: v.id("users"), // Link config
         // Patient specific fields
-        present: v.optional(v.boolean()), // checked in / in building
-        block: v.optional(v.string()), // block 1, 2, 3
         priority: v.optional(v.string()), // critical, warning, stable
         condition: v.optional(v.string()), // critical, warning, stable (sync with priority if needed, but keeping separate for form)
 
@@ -70,10 +68,9 @@ export default defineSchema({
         status: v.string(),
         title: v.string(),
         patientId: v.optional(v.id("users")), // Made optional to support legacy/empty meetings
-        clinicId: v.optional(v.string()), // New field
-        chairId: v.optional(v.string()), // Store chair number/ID
+        chairId: v.optional(v.string()),
         weight: v.optional(v.object({ pre: v.string(), post: v.string() })),
-        condition: v.optional(v.string()), // e.g. "Stable", "Critical"
+        condition: v.optional(v.string()),
         block: v.optional(v.number()), // Indicates what block they attended
         clinicId: v.optional(v.id("clinics")), // Indicates which hospital they are in
         clinicName: v.optional(v.string()),
