@@ -73,6 +73,10 @@ export default defineSchema({
         condition: v.optional(v.string()),
         block: v.optional(v.number()), // Indicates what block they attended
         clinicId: v.optional(v.id("clinics")), // Indicates which hospital they are in
+        clinicName: v.optional(v.string()),
+        schedule: v.optional(v.string()),
+        shift: v.optional(v.string()),
+        type: v.optional(v.string()),
         // Snapshot of patient card at the time of meeting
         patientCardData: v.optional(v.object({
             elderly80_90: v.boolean(),

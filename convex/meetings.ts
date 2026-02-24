@@ -11,6 +11,10 @@ export const createOrUpdate = mutation({
         chairId: v.optional(v.string()),
         weight: v.optional(v.object({ pre: v.string(), post: v.string() })),
         condition: v.optional(v.string()),
+        clinicName: v.optional(v.string()),
+        schedule: v.optional(v.string()),
+        shift: v.optional(v.string()),
+        type: v.optional(v.string()),
         patientCardData: v.optional(v.object({
             elderly80_90: v.boolean(),
             malnutrition: v.boolean(),
@@ -40,6 +44,10 @@ export const createOrUpdate = mutation({
             chairId: args.chairId,
             weight: args.weight,
             condition: args.condition,
+            clinicName: args.clinicName,
+            schedule: args.schedule,
+            shift: args.shift,
+            type: args.type,
             patientCardData: args.patientCardData,
         });
         return id;
