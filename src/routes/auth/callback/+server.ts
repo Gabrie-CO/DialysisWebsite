@@ -19,13 +19,12 @@ export const GET: RequestHandler = async ({ url }: RequestEvent) => {
 
         // Sync user to Convex
         await convexClient.mutation(api.users.store, {
-            id: user.id,
             tokenIdentifier: user.id,
             email: user.email,
             firstName: user.firstName ?? undefined,
             lastName: user.lastName ?? undefined,
             profilePictureUrl: user.profilePictureUrl ?? undefined,
-        } as any);
+        });
 
         // Set the cookie for client-side auth check
         // The cookie name must match what is checked in +layout.svelte
