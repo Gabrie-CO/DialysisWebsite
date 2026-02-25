@@ -14,7 +14,6 @@ import type * as clinics from "../clinics.js";
 import type * as forms from "../forms.js";
 import type * as meetings from "../meetings.js";
 import type * as patients from "../patients.js";
-import type * as seed from "../seed.js";
 import type * as users from "../users.js";
 
 import type {
@@ -30,7 +29,6 @@ declare const fullApi: ApiFromModules<{
   forms: typeof forms;
   meetings: typeof meetings;
   patients: typeof patients;
-  seed: typeof seed;
   users: typeof users;
 }>;
 

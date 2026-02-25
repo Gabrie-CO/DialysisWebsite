@@ -69,7 +69,7 @@ export const assignChair = mutation({
             const clinicId = await ctx.db.insert("clinics", {
                 name: "Default Clinic",
                 address: "123 Main St",
-                settings: {},
+                numChairs: 15,
                 activeChairs: [],
             });
             clinic = (await ctx.db.get(clinicId))!;
