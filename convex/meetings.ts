@@ -9,7 +9,6 @@ export const createOrUpdate = mutation({
     status: v.string(),
     chairId: v.optional(v.string()),
     condition: v.optional(v.string()),
-    schedule: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const id = await ctx.db.insert("meetings", {
@@ -18,7 +17,6 @@ export const createOrUpdate = mutation({
       status: args.status,
       chairId: args.chairId,
       condition: args.condition,
-      schedule: args.schedule,
     });
     return id;
   },
@@ -55,7 +53,8 @@ export const getQueue = query({
     const queueMeetings = todayMeetings.filter(m =>
       (m.status === "scheduled" || m.status === "active") &&
       !m.chairId &&
-      m.block !== undefined
+      m.block !== undefined &&
+      m.present === true
     );
     const queuePatients = await Promise.all(
       queueMeetings.map(async (meeting) => {
@@ -90,13 +89,16 @@ export const markPresent = mutation({
     present: v.boolean(),
   },
   handler: async (ctx, args) => {
-    const patientData = await ctx.db
-      .query("patients")
-      .withIndex("by_user", (q) => q.eq("userId", args.patientId))
-      .unique();
+    const todayDate = new Date().toLocaleDateString("en-CA", {
+      timeZone: "America/Tegucigalpa"
+    })
+    const meetings = await ctx.db
+      .query("meetings")
+      .withIndex("by_patient_date", (q) => q.eq("patientId", args.patientId).eq("date", todayDate))
+      .collect();
 
-    if (patientData) {
-      await ctx.db.patch(patientData._id, { present: args.present });
+    if (meetings.length > 0) {
+      await ctx.db.patch(meetings[0]._id, { present: args.present });
     }
   }
 });

@@ -116,15 +116,7 @@ export const dischargePatient = mutation({
         patientId: v.id("users"),
     },
     handler: async (ctx, args) => {
-        // 1. Mark present: false
-        const patientData = await ctx.db
-            .query("patients")
-            .withIndex("by_user", (q) => q.eq("userId", args.patientId))
-            .unique();
-
-        if (patientData) {
-            await ctx.db.patch(patientData._id, { present: false });
-        }
+        // 1. Mark present: false (Moved to meetings table update)
 
         // 2. Clear chair assignment in clinics
         let clinic = await ctx.db.query("clinics").first();
@@ -146,7 +138,8 @@ export const dischargePatient = mutation({
         if (meetingToday) {
             await ctx.db.patch(meetingToday._id, {
                 chairId: undefined,
-                status: "completed"
+                status: "completed",
+                present: false
             });
         }
 

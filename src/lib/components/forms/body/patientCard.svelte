@@ -69,6 +69,7 @@
     <TextInput label="Qb" bind:value={$form.qb} />
     <TextInput label="KT/v T" bind:value={$form.ktvt} />
     <TextInput label="Filter" bind:value={$form.filter} />
+    <TextInput label="Schedule" bind:value={$form.schedule} />
   </div>
 {/snippet}
 

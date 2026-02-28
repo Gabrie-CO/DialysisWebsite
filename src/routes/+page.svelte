@@ -126,8 +126,8 @@
     time: "",
     qd: "",
     qb: "",
-    ktvt: "",
     filter: "",
+    schedule: "",
     observations: "",
     signature: "",
   };

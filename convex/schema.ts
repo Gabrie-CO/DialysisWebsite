@@ -25,7 +25,7 @@ export default defineSchema({
         // Patient specific fields
         priority: v.optional(v.string()), // critical, warning, stable
         alert: v.optional(v.string()), // Single alert message from dashboard
-        present: v.optional(v.boolean()), // Whether the patient is currently in the queue/clinic
+        schedule: v.optional(v.string()), // migrated from meetings, but kept here for validation
     }).index("by_user", ["userId"]),
 
     forms: defineTable({
@@ -50,7 +50,7 @@ export default defineSchema({
     clinics: defineTable({
         name: v.string(),
         address: v.optional(v.string()),
-        numChairs:v.number(),
+        numChairs: v.number(),
         activeChairs: v.array(
             v.object({
                 chairId: v.string(),
@@ -66,7 +66,7 @@ export default defineSchema({
         condition: v.optional(v.string()),
         date: v.string(),
         patientId: v.optional(v.id("users")),
-        schedule: v.optional(v.string()),
+        present: v.optional(v.boolean()),
         status: v.string(),
     })
         .index("by_date", ["date"])

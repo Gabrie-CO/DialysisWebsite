@@ -13,6 +13,7 @@ export const patientCardSchema = z.object({
   qb: z.string().default(""),
   ktvt: z.string().default(""),
   filter: z.string().default(""),
+  schedule: z.string().default(""),
 
   observations: z.string().default(""),
   signature: z.string().default(""),

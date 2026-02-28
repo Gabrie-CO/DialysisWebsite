@@ -159,8 +159,8 @@ export const updatePatientCard = mutation({
             qb: v.string(),
             ktvt: v.string(),
             filter: v.string(),
-            observations: v.string(),
             signature: v.string(),
+            schedule: v.optional(v.string()),
             updatedAt: v.optional(v.string()),
         }),
     },
@@ -258,17 +258,7 @@ export const updateMonthlyProgress = mutation({
     },
 });
 
-export const setPresence = mutation({
-    args: {
-        patientId: v.id("users"),
-        present: v.boolean(),
-    },
-    handler: async (ctx, args) => {
-        await upsertPatientCore(ctx, args.patientId, {
-            present: args.present,
-        });
-    },
-});
+
 
 export const updateCriticalInfo = mutation({
     args: {
